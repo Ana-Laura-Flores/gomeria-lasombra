@@ -22,7 +22,7 @@ export default function useItems(tipoItem = "servicio", tipoVehiculo = "") {
               if (!tarifa) return null;
               return {
                 id: tarifa.id,
-                servicio: s.nombre,
+                servicio: tarifa.servicio?.nombre || "", // <--- aquí
                 precio: tarifa.precio,
                 tipo_vehiculo: tarifa.tipo_vehiculo,
               };
