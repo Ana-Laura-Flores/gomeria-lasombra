@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { login } from "../services/api-login";
@@ -8,24 +9,24 @@ import { login } from "../services/api-login";
 export default function Login({ setToken }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
  const handleLogin = async (e) => {
   e.preventDefault();
 
   try {
     const response = await login(email, password);
-
-    console.log("LOGIN RESPONSE:", response);
-
     const token = response.data.access_token;
 
     localStorage.setItem("token", token);
     setToken(token);
+
+    navigate("/dashboard"); // o la ruta que quieras
   } catch (error) {
-    console.error("Error en login:", error);
     alert("Email o contraseña incorrectos");
   }
 };
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 px-4">
