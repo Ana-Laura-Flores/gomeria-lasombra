@@ -1,7 +1,14 @@
+import React from "react";
+import MainLayout from "../layouts/MainLayout";
+
 export default function Dashboard() {
   return (
-    <div className="flex items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold text-green-500">Bienvenido al Dashboard</h1>
-    </div>
+    <MainLayout>
+      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
+      <p className="text-gray-400">
+        Bienvenida al sistema de gestión de Gomería La Sombra.
+      </p>
+    </MainLayout>
   );
 }
+
