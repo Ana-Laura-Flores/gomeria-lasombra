@@ -1,7 +1,6 @@
 import React from "react";
 
 export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles }) {
-
   // Actualizar item (cantidad, precio, subtotal)
   const actualizarItem = (id, campo, valor) => {
     setItemsOrden(
@@ -27,7 +26,7 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
           ? {
               ...i,
               tarifaId: itemSeleccionado.id,
-              servicio: itemSeleccionado.servicio,  // nombre del servicio
+              servicio: itemSeleccionado.servicio,
               precio_unitario: itemSeleccionado.precio,
               subtotal: itemSeleccionado.precio * i.cantidad,
             }

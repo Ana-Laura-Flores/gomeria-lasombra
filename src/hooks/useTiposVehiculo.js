@@ -11,10 +11,13 @@ export default function useTiposVehiculo() {
       try {
         setLoading(true);
         const data = await apiFetch(
-          "tarifas?fields=tipo_vehiculo&limit=-1"
+          "tipos_vehiculo?fields=id,nombre" // Cambiar por tu colección real de tipos de vehículo
         );
-        const uniqueTipos = [...new Set(data.data.map((t) => t.tipo_vehiculo))];
-        setTipos(uniqueTipos);
+        if (data?.data) {
+          setTipos(data.data);
+        } else {
+          setTipos([]);
+        }
       } catch (err) {
         console.error(err);
         setError(err);

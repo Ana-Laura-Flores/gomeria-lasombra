@@ -6,19 +6,13 @@ import OrdenFooter from "../components/OrdenFooter";
 import Modal from "../components/Modal";
 import useClientes from "../hooks/useClientes";
 import useItems from "../hooks/useItems";
-import useTiposVehiculo from "../hooks/useTiposVehiculo";
+import useTiposVehiculo from "../hooks/useTiposVehiculo"; // <-- hook nuevo
 
 export default function NuevaOrden() {
-  const { clientes, loading: loadingClientes } = useClientes();
-  const { tipos: tiposVehiculo, loading: loadingTipos } = useTiposVehiculo();
-
   const [tipoVehiculo, setTipoVehiculo] = useState("");
-  const [tipoItem, setTipoItem] = useState("servicio"); // servicio o producto
-
-  const { items: itemsDisponibles, loading: loadingItems } = useItems(
-    tipoItem,
-    tipoVehiculo
-  );
+  const { tipos: tiposVehiculo, loading: loadingTipos } = useTiposVehiculo();
+  const { items: itemsDisponibles, loading: loadingItems } = useItems(tipoVehiculo);
+  const { clientes, loading: loadingClientes } = useClientes();
 
   const loading = loadingClientes || loadingItems || loadingTipos;
 
@@ -53,6 +47,7 @@ export default function NuevaOrden() {
     setCondicionCobro("contado");
     setMetodoPago("efectivo");
     setFecha(new Date().toISOString().slice(0, 10));
+    setTipoVehiculo("");
   };
 
   return (
@@ -66,7 +61,7 @@ export default function NuevaOrden() {
           <input
             type="date"
             value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
+            onChange={e => setFecha(e.target.value)}
             className="w-full p-2 rounded bg-gray-800 border border-gray-700"
           />
         </div>
@@ -87,48 +82,38 @@ export default function NuevaOrden() {
           <input
             placeholder="ABC123"
             value={patente}
-            onChange={(e) => setPatente(e.target.value)}
+            onChange={e => setPatente(e.target.value)}
             className="w-full p-2 rounded bg-gray-800 border border-gray-700"
           />
         </div>
       </div>
 
-      {/* Tipo de ítem */}
-      <div className="mb-4">
-        <label className="block mb-1">Tipo de ítem</label>
-        <select
-          value={tipoItem}
-          onChange={(e) => setTipoItem(e.target.value)}
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-        >
-          <option value="servicio">Servicio</option>
-          <option value="producto">Producto</option>
-        </select>
-      </div>
-
-      {/* Tipo de vehículo */}
+      {/* Select tipo de vehículo dinámico */}
       <div className="mb-4">
         <label className="block mb-1">Tipo de vehículo</label>
-        {!loadingTipos && (
+        {!loadingTipos ? (
           <select
             value={tipoVehiculo}
-            onChange={(e) => setTipoVehiculo(e.target.value)}
+            onChange={e => setTipoVehiculo(e.target.value)}
             className="w-full p-2 rounded bg-gray-800 border border-gray-700"
           >
             <option value="">Seleccionar</option>
-            {tiposVehiculo.map((t) => (
-              <option key={t} value={t}>
-                {t}
+            {tiposVehiculo.map(t => (
+              <option key={t.id} value={t.nombre}>
+                {t.nombre}
               </option>
             ))}
           </select>
+        ) : (
+          <p>Cargando tipos de vehículo...</p>
         )}
       </div>
 
-      {/* Botón agregar item */}
+      {/* Botón para agregar items */}
       <button
         onClick={agregarItem}
         className="px-4 py-2 mb-4 bg-blue-600 rounded hover:bg-blue-700"
+        disabled={!tipoVehiculo} // solo habilitar si hay tipo seleccionado
       >
         + Agregar ítem
       </button>
@@ -144,7 +129,7 @@ export default function NuevaOrden() {
         <p>Cargando items...</p>
       )}
 
-      {/* Footer */}
+      {/* Footer con botón de guardar */}
       <OrdenFooter
         total={total}
         cliente={cliente}
@@ -159,7 +144,7 @@ export default function NuevaOrden() {
         }}
       />
 
-      {/* Modal */}
+      {/* Modal de confirmación */}
       <Modal
         open={showModal}
         title="Orden guardada correctamente"

@@ -17,11 +17,11 @@ export default function useItems(tipoVehiculo) {
 
         if (data?.data && Array.isArray(data.data)) {
           const filtered = data.data
-            .filter(t => t.tipo_vehiculo === tipoVehiculo) // filtra por tipo de vehículo
+            .filter(t => t.tipo_vehiculo === tipoVehiculo)
             .map(t => ({
               id: t.id,
               servicio: t.servicio?.nombre || "",
-              precio: t.precio,
+              precio: Number(t.precio),
               tipo_vehiculo: t.tipo_vehiculo,
             }));
 
@@ -29,7 +29,6 @@ export default function useItems(tipoVehiculo) {
         } else {
           setItems([]);
         }
-
       } catch (err) {
         console.error(err);
         setError(err);
