@@ -22,5 +22,10 @@ export const apiFetch = async (endpoint, options = {}) => {
   return res.json();
 };
 
-// Helper específico para items
-export const getItems = () => apiFetch("items_orden");
+
+// src/services/api.js
+export const getItems = async () => {
+  // Pedimos que traiga la relación completa de tarifa y el servicio relacionado
+  return apiFetch("items_orden?fields=*,tarifa.id,tarifa.precio,tarifa.servicio.id,tarifa.servicio.nombre");
+};
+
