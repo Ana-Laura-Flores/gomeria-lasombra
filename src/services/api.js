@@ -23,4 +23,4 @@ export const apiFetch = async (endpoint, options = {}) => {
 };
 
 // Helper específico para items
-export const getItems = () => apiFetch("tarifas");
+export const getItems = () => apiFetch("items_orden");

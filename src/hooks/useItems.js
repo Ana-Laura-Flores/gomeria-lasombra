@@ -1,5 +1,6 @@
+// src/hooks/useItems.js
 import { useState, useEffect } from "react";
-import { getItems } from "../services/api"; // tu función que llama a Directus
+import { getItems } from "../services/api";
 
 export default function useItems() {
   const [items, setItems] = useState([]);
@@ -10,8 +11,19 @@ export default function useItems() {
     const fetchItems = async () => {
       try {
         setLoading(true);
-        const data = await getItems(); // función que hace fetch a Directus
-        setItems(data);
+        const data = await getItems(); // viene tal cual de Directus
+
+        if (data?.data && Array.isArray(data.data)) {
+          const mapped = data.data.map(i => ({
+            id: i.id,
+            tarifaId: i.tarifa?.id || "",
+            servicio: i.tarifa?.servicio || "", // el nombre del servicio
+            precio_unitario: i.tarifa?.precio || 0,
+          }));
+          setItems(mapped);
+        } else {
+          setItems([]);
+        }
       } catch (err) {
         console.error(err);
         setError(err);
