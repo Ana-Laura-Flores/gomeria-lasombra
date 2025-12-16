@@ -1,5 +1,5 @@
 // src/services/api-login.js
-const API_URL = "https://vps-5529044-x.dattaweb.com"; // reemplaza con tu URL de Directus
+const API_URL = import.meta.env.VITE_API_URL;
 
 export async function login(email, password) {
   const res = await fetch(`${API_URL}/auth/login`, {

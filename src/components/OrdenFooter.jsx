@@ -1,4 +1,6 @@
-import React from "react";
+import { API_URL, authHeaders } from "../services/api";
+import { useState } from "react";
+
 export default function OrdenFooter({
   total,
   fecha,
@@ -7,53 +9,69 @@ export default function OrdenFooter({
   condicionCobro,
   metodoPago,
   items,
+  onSuccess,
 }) {
-  const guardarOrden = () => {
-    if (!cliente || items.length === 0) {
-      alert("Falta cliente o ítems");
-      return;
+  const [loading, setLoading] = useState(false);
+
+  const guardarOrden = async () => {
+    if (!cliente || items.length === 0) return;
+
+    try {
+      setLoading(true);
+
+      // 1️⃣ Crear ORDEN
+      const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          fecha,
+          cliente,
+          patente,
+          estado: condicionCobro === "contado" ? "pagado" : "pendiente",
+          total,
+          total_pagado: condicionCobro === "contado" ? total : 0,
+          saldo: condicionCobro === "contado" ? 0 : total,
+        }),
+      });
+
+      const ordenData = await ordenRes.json();
+      const ordenId = ordenData.data.id;
+
+      // 2️⃣ Crear ITEMS
+      for (const item of items) {
+        await fetch(`${API_URL}/items/items_orden`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            orden: ordenId,
+            tarifa: item.tarifaId,
+            cantidad: item.cantidad,
+            precio_unitario: item.precio_unitario,
+            subtotal: item.subtotal,
+          }),
+        });
+      }
+
+      onSuccess(); // abre modal + reset
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-
-    const orden = {
-      id: Date.now(),
-      fecha,
-      cliente,
-      patente,
-      condicion_cobro: condicionCobro,
-      metodo_pago:
-        condicionCobro === "contado" ? metodoPago : null,
-      total,
-      items,
-      estado:
-        condicionCobro === "contado" ? "pagado" : "pendiente",
-    };
-
-    const ordenesGuardadas =
-      JSON.parse(localStorage.getItem("ordenes")) || [];
-
-    ordenesGuardadas.push(orden);
-
-    localStorage.setItem(
-      "ordenes",
-      JSON.stringify(ordenesGuardadas)
-    );
-
-    alert("Orden guardada correctamente");
   };
 
   return (
-    <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-700 pt-4">
-      <div className="text-xl font-bold">
-        Total: $ {total}
-      </div>
+    <div className="mt-6 flex justify-between items-center border-t border-gray-700 pt-4">
+      <div className="text-xl font-bold">Total: $ {total}</div>
 
       <button
         onClick={guardarOrden}
-        className="px-6 py-3 bg-green-600 rounded hover:bg-green-700"
+        disabled={loading}
+        className="px-6 py-3 bg-green-600 rounded hover:bg-green-700 disabled:opacity-50"
       >
-        Guardar orden
+        {loading ? "Guardando..." : "Guardar orden"}
       </button>
     </div>
   );
 }
-

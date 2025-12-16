@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { tarifasMock } from "../mock-tarifas/tarifas";
 import OrdenFooter from "../components/OrdenFooter";
+import Modal from "../components/Modal";
+
 
 
 export default function NuevaOrden() {
   const [cliente, setCliente] = useState("");
   const [patente, setPatente] = useState("");
   const [items, setItems] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
   const [fecha, setFecha] = useState(
     new Date().toISOString().slice(0, 10)
@@ -64,6 +67,16 @@ export default function NuevaOrden() {
   };
 
   const total = items.reduce((acc, item) => acc + item.subtotal, 0);
+  const resetForm = () => {
+  setCliente("");
+  setPatente("");
+  setItems([]);
+  setCondicionCobro("contado");
+  setMetodoPago("efectivo");
+  setFecha(new Date().toISOString().slice(0, 10));
+};
+
+
 
   return (
     <MainLayout>
@@ -188,7 +201,7 @@ export default function NuevaOrden() {
         </tbody>
       </table>
 
-      <OrdenFooter
+     <OrdenFooter
   total={total}
   fecha={fecha}
   cliente={cliente}
@@ -196,7 +209,40 @@ export default function NuevaOrden() {
   condicionCobro={condicionCobro}
   metodoPago={metodoPago}
   items={items}
+  onSuccess={() => {
+    setShowModal(true);
+    resetForm();
+  }}
 />
+<Modal
+  open={showModal}
+  title="Orden guardada correctamente"
+  onClose={() => setShowModal(false)}
+  actions={
+    <>
+      <button
+        onClick={() => setShowModal(false)}
+        className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+      >
+        Seguir cargando
+      </button>
+
+      <button
+        onClick={() => {
+          setShowModal(false);
+          window.scrollTo(0, 0);
+        }}
+        className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+      >
+        Nueva orden
+      </button>
+    </>
+  }
+>
+  La orden se guardó en el sistema.
+  Podés cargar otra o seguir trabajando.
+</Modal>
+
 
     </MainLayout>
   );
