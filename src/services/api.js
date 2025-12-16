@@ -25,7 +25,10 @@ export const apiFetch = async (endpoint, options = {}) => {
 
 // src/services/api.js
 export const getItems = async () => {
-  // Pedimos que traiga la relación completa de tarifa y el servicio relacionado
-  return apiFetch("items_orden?fields=*,tarifa.id,tarifa.precio,tarifa.servicio.id,tarifa.servicio.nombre");
+  // Trae items_orden con tarifa y el servicio relacionado
+  return apiFetch(
+    "items_orden?fields=*,tarifa.id,tarifa.precio,tarifa.tipo_vehiculo,tarifa.servicio.id,tarifa.servicio.nombre"
+  );
 };
+
 
