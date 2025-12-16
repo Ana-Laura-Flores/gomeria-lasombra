@@ -9,17 +9,24 @@ export default function Login({ setToken }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const userData = await login(email, password); // llamada a Directus
-      localStorage.setItem("token", userData.access_token); // guardamos token
-      setToken(userData.access_token); // actualizamos estado
-    } catch (error) {
-      console.error("Error en login:", error.message);
-      alert("Email o contraseña incorrectos");
-    }
-  };
+ const handleLogin = async (e) => {
+  e.preventDefault();
+
+  try {
+    const response = await login(email, password);
+
+    console.log("LOGIN RESPONSE:", response);
+
+    const token = response.data.access_token;
+
+    localStorage.setItem("token", token);
+    setToken(token);
+  } catch (error) {
+    console.error("Error en login:", error);
+    alert("Email o contraseña incorrectos");
+  }
+};
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 px-4">
       <form
