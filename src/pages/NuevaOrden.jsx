@@ -6,13 +6,21 @@ import OrdenFooter from "../components/OrdenFooter";
 import Modal from "../components/Modal";
 import useClientes from "../hooks/useClientes";
 import useItems from "../hooks/useItems";
+import useTiposVehiculo from "../hooks/useTiposVehiculo";
 
 export default function NuevaOrden() {
   const { clientes, loading: loadingClientes } = useClientes();
-  const { items: itemsDisponibles, loading: loadingItems } = useItems();
+  const { tipos: tiposVehiculo, loading: loadingTipos } = useTiposVehiculo();
 
-  // Loading unificado
-  const loading = loadingClientes || loadingItems;
+  const [tipoVehiculo, setTipoVehiculo] = useState("");
+  const [tipoItem, setTipoItem] = useState("servicio"); // servicio o producto
+
+  const { items: itemsDisponibles, loading: loadingItems } = useItems(
+    tipoItem,
+    tipoVehiculo
+  );
+
+  const loading = loadingClientes || loadingItems || loadingTipos;
 
   const [cliente, setCliente] = useState("");
   const [patente, setPatente] = useState("");
@@ -23,19 +31,20 @@ export default function NuevaOrden() {
   const [metodoPago, setMetodoPago] = useState("efectivo");
 
   const total = itemsOrden.reduce((acc, i) => acc + i.subtotal, 0);
-const agregarItem = () => {
-  setItemsOrden([
-    ...itemsOrden,
-    {
-      id: Date.now(),
-      tarifaId: "",
-      servicio: "",
-      cantidad: 1,
-      precio_unitario: 0,
-      subtotal: 0,
-    },
-  ]);
-};
+
+  const agregarItem = () => {
+    setItemsOrden([
+      ...itemsOrden,
+      {
+        id: Date.now(),
+        tarifaId: "",
+        servicio: "",
+        cantidad: 1,
+        precio_unitario: 0,
+        subtotal: 0,
+      },
+    ]);
+  };
 
   const resetForm = () => {
     setCliente("");
@@ -57,7 +66,7 @@ const agregarItem = () => {
           <input
             type="date"
             value={fecha}
-            onChange={e => setFecha(e.target.value)}
+            onChange={(e) => setFecha(e.target.value)}
             className="w-full p-2 rounded bg-gray-800 border border-gray-700"
           />
         </div>
@@ -78,18 +87,51 @@ const agregarItem = () => {
           <input
             placeholder="ABC123"
             value={patente}
-            onChange={e => setPatente(e.target.value)}
+            onChange={(e) => setPatente(e.target.value)}
             className="w-full p-2 rounded bg-gray-800 border border-gray-700"
           />
         </div>
       </div>
-{/* Botón para agregar items */}
-<button
-  onClick={agregarItem}
-  className="px-4 py-2 mb-4 bg-blue-600 rounded hover:bg-blue-700"
->
-  + Agregar ítem
-</button>
+
+      {/* Tipo de ítem */}
+      <div className="mb-4">
+        <label className="block mb-1">Tipo de ítem</label>
+        <select
+          value={tipoItem}
+          onChange={(e) => setTipoItem(e.target.value)}
+          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+        >
+          <option value="servicio">Servicio</option>
+          <option value="producto">Producto</option>
+        </select>
+      </div>
+
+      {/* Tipo de vehículo */}
+      <div className="mb-4">
+        <label className="block mb-1">Tipo de vehículo</label>
+        {!loadingTipos && (
+          <select
+            value={tipoVehiculo}
+            onChange={(e) => setTipoVehiculo(e.target.value)}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+          >
+            <option value="">Seleccionar</option>
+            {tiposVehiculo.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {/* Botón agregar item */}
+      <button
+        onClick={agregarItem}
+        className="px-4 py-2 mb-4 bg-blue-600 rounded hover:bg-blue-700"
+      >
+        + Agregar ítem
+      </button>
 
       {/* Items */}
       {!loading ? (
@@ -102,7 +144,7 @@ const agregarItem = () => {
         <p>Cargando items...</p>
       )}
 
-      {/* Footer con botón de guardar */}
+      {/* Footer */}
       <OrdenFooter
         total={total}
         cliente={cliente}
@@ -117,7 +159,7 @@ const agregarItem = () => {
         }}
       />
 
-      {/* Modal de confirmación */}
+      {/* Modal */}
       <Modal
         open={showModal}
         title="Orden guardada correctamente"

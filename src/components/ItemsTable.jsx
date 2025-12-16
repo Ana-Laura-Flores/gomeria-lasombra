@@ -1,10 +1,7 @@
-import React from "react";
-
 export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles }) {
-  // Actualizar item (cantidad, precio, subtotal)
   const actualizarItem = (id, campo, valor) => {
     setItemsOrden(
-      itemsOrden.map(item => {
+      itemsOrden.map((item) => {
         if (item.id === id) {
           const actualizado = { ...item, [campo]: valor };
           actualizado.subtotal = actualizado.cantidad * actualizado.precio_unitario;
@@ -15,13 +12,12 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
     );
   };
 
-  // Seleccionar item de los disponibles
   const seleccionarItem = (id, tarifaId) => {
-    const item = itemsDisponibles.find(i => i.id === Number(tarifaId));
+    const item = itemsDisponibles.find((i) => i.id === Number(tarifaId));
     if (!item) return;
 
     setItemsOrden(
-      itemsOrden.map(i =>
+      itemsOrden.map((i) =>
         i.id === id
           ? {
               ...i,
@@ -46,16 +42,16 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
         </tr>
       </thead>
       <tbody>
-        {itemsOrden.map(item => (
+        {itemsOrden.map((item) => (
           <tr key={item.id} className="border-b border-gray-800">
             <td className="p-2">
               <select
                 className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
                 value={item.tarifaId || ""}
-                onChange={e => seleccionarItem(item.id, e.target.value)}
+                onChange={(e) => seleccionarItem(item.id, e.target.value)}
               >
                 <option value="">Seleccionar</option>
-                {itemsDisponibles.map(i => (
+                {itemsDisponibles.map((i) => (
                   <option key={i.id} value={i.id}>
                     {i.servicio} - ${i.precio}
                   </option>
@@ -67,9 +63,7 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
                 type="number"
                 className="w-20 p-1 bg-gray-800 border border-gray-700 rounded"
                 value={item.cantidad}
-                onChange={e =>
-                  actualizarItem(item.id, "cantidad", Number(e.target.value))
-                }
+                onChange={(e) => actualizarItem(item.id, "cantidad", Number(e.target.value))}
               />
             </td>
             <td className="p-2">$ {item.precio_unitario}</td>
