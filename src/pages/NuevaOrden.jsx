@@ -23,6 +23,19 @@ export default function NuevaOrden() {
   const [metodoPago, setMetodoPago] = useState("efectivo");
 
   const total = itemsOrden.reduce((acc, i) => acc + i.subtotal, 0);
+const agregarItem = () => {
+  setItemsOrden([
+    ...itemsOrden,
+    {
+      id: Date.now(),
+      tarifaId: "",
+      servicio: "",
+      cantidad: 1,
+      precio_unitario: 0,
+      subtotal: 0,
+    },
+  ]);
+};
 
   const resetForm = () => {
     setCliente("");
@@ -70,6 +83,13 @@ export default function NuevaOrden() {
           />
         </div>
       </div>
+{/* Botón para agregar items */}
+<button
+  onClick={agregarItem}
+  className="px-4 py-2 mb-4 bg-blue-600 rounded hover:bg-blue-700"
+>
+  + Agregar ítem
+</button>
 
       {/* Items */}
       {!loading ? (
