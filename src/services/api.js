@@ -1,3 +1,4 @@
+// src/services/api.js
 export const API_URL = import.meta.env.VITE_API_URL;
 
 export const authHeaders = () => ({
@@ -5,7 +6,6 @@ export const authHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
 
-// Función genérica para hacer fetch a Directus
 export const apiFetch = async (endpoint, options = {}) => {
   const res = await fetch(`${API_URL}/items/${endpoint}`, {
     ...options,
@@ -21,3 +21,6 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   return res.json();
 };
+
+// Helper específico para items
+export const getItems = () => apiFetch("items_orden");
