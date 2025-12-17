@@ -30,11 +30,14 @@ export default function Ordenes() {
         );
     }
     const getEstadoVisual = (orden) => {
-        if (orden.saldo === 0) {
+        const total = Number(orden.total) || 0;
+        const saldo = Number(orden.saldo) || 0;
+
+        if (saldo === 0 && total > 0) {
             return { label: "Pagado", className: "bg-green-700" };
         }
 
-        if (orden.saldo < orden.total) {
+        if (saldo > 0 && saldo < total) {
             return { label: "Parcial", className: "bg-yellow-700" };
         }
 
@@ -57,19 +60,7 @@ export default function Ordenes() {
                             <th className="p-2">Total</th>
                             <th className="p-2">Pagado</th>
                             <th className="p-2">Saldo</th>
-                            <td className="p-2">
-                                {(() => {
-                                    const estado = getEstadoVisual(orden);
-                                    return (
-                                        <span
-                                            className={`px-2 py-1 rounded text-sm text-white ${estado.className}`}
-                                        >
-                                            {estado.label}
-                                        </span>
-                                    );
-                                })()}
-                            </td>
-
+                            <th className="p-2">Estado</th>
                             <th className="p-2">Acciones</th>
                         </tr>
                     </thead>
@@ -126,8 +117,16 @@ export default function Ordenes() {
                                 <td className="p-2">$ {orden.saldo}</td>
 
                                 <td className="p-2">
-                                    {/* estado visual lo hacemos en el paso 2 */}
-                                    {orden.estado}
+                                    {(() => {
+                                        const estado = getEstadoVisual(orden);
+                                        return (
+                                            <span
+                                                className={`px-2 py-1 rounded text-sm text-white ${estado.className}`}
+                                            >
+                                                {estado.label}
+                                            </span>
+                                        );
+                                    })()}
                                 </td>
 
                                 <td className="p-2">
