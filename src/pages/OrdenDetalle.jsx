@@ -22,9 +22,10 @@ export default function OrdenDetalle() {
         const fetchOrden = async () => {
             try {
                 const res = await getOrdenTrabajoById(id);
-                setOrden(res.data);
+                setOrden(res.data?.data || null);
             } catch (error) {
                 console.error("Error cargando orden:", error);
+                setOrden(null);
             } finally {
                 setLoading(false);
             }
@@ -75,7 +76,10 @@ export default function OrdenDetalle() {
     return (
         <MainLayout>
             {/* CONTENEDOR IMPRIMIBLE */}
-            <div className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg print:bg-white print:text-black">
+            <div
+                id="orden-print"
+                className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg print:bg-white print:text-black"
+            >
                 {/* HEADER */}
                 <div className="flex items-center gap-4">
                     <img
