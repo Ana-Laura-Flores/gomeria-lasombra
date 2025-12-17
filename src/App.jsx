@@ -1,10 +1,7 @@
-import {
-    BrowserRouter as Router,
-    Routes,
-    Route,
-    Navigate,
-} from "react-router-dom";
-import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -12,54 +9,60 @@ import NuevaOrden from "./pages/NuevaOrden";
 import Ordenes from "./pages/Ordenes";
 import OrdenDetalle from "./pages/OrdenDetalle";
 
+function ProtectedRoute({ children, adminOnly = false }) {
+  const { isLoggedIn, user } = useAuth();
+
+  if (!isLoggedIn) return <Navigate to="/login" />;
+  if (adminOnly && user?.role !== "admin") return <Navigate to="/login" />;
+  return children;
+}
+
 export default function App() {
-    const [token, setToken] = useState(localStorage.getItem("token"));
-    const [role, setRole] = useState(localStorage.getItem("role"));
-    const isLoggedIn = !!token;
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
 
-    return (
-        <Router>
-            <Routes>
-                <Route
-                    path="/login"
-                    element={<Login setToken={setToken} setRole={setRole} />}
-                />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-                <Route
-                    path="/dashboard"
-                    element={
-                        isLoggedIn && role === "admin" ? (
-                            <Dashboard />
-                        ) : (
-                            <Navigate to="/login" />
-                        )
-                    }
-                />
+          <Route
+            path="/ordenes"
+            element={
+              <ProtectedRoute>
+                <Ordenes />
+              </ProtectedRoute>
+            }
+          />
 
-                <Route
-                    path="/ordenes"
-                    element={
-                        isLoggedIn ? <Ordenes /> : <Navigate to="/login" />
-                    }
-                />
+          <Route
+            path="/ordenes/nueva"
+            element={
+              <ProtectedRoute>
+                <NuevaOrden />
+              </ProtectedRoute>
+            }
+          />
 
-                <Route
-                    path="/ordenes/nueva"
-                    element={
-                        isLoggedIn ? <NuevaOrden /> : <Navigate to="/login" />
-                    }
-                />
+          <Route
+            path="/ordenes/:id"
+            element={
+              <ProtectedRoute>
+                <OrdenDetalle />
+              </ProtectedRoute>
+            }
+          />
 
-                <Route
-                    path="/ordenes/:id"
-                    element={
-                        isLoggedIn ? <OrdenDetalle /> : <Navigate to="/login" />
-                    }
-                />
-
-                {/* SIEMPRE AL FINAL */}
-                <Route path="*" element={<Navigate to="/login" />} />
-            </Routes>
-        </Router>
-    );
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
 }

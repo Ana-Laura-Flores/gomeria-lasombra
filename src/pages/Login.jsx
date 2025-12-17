@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { login } from "../services/api-login";
+import { useAuth } from "../context/AuthContext";
 
-
-
-export default function Login({ setToken, setRole }) {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { loginUser } = useAuth(); // <-- usamos contexto
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,15 +18,15 @@ export default function Login({ setToken, setRole }) {
       const res = await login(email, password);
 
       const token = res.data.access_token;
-      const role = res.data.user.role.name;
 
-      // GUARDAR
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
+      // Dependiendo de cómo venga la respuesta de tu API, adaptamos user
+      const user = {
+        id: res.data.user.id,
+        name: res.data.user.name,
+        role: res.data.user.role?.name || "user",
+      };
 
-      // ESTADO GLOBAL
-      setToken(token);
-      setRole(role);
+      loginUser(token, user);
 
       navigate("/dashboard");
     } catch (error) {
@@ -34,7 +34,6 @@ export default function Login({ setToken, setRole }) {
       console.error(error);
     }
   };
-
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 px-4">
