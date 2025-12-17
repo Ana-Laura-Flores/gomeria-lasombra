@@ -1,75 +1,82 @@
-import React from "react";
-import logo from "../assets/logo.png"; // ajustá la ruta
+import logo from "../assets/logo.jpg";
+
+const formatMoney = (value) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+  }).format(Number(value) || 0);
 
 export default function OrdenPrint({ orden }) {
   if (!orden) return null;
 
-  const formatMoney = (v) =>
-    Number(v).toLocaleString("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 2,
-    });
-
   return (
     <div
       id="orden-print"
-      className="bg-white text-black p-4"
       style={{
-        width: "148mm",
-        minHeight: "210mm",
+        width: "100%",
+        maxWidth: "420px",
+        margin: "0 auto",
+        padding: "16px",
+        backgroundColor: "#ffffff",
+        color: "#000000",
+        fontFamily: "Arial, sans-serif",
         fontSize: "12px",
       }}
     >
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <img src={logo} alt="Logo" className="h-12" />
-        <div className="text-right">
-          <h2 className="text-lg font-bold">ORDEN DE TRABAJO</h2>
-          <p>N° {orden.comprobante_numero || orden.id}</p>
+      {/* HEADER */}
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+        <img src={logo} alt="Logo" style={{ height: 40, marginRight: 12 }} />
+        <div>
+          <strong>Gomería La Sombra</strong>
+          <div>Orden de trabajo</div>
         </div>
       </div>
 
-      {/* Datos */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <div><strong>Fecha:</strong> {orden.fecha}</div>
-        <div><strong>Patente:</strong> {orden.patente}</div>
+      {/* INFO */}
+      <div style={{ marginBottom: 12 }}>
+        <div><strong>Fecha:</strong> {new Date(orden.fecha).toLocaleDateString()}</div>
+        <div><strong>Comprobante:</strong> {orden.comprobante_numero || "-"}</div>
         <div>
           <strong>Cliente:</strong>{" "}
-          {orden.cliente?.nombre || orden.cliente}
+          {orden.cliente
+            ? `${orden.cliente.nombre} ${orden.cliente.apellido || ""}`
+            : "-"}
         </div>
+        <div><strong>Patente:</strong> {orden.patente}</div>
         <div><strong>Estado:</strong> {orden.estado}</div>
       </div>
 
-      {/* Items */}
-      <table className="w-full border text-xs mb-4">
+      {/* ITEMS */}
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
-          <tr className="bg-gray-200">
-            <th className="p-1 border">Servicio</th>
-            <th className="p-1 border text-right">Precio</th>
+          <tr>
+            <th style={{ borderBottom: "1px solid #000", textAlign: "left" }}>
+              Servicio
+            </th>
+            <th style={{ borderBottom: "1px solid #000", textAlign: "right" }}>
+              Precio
+            </th>
           </tr>
         </thead>
         <tbody>
-          {orden.items_orden?.map((item, i) => (
-            <tr key={i}>
-              <td className="p-1 border">
-                {item.tarifa?.servicio?.nombre || "—"}
+          {orden.items_orden?.map((item) => (
+            <tr key={item.id}>
+              <td style={{ padding: "4px 0" }}>
+                {item.tarifa?.servicio?.nombre || "-"}
               </td>
-              <td className="p-1 border text-right">
-                {formatMoney(item.tarifa?.precio)}
+              <td style={{ padding: "4px 0", textAlign: "right" }}>
+                {formatMoney(item.subtotal)}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* Totales */}
-      <div className="text-right space-y-1">
-        <div>Total: {formatMoney(orden.total)}</div>
+      {/* TOTALES */}
+      <div style={{ marginTop: 12, textAlign: "right" }}>
+        <div>Total: <strong>{formatMoney(orden.total)}</strong></div>
         <div>Pagado: {formatMoney(orden.total_pagado)}</div>
-        <div className="font-bold">
-          Saldo: {formatMoney(orden.saldo)}
-        </div>
+        <div>Saldo: {formatMoney(orden.saldo)}</div>
       </div>
     </div>
   );
