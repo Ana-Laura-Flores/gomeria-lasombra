@@ -1,5 +1,6 @@
+// src/hooks/useTiposVehiculo.js
 import { useState, useEffect } from "react";
-import { getItems } from "../services/api";
+import { getItems } from "../services/api"; // getItems trae tarifas con servicio y tipo_vehiculo
 
 export default function useTiposVehiculo() {
   const [tipos, setTipos] = useState([]);
@@ -10,21 +11,21 @@ export default function useTiposVehiculo() {
     const fetchTipos = async () => {
       try {
         setLoading(true);
-
-        // getItems debe traer las tarifas con el campo tipo_vehiculo
-        const result = await getItems();
-        const data = result?.data || [];
-
-        if (data.length) {
-          // Sacar tipos únicos de las tarifas
-          const tiposUnicos = [...new Set(data.map(item => item.tipo_vehiculo).filter(Boolean))];
+        const result = await getItems(); // trae tarifas con servicio y tipo_vehiculo
+        const tarifas = result?.data || [];
+        if (tarifas.length) {
+          // extraer tipos únicos y filtrar vacíos
+          const tiposUnicos = Array.from(
+            new Set(tarifas.map(t => t.tipo_vehiculo).filter(Boolean))
+          );
           setTipos(tiposUnicos);
         } else {
           setTipos([]);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching tipos de vehículo:", err);
         setError(err);
+        setTipos([]);
       } finally {
         setLoading(false);
       }

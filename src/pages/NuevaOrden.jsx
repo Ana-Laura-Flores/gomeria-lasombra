@@ -88,26 +88,26 @@ export default function NuevaOrden() {
         </div>
       </div>
 
-      {/* Select tipo de vehículo */}
-      <div className="mb-4">
-        <label className="block mb-1">Tipo de vehículo</label>
-        {loadingTipos ? (
-          <p>Cargando tipos de vehículo...</p>
-        ) : (
-          <select
-            value={tipoVehiculo}
-            onChange={e => setTipoVehiculo(e.target.value)}
-            className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-          >
-            <option value="">Seleccionar</option>
-            {tiposVehiculo.map(tipo => (
-              <option key={tipo} value={tipo}>
-                {tipo}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
+     <div className="mb-4">
+  <label className="block mb-1">Tipo de vehículo</label>
+  {loadingTipos ? (
+    <p>Cargando tipos de vehículo...</p>
+  ) : (
+    <select
+      value={tipoVehiculo}
+      onChange={e => setTipoVehiculo(e.target.value)}
+      className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+    >
+      <option value="">Seleccionar</option>
+      {tiposVehiculo.map(tipo => (
+        <option key={tipo} value={tipo}>
+          {tipo}
+        </option>
+      ))}
+    </select>
+  )}
+</div>
+
 
       {/* Botón para agregar items */}
       <button
