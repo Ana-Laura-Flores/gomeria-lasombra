@@ -4,7 +4,7 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { login } from "../services/api-login";
 import { useAuth } from "../context/AuthContext";
-import jwt_decode from "jwt-decode";
+import { jwt_decode } from "jwt-decode";
 
 export default function Login() {
   const [email, setEmail] = useState("");
