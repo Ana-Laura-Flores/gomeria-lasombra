@@ -74,3 +74,10 @@ export const getOrdenTrabajoById = async (id) => {
     `ordenes_trabajo/${id}?fields=*,cliente.id,cliente.nombre,pagos.*,items_orden.*,items_orden.tarifa.servicio.nombre`
   );
 };
+
+export const getDashboardOrdenes = async () => {
+  return apiFetch(
+    "ordenes_trabajo?fields=id,total,total_pagado,saldo"
+  );
+};
+

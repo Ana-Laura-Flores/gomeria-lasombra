@@ -18,9 +18,13 @@ export default function App() {
         <Route path="/login" element={<Login setToken={setToken} />} />
 
         <Route
-          path="/dashboard"
-          element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
-        />
+  path="/dashboard"
+  element={
+    isLoggedIn && userRole === "admin"
+      ? <Dashboard />
+      : <Navigate to="/" />
+  }
+/>
 
         <Route
           path="/ordenes"
