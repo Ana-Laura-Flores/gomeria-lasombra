@@ -6,7 +6,7 @@ import OrdenFooter from "../components/OrdenFooter";
 import Modal from "../components/Modal";
 import useClientes from "../hooks/useClientes";
 import useItems from "../hooks/useItems";
-import useTiposVehiculo from "../hooks/useTiposVehiculo"; // Hook que obtiene tipos de tarifas
+import useTiposVehiculo from "../hooks/useTiposVehiculo";
 
 export default function NuevaOrden() {
   const [tipoVehiculo, setTipoVehiculo] = useState("");
@@ -88,26 +88,26 @@ export default function NuevaOrden() {
         </div>
       </div>
 
-     <div className="mb-4">
-  <label className="block mb-1">Tipo de vehículo</label>
-  {loadingTipos ? (
-    <p>Cargando tipos de vehículo...</p>
-  ) : (
-    <select
-      value={tipoVehiculo}
-      onChange={e => setTipoVehiculo(e.target.value)}
-      className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-    >
-      <option value="">Seleccionar</option>
-      {tiposVehiculo.map(tipo => (
-        <option key={tipo} value={tipo}>
-          {tipo}
-        </option>
-      ))}
-    </select>
-  )}
-</div>
-
+      {/* Select Tipo de vehículo */}
+      <div className="mb-4">
+        <label className="block mb-1">Tipo de vehículo</label>
+        {loadingTipos ? (
+          <p>Cargando tipos de vehículo...</p>
+        ) : (
+          <select
+            value={tipoVehiculo}
+            onChange={e => setTipoVehiculo(e.target.value)}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+          >
+            <option value="">Seleccionar</option>
+            {tiposVehiculo.map(tipo => (
+              <option key={tipo} value={tipo}>
+                {tipo}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
 
       {/* Botón para agregar items */}
       <button
@@ -118,7 +118,7 @@ export default function NuevaOrden() {
         + Agregar ítem
       </button>
 
-      {/* Tabla de items */}
+      {/* Items */}
       {!loading ? (
         <ItemsTable
           itemsOrden={itemsOrden}
