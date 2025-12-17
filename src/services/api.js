@@ -69,3 +69,8 @@ export const getOrdenesTrabajo = async () => {
   );
 };
 
+export const getOrdenTrabajoById = async (id) => {
+  return apiFetch(
+    `ordenes_trabajo/${id}?fields=*,cliente.id,cliente.nombre,cliente.apellido,pagos.*,items_orden.*,items_orden.tarifa.servicio.nombre`
+  );
+};

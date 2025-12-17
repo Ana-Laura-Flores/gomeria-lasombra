@@ -49,6 +49,13 @@ export default function Ordenes() {
 
         return { label: "Debe", className: "bg-red-700" };
     };
+    const formatMoney = (value) => {
+        return new Intl.NumberFormat("es-AR", {
+            style: "currency",
+            currency: "ARS",
+            minimumFractionDigits: 2,
+        }).format(Number(value) || 0);
+    };
 
     return (
         <MainLayout>
@@ -118,9 +125,15 @@ export default function Ordenes() {
                                         : "—"}
                                 </td>
 
-                                <td className="p-2">$ {orden.total}</td>
-                                <td className="p-2">$ {orden.total_pagado}</td>
-                                <td className="p-2">$ {orden.saldo}</td>
+                                <td className="p-2">
+                                    {formatMoney(orden.total)}
+                                </td>
+                                <td className="p-2">
+                                    {formatMoney(orden.total_pagado)}
+                                </td>
+                                <td className="p-2">
+                                    {formatMoney(orden.saldo)}
+                                </td>
 
                                 <td className="p-2">
                                     {(() => {
