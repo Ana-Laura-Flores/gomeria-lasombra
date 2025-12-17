@@ -15,20 +15,10 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await login(email, password);
+     const res = await login(email, password);
+console.log("Respuesta del login:", res);
 
-      const token = res.data.access_token;
 
-      // Dependiendo de cómo venga la respuesta de tu API, adaptamos user
-      const user = {
-        id: res.data.user.id,
-        name: res.data.user.name,
-        role: res.data.user.role?.name || "user",
-      };
-
-      loginUser(token, user);
-
-      navigate("/dashboard");
     } catch (error) {
       alert("Login incorrecto");
       console.error(error);
