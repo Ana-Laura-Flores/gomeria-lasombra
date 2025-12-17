@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { apiFetch } from "../services/api";
+import { getItems } from "../services/api";
 
 export default function useTiposVehiculo() {
   const [tipos, setTipos] = useState([]);
@@ -10,11 +10,11 @@ export default function useTiposVehiculo() {
     const fetchTipos = async () => {
       try {
         setLoading(true);
-        const data = await apiFetch(
-          "tipos_vehiculo?fields=id,nombre" // Cambiar por tu colección real de tipos de vehículo
-        );
-        if (data?.data) {
-          setTipos(data.data);
+        const data = await getItems(); // getItems trae tarifas con servicio y tipo_vehiculo
+        if (data?.length) {
+          // sacar tipos únicos de las tarifas
+          const tiposUnicos = [...new Set(data.map(i => i.tipo_vehiculo))];
+          setTipos(tiposUnicos);
         } else {
           setTipos([]);
         }

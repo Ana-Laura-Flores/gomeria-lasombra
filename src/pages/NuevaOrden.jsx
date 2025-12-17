@@ -6,7 +6,7 @@ import OrdenFooter from "../components/OrdenFooter";
 import Modal from "../components/Modal";
 import useClientes from "../hooks/useClientes";
 import useItems from "../hooks/useItems";
-import useTiposVehiculo from "../hooks/useTiposVehiculo"; // <-- hook nuevo
+import useTiposVehiculo from "../hooks/useTiposVehiculo"; // hook para traer tipos de vehículo
 
 export default function NuevaOrden() {
   const [tipoVehiculo, setTipoVehiculo] = useState("");
@@ -88,7 +88,7 @@ export default function NuevaOrden() {
         </div>
       </div>
 
-      {/* Select tipo de vehículo dinámico */}
+      {/* Select de tipo de vehículo */}
       <div className="mb-4">
         <label className="block mb-1">Tipo de vehículo</label>
         {!loadingTipos ? (
@@ -98,9 +98,9 @@ export default function NuevaOrden() {
             className="w-full p-2 rounded bg-gray-800 border border-gray-700"
           >
             <option value="">Seleccionar</option>
-            {tiposVehiculo.map(t => (
-              <option key={t.id} value={t.nombre}>
-                {t.nombre}
+            {tiposVehiculo.map(tipo => (
+              <option key={tipo} value={tipo}>
+                {tipo}
               </option>
             ))}
           </select>
