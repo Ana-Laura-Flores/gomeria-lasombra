@@ -20,7 +20,11 @@ export default function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/login" element={<Login setToken={setToken} />} />
+                <Route
+                    path="/login"
+                    element={<Login setToken={setToken} setRole={setRole} />}
+                />
+
                 <Route
                     path="/dashboard"
                     element={
