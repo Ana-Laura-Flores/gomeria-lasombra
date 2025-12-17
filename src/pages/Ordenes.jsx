@@ -11,7 +11,13 @@ export default function Ordenes() {
         const fetchOrdenes = async () => {
             try {
                 const res = await getOrdenesTrabajo();
-                setOrdenes(res.data || []);
+                const data = Array.isArray(res.data)
+                    ? res.data
+                    : Array.isArray(res.data?.data)
+                    ? res.data.data
+                    : [];
+
+                setOrdenes(data);
             } catch (err) {
                 console.error("Error cargando órdenes:", err);
             } finally {
