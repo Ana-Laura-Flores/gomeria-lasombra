@@ -108,32 +108,6 @@ export default function NuevaOrden() {
           </select>
         )}
       </div>
-   {/* Condición de cobro */}
-      <div className="mb-4">
-        <label className="block mb-1">Condición de cobro</label>
-        <select
-          value={condicionCobro}
-          onChange={e => setCondicionCobro(e.target.value)}
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-        >
-          <option value="contado">Contado</option>
-          <option value="cuenta_corriente">Cuenta corriente</option>
-        </select>
-      </div>
-
-      {/* Método de pago */}
-      <div className="mb-4">
-        <label className="block mb-1">Método de pago</label>
-        <select
-          value={metodoPago}
-          onChange={e => setMetodoPago(e.target.value)}
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-        >
-          <option value="efectivo">Efectivo</option>
-          <option value="tarjeta">Tarjeta</option>
-          <option value="transferencia">Transferencia</option>
-        </select>
-      </div>
 
       {/* Botón para agregar items */}
       <button
