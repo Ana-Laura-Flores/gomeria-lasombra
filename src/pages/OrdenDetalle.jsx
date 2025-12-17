@@ -57,7 +57,7 @@ export default function OrdenDetalle() {
             </MainLayout>
         );
     }
-    const exportarPDF = () => {
+   const exportarPDF = () => {
   const element = document.getElementById("orden-print");
 
   html2pdf()
@@ -193,75 +193,10 @@ export default function OrdenDetalle() {
                     </button>
                 </div>
             </div>
-            <div
-  id="orden-print"
-  style={{
-    width: "100%",
-    maxWidth: "600px",
-    margin: "0 auto",
-    backgroundColor: "#ffffff",
-    color: "#000000",
-    padding: "16px",
-    fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
-  }}
->
-  {/* HEADER */}
-  <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-    <img src={logo} alt="Logo" style={{ height: "40px" }} />
-
-    <div>
-      <strong>Gomería La Sombra</strong>
-      <div>Orden de trabajo</div>
-    </div>
-
-    <div style={{ marginLeft: "auto", textAlign: "right" }}>
-      <div>Fecha: {new Date(orden.fecha).toLocaleDateString()}</div>
-      <div>Comprobante: {orden.comprobante_numero || "-"}</div>
-    </div>
-  </div>
-
-  {/* DATOS */}
-  <div style={{ marginBottom: "16px" }}>
-    <div>Cliente: {orden.cliente?.nombre || "-"}</div>
-    <div>Patente: {orden.patente}</div>
-    <div>Estado: {orden.estado}</div>
-  </div>
-
-  {/* ITEMS */}
-  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-    <thead>
-      <tr>
-        <th style={{ borderBottom: "1px solid #000", textAlign: "left" }}>
-          Servicio
-        </th>
-        <th style={{ borderBottom: "1px solid #000", textAlign: "right" }}>
-          Precio
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {orden.items_orden?.map((item) => (
-        <tr key={item.id}>
-          <td style={{ padding: "4px 0" }}>
-            {item.tarifa?.servicio?.nombre || "-"}
-          </td>
-          <td style={{ textAlign: "right" }}>
-            {formatMoney(item.subtotal)}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-
-  {/* TOTALES */}
-  <div style={{ marginTop: "16px", textAlign: "right" }}>
-    <div>Total: {formatMoney(orden.total)}</div>
-    <div>Pagado: {formatMoney(orden.total_pagado)}</div>
-    <div>Saldo: {formatMoney(orden.saldo)}</div>
-  </div>
+            {/* VISTA IMPRESIÓN (OCULTA) */}
+<div style={{ display: "none" }}>
+  <OrdenPrint orden={orden} />
 </div>
-
         </MainLayout>
     );
 }
