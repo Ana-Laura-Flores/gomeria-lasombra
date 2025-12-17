@@ -10,10 +10,14 @@ export default function useTiposVehiculo() {
     const fetchTipos = async () => {
       try {
         setLoading(true);
-        const result = await getItems(); // trae tarifas con servicio y tipo_vehiculo
+
+        // getItems debe traer las tarifas con el campo tipo_vehiculo
+        const result = await getItems();
         const data = result?.data || [];
+
         if (data.length) {
-          const tiposUnicos = [...new Set(data.map(i => i.tipo_vehiculo))];
+          // Sacar tipos únicos de las tarifas
+          const tiposUnicos = [...new Set(data.map(item => item.tipo_vehiculo).filter(Boolean))];
           setTipos(tiposUnicos);
         } else {
           setTipos([]);

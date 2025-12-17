@@ -6,7 +6,7 @@ import OrdenFooter from "../components/OrdenFooter";
 import Modal from "../components/Modal";
 import useClientes from "../hooks/useClientes";
 import useItems from "../hooks/useItems";
-import useTiposVehiculo from "../hooks/useTiposVehiculo"; // hook para traer tipos de vehículo
+import useTiposVehiculo from "../hooks/useTiposVehiculo"; // Hook que obtiene tipos de tarifas
 
 export default function NuevaOrden() {
   const [tipoVehiculo, setTipoVehiculo] = useState("");
@@ -88,10 +88,12 @@ export default function NuevaOrden() {
         </div>
       </div>
 
-      {/* Select de tipo de vehículo */}
+      {/* Select tipo de vehículo */}
       <div className="mb-4">
         <label className="block mb-1">Tipo de vehículo</label>
-        {!loadingTipos ? (
+        {loadingTipos ? (
+          <p>Cargando tipos de vehículo...</p>
+        ) : (
           <select
             value={tipoVehiculo}
             onChange={e => setTipoVehiculo(e.target.value)}
@@ -104,8 +106,6 @@ export default function NuevaOrden() {
               </option>
             ))}
           </select>
-        ) : (
-          <p>Cargando tipos de vehículo...</p>
         )}
       </div>
 
@@ -118,7 +118,7 @@ export default function NuevaOrden() {
         + Agregar ítem
       </button>
 
-      {/* Items */}
+      {/* Tabla de items */}
       {!loading ? (
         <ItemsTable
           itemsOrden={itemsOrden}
