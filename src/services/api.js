@@ -65,24 +65,7 @@ export const getClientes = async () => {
 
 export const getOrdenesTrabajo = async () => {
   return apiFetch(
-    "ordenes_trabajo?fields=" +
-    [
-      "id",
-      "fecha",
-      "comprobante_numero",
-      "patente",
-      "estado",
-      "total",
-      "total_pagado",
-      "saldo",
-      "cliente.id",
-      "cliente.nombre",
-      "cliente.apellido",
-      "pagos.id",
-      "pagos.metodo_pago",
-      "pagos.monto",
-      "pagos.estado"
-    ].join(",")
+    "ordenes_trabajo?fields=*,cliente.id,cliente.nombre,pagos.*,items_orden.*"
   );
 };
 
