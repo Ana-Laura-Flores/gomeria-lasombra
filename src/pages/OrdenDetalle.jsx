@@ -142,20 +142,23 @@ export default function OrdenDetalle() {
                         </tr>
                     </thead>
                     <tbody>
-                        {orden.items_orden?.map((item) => (
-                            <tr
-                                key={item.id}
-                                className="border-b border-gray-800 print:border-gray-200"
-                            >
-                                <td className="p-2">
-                                    {item.tarifa?.servicio?.nombre || "-"}
-                                </td>
-                                <td className="p-2 text-right">
-                                    {formatMoney(item.subtotal)}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
+  {Array.isArray(orden.items_orden) &&
+    typeof orden.items_orden[0] === "object" &&
+    orden.items_orden.map((item) => (
+      <tr
+        key={item.id}
+        className="border-b border-gray-800 print:border-gray-200"
+      >
+        <td className="p-2">
+          {item.tarifa?.servicio?.nombre || "-"}
+        </td>
+        <td className="p-2 text-right">
+          {formatMoney(item.subtotal)}
+        </td>
+      </tr>
+    ))}
+</tbody>
+
                 </table>
 
                 {/* TOTALES */}
