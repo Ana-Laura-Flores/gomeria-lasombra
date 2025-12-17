@@ -56,23 +56,27 @@ export default function OrdenDetalle() {
         );
     }
     const exportarPDF = () => {
-        const element = document.getElementById("orden-print");
+  const element = document.getElementById("orden-print");
 
-        html2pdf()
-            .set({
-                margin: 5,
-                filename: `orden-${orden.id}.pdf`,
-                image: { type: "jpeg", quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: {
-                    unit: "mm",
-                    format: "a5",
-                    orientation: "portrait",
-                },
-            })
-            .from(element)
-            .save();
-    };
+  html2pdf()
+    .set({
+      margin: 5,
+      filename: `orden-${orden.id}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        backgroundColor: "#ffffff",
+      },
+      jsPDF: {
+        unit: "mm",
+        format: "a5",
+        orientation: "portrait",
+      },
+    })
+    .from(element)
+    .save();
+};
+
     return (
         <MainLayout>
             {/* CONTENEDOR IMPRIMIBLE */}
@@ -90,7 +94,7 @@ export default function OrdenDetalle() {
 
                     <div>
                         <h1 className="text-xl font-bold">
-                            Nombre de la Empresa
+                            Gomería La Sombra
                         </h1>
                         <p className="text-sm text-gray-400 print:text-gray-600">
                             Orden de trabajo
