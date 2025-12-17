@@ -82,10 +82,10 @@ export default function OrdenDetalle() {
     return (
         <MainLayout>
             {/* CONTENEDOR IMPRIMIBLE */}
-            <div
-                id="orden-print"
-                className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg print:bg-white print:text-black"
-            >
+           <div
+  className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg"
+>
+
                 {/* HEADER */}
                 <div className="flex items-center gap-4">
                     <img
@@ -194,9 +194,17 @@ export default function OrdenDetalle() {
                 </div>
             </div>
             {/* VISTA IMPRESIÓN (OCULTA) */}
-<div style={{ display: "none" }}>
+<div
+  style={{
+    position: "absolute",
+    top: "-9999px",
+    left: "-9999px",
+    visibility: "hidden",
+  }}
+>
   <OrdenPrint orden={orden} />
 </div>
+
         </MainLayout>
     );
 }
