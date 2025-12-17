@@ -64,10 +64,10 @@ export const getClientes = async () => {
 };
 
 // --------------------
-// Órdenes de trabajo
+// Órdenes de trabajo completas
 // --------------------
 export const getOrdenes = async () => {
   return apiFetch(
-    "ordenes_trabajo?fields=id,fecha,cliente,patente,total,estado"
+    "ordenes_trabajo?fields=id,fecha,patente,estado,condicionCobro,metodoPago,cliente.id,cliente.nombre,items.*,items.tarifa.id,items.tarifa.precio,items.tarifa.tipo_vehiculo,items.tarifa.servicio.id,items.tarifa.servicio.nombre"
   );
 };
