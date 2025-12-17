@@ -63,11 +63,26 @@ export const getClientes = async () => {
   );
 };
 
-// --------------------
-// Órdenes de trabajo completas
-// --------------------
 export const getOrdenesTrabajo = async () => {
   return apiFetch(
-    "ordenes_trabajo?fields=id,fecha,patente,estado,condicionCobro,metodoPago,cliente.id,cliente.nombre,items.*,items.tarifa.id,items.tarifa.precio,items.tarifa.tipo_vehiculo,items.tarifa.servicio.id,items.tarifa.servicio.nombre"
+    "ordenes_trabajo?fields=" +
+    [
+      "id",
+      "fecha",
+      "comprobante_numero",
+      "patente",
+      "estado",
+      "total",
+      "total_pagado",
+      "saldo",
+      "cliente.id",
+      "cliente.nombre",
+      "cliente.apellido",
+      "pagos.id",
+      "pagos.metodo_pago",
+      "pagos.monto",
+      "pagos.estado"
+    ].join(",")
   );
 };
+
