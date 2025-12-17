@@ -31,7 +31,6 @@ export const apiFetch = async (endpoint, options = {}) => {
 // Tarifas (para tipos de vehículo y precios)
 // --------------------
 export const getTarifas = async () => {
-  // Trae tarifas con servicio expandido
   return apiFetch(
     "tarifas?fields=id,precio,tipo_vehiculo,servicio.id,servicio.nombre"
   );
@@ -41,7 +40,6 @@ export const getTarifas = async () => {
 // Items de orden
 // --------------------
 export const getItemsOrden = async () => {
-  // Trae items de orden con su tarifa y servicio
   return apiFetch(
     "items_orden?fields=*,tarifa.id,tarifa.precio,tarifa.tipo_vehiculo,tarifa.servicio.id,tarifa.servicio.nombre"
   );
@@ -51,7 +49,6 @@ export const getItemsOrden = async () => {
 // Servicios con tarifas
 // --------------------
 export const getServicios = async () => {
-  // Trae servicios y sus tarifas
   return apiFetch(
     "servicios?fields=*,tarifas.id,tarifas.precio,tarifas.tipo_vehiculo"
   );
@@ -63,5 +60,14 @@ export const getServicios = async () => {
 export const getClientes = async () => {
   return apiFetch(
     "clientes?fields=id,nombre,apellido,telefono,email"
+  );
+};
+
+// --------------------
+// Órdenes de trabajo
+// --------------------
+export const getOrdenes = async () => {
+  return apiFetch(
+    "ordenes_trabajo?fields=id,fecha,cliente,patente,total,estado"
   );
 };

@@ -1,15 +1,27 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { Link } from "react-router-dom";
+import { getOrdenes } from "../services/api"; // ahora trae órdenes completas
 
 export default function Ordenes() {
   const [ordenes, setOrdenes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const data =
-      JSON.parse(localStorage.getItem("ordenes")) || [];
-    setOrdenes(data);
+    const fetchOrdenes = async () => {
+      try {
+        const res = await getOrdenes();
+        setOrdenes(res.data || []);
+      } catch (err) {
+        console.error("Error cargando órdenes:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrdenes();
   }, []);
+
+  if (loading) return <MainLayout><p>Cargando órdenes...</p></MainLayout>;
 
   return (
     <MainLayout>
@@ -29,10 +41,7 @@ export default function Ordenes() {
           </thead>
           <tbody>
             {ordenes.map((orden) => (
-              <tr
-                key={orden.id}
-                className="border-b border-gray-800"
-              >
+              <tr key={orden.id} className="border-b border-gray-800">
                 <td className="p-2">{orden.fecha}</td>
                 <td className="p-2">{orden.cliente}</td>
                 <td className="p-2">{orden.patente}</td>
