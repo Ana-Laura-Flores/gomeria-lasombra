@@ -22,7 +22,7 @@ export default function OrdenDetalle() {
         const fetchOrden = async () => {
             try {
                 const res = await getOrdenTrabajoById(id);
-                setOrden(res.data?.data || null);
+                setOrden(res.data || null);
             } catch (error) {
                 console.error("Error cargando orden:", error);
                 setOrden(null);
