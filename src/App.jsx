@@ -41,7 +41,7 @@ export default function App() {
                         path="/cuenta-corriente"
                         element={
                             <ProtectedRoute>
-                                <CuentaCorriente ordenes={ordenes} />
+                                <CuentaCorriente />
                             </ProtectedRoute>
                         }
                     />
