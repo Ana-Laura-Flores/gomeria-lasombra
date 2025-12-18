@@ -1,14 +1,11 @@
-// src/components/ProtectedRoute.jsx
-import { Navigate } from "react-router-dom";
+function ProtectedRoute({ children, allowedRoles }) {
+  const { isLoggedIn, user } = useAuth();
 
-export default function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token");
+  if (!isLoggedIn) return <Navigate to="/login" />;
 
-  // Si no hay token, redirigimos al login
-  if (!token) {
-    return <Navigate to="/login" />;
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    return <Navigate to="/ordenes" />;
   }
 
-  // Si hay token, mostramos la ruta protegida (el Dashboard)
   return children;
 }

@@ -4,13 +4,14 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { login } from "../services/api-login";
 import { useAuth } from "../context/AuthContext";
-import jwt_decode from "jwt-decode"; // <-- CORRECTO
+import jwt_decode from "jwt-decode";
+import { ROLES } from "../constants/roles";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { loginUser } = useAuth(); // usamos contexto
+  const { loginUser } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,21 +20,27 @@ export default function Login() {
       const res = await login(email, password);
       const token = res.data.access_token;
 
-      // Decodificar token
+      // 🔑 Decodificamos el JWT de Directus
       const decoded = jwt_decode(token);
+
+      // 🔥 EL ROL VIENE COMO ID (UUID)
       const user = {
         id: decoded.id,
-        role: decoded.admin_access ? "admin" : "user",
-        email: email, // opcional
+        role: decoded.role, // ← NO lo transformamos
+        email: decoded.email,
       };
 
-      // Guardar en contexto y localStorage
       loginUser(token, user);
 
-      navigate("/dashboard");
+      // 🔀 Redirección según rol
+      if (decoded.role === ROLES.ADMIN) {
+        navigate("/dashboard");
+      } else {
+        navigate("/ordenes"); // vista empleado
+      }
     } catch (error) {
-      alert("Login incorrecto");
       console.error(error);
+      alert("Email o contraseña incorrectos");
     }
   };
 

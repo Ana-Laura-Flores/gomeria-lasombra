@@ -1,11 +1,12 @@
 import {
-    BrowserRouter as Router,
-    Routes,
-    Route,
-    Navigate,
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
 } from "react-router-dom";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ROLES } from "./constants/roles";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -14,68 +15,81 @@ import Ordenes from "./pages/Ordenes";
 import OrdenDetalle from "./pages/OrdenDetalle";
 import CuentaCorriente from "./pages/CuentaCorriente";
 
-function ProtectedRoute({ children, adminOnly = false }) {
-    const { isLoggedIn, user } = useAuth();
+function ProtectedRoute({ children, allowedRoles }) {
+  const { isLoggedIn, user } = useAuth();
 
-    if (!isLoggedIn) return <Navigate to="/login" />;
-    if (adminOnly && user?.role !== "admin") return <Navigate to="/login" />;
-    return children;
+  if (!isLoggedIn) return <Navigate to="/login" />;
+
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    return <Navigate to="/ordenes" />;
+  }
+
+  return children;
 }
 
 export default function App() {
-    return (
-        <AuthProvider>
-            <Router>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
 
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <ProtectedRoute adminOnly={true}>
-                                <Dashboard />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/cuenta-corriente"
-                        element={
-                            <ProtectedRoute>
-                                <CuentaCorriente />
-                            </ProtectedRoute>
-                        }
-                    />
+          {/* SOLO ADMIN */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/ordenes"
-                        element={
-                            <ProtectedRoute>
-                                <Ordenes />
-                            </ProtectedRoute>
-                        }
-                    />
+          <Route
+            path="/cuenta-corriente"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <CuentaCorriente />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/ordenes/nueva"
-                        element={
-                            <ProtectedRoute>
-                                <NuevaOrden />
-                            </ProtectedRoute>
-                        }
-                    />
+          {/* ADMIN + EMPLEADO */}
+          <Route
+            path="/ordenes"
+            element={
+              <ProtectedRoute
+                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+              >
+                <Ordenes />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/ordenes/:id"
-                        element={
-                            <ProtectedRoute>
-                                <OrdenDetalle />
-                            </ProtectedRoute>
-                        }
-                    />
+          <Route
+            path="/ordenes/nueva"
+            element={
+              <ProtectedRoute
+                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+              >
+                <NuevaOrden />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route path="*" element={<Navigate to="/login" />} />
-                </Routes>
-            </Router>
-        </AuthProvider>
-    );
+          <Route
+            path="/ordenes/:id"
+            element={
+              <ProtectedRoute
+                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+              >
+                <OrdenDetalle />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
 }
