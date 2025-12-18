@@ -4,7 +4,6 @@ import {
     Route,
     Navigate,
 } from "react-router-dom";
-import React from "react";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
@@ -13,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import NuevaOrden from "./pages/NuevaOrden";
 import Ordenes from "./pages/Ordenes";
 import OrdenDetalle from "./pages/OrdenDetalle";
+import CuentaCorriente from "./components/CuentaCorriente";
 
 function ProtectedRoute({ children, adminOnly = false }) {
     const { isLoggedIn, user } = useAuth();
