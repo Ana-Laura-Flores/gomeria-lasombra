@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layouts/MainLayout";
 import Modal from "../components/Modal";
-import { getCuentaCorriente, getClientes } from "../services/api";
+import { getCuentaCorriente } from "../services/api";
 
 export default function CuentaCorriente() {
   const [ordenes, setOrdenes] = useState([]);
-  const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroDeuda, setFiltroDeuda] = useState(false);
   const [detalleCliente, setDetalleCliente] = useState(null);
@@ -13,13 +12,10 @@ export default function CuentaCorriente() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resOrdenes = await getCuentaCorriente();
-        const resClientes = await getClientes();
-
-        setOrdenes(resOrdenes.data || []); // si tu API devuelve directamente un array, usa resOrdenes
-        setClientes(resClientes.data || []);
+        const res = await getCuentaCorriente();
+        setOrdenes(res.data || []);
       } catch (error) {
-        console.error("Error cargando datos:", error);
+        console.error("Error cargando cuenta corriente:", error);
       } finally {
         setLoading(false);
       }
@@ -27,23 +23,17 @@ export default function CuentaCorriente() {
     fetchData();
   }, []);
 
-  // Mapear ID de cliente a su nombre
   const clientesCC = useMemo(() => {
     const acc = {};
-    const clientesMap = Object.fromEntries(clientes.map(c => [c.id, c.nombre]));
-
     ordenes.forEach(o => {
-      const clienteId = o.cliente;
-      const clienteNombre = clientesMap[clienteId] || "Desconocido";
-      if (!acc[clienteId]) acc[clienteId] = { id: clienteId, nombre: clienteNombre, total: 0, pagado: 0, saldo: 0, ordenes: [] };
-      acc[clienteId].total += Number(o.total);
-      acc[clienteId].pagado += Number(o.total_pagado);
-      acc[clienteId].saldo += Number(o.saldo);
-      acc[clienteId].ordenes.push(o);
+      if (!acc[o.cliente_id]) acc[o.cliente_id] = { id: o.cliente_id, nombre: o.cliente_nombre, total: 0, pagado: 0, saldo: 0, ordenes: [] };
+      acc[o.cliente_id].total += Number(o.total);
+      acc[o.cliente_id].pagado += Number(o.total_pagado);
+      acc[o.cliente_id].saldo += Number(o.saldo);
+      acc[o.cliente_id].ordenes.push(o);
     });
-
     return Object.values(acc);
-  }, [ordenes, clientes]);
+  }, [ordenes]);
 
   const clientesFiltrados = filtroDeuda ? clientesCC.filter(c => c.saldo > 0) : clientesCC;
 
@@ -82,11 +72,7 @@ export default function CuentaCorriente() {
                 <td>{formatMoney(c.total)}</td>
                 <td>{formatMoney(c.pagado)}</td>
                 <td>{formatMoney(c.saldo)}</td>
-                <td>
-                  <button className="bg-blue-600 px-2 py-1 rounded" onClick={() => setDetalleCliente(c)}>
-                    Ver órdenes
-                  </button>
-                </td>
+                <td><button className="bg-blue-600 px-2 py-1 rounded" onClick={() => setDetalleCliente(c)}>Ver órdenes</button></td>
               </tr>
             ))}
           </tbody>
