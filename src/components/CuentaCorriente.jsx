@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import MainLayout from "../layouts/MainLayout";
 import Modal from "../components/Modal";
-import { formatMoney } from "../utils/format";
+
 
 export default function CuentaCorriente({ ordenes }) {
   const [filtroDeuda, setFiltroDeuda] = useState(false);
@@ -20,6 +20,12 @@ export default function CuentaCorriente({ ordenes }) {
   }, [ordenes]);
 
   const clientesFiltrados = filtroDeuda ? clientesCC.filter(c => c.saldo > 0) : clientesCC;
+
+  const formatMoney = (value) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+  }).format(Number(value) || 0);
 
   return (
     <MainLayout>
