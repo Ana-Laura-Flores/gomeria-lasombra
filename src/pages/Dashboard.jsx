@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getDashboardOrdenes } from "../services/api";
+import Card from "../components/Card"
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-AR", {
