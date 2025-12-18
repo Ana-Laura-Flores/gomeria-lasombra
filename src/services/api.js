@@ -81,3 +81,10 @@ export const getDashboardOrdenes = async () => {
   );
 };
 
+// Traer todas las órdenes para cuenta corriente
+export const getCuentaCorriente = async () => {
+  return apiFetch("ordenes_trabajo?fields=*,cliente.id,cliente.nombre,total,total_pagado,saldo");
+};
+
+
+

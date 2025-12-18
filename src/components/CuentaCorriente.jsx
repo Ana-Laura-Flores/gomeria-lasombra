@@ -1,11 +1,27 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layouts/MainLayout";
 import Modal from "../components/Modal";
+import { getCuentaCorriente } from "../services/api";
 
-
-export default function CuentaCorriente({ ordenes }) {
+export default function CuentaCorriente() {
+  const [ordenes, setOrdenes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filtroDeuda, setFiltroDeuda] = useState(false);
   const [detalleCliente, setDetalleCliente] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getCuentaCorriente();
+        setOrdenes(res.data || []);
+      } catch (error) {
+        console.error("Error cargando cuenta corriente:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const clientesCC = useMemo(() => {
     const acc = {};
@@ -22,10 +38,12 @@ export default function CuentaCorriente({ ordenes }) {
   const clientesFiltrados = filtroDeuda ? clientesCC.filter(c => c.saldo > 0) : clientesCC;
 
   const formatMoney = (value) =>
-  new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(Number(value) || 0);
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+    }).format(Number(value) || 0);
+
+  if (loading) return <MainLayout><p>Cargando cuenta corriente...</p></MainLayout>;
 
   return (
     <MainLayout>
