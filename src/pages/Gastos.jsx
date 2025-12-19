@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import Button from "../components/Button";
-import { getGastos } from "../services/api-gastos";
+import { getGastos } from "../services/api";
 
 import GastosResumen from "../components/gastos/GastosResumen";
 import GastosTable from "../components/gastos/GastosTable";
