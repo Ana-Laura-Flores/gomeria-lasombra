@@ -1,39 +1,67 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import jwt_decode from "jwt-decode";
 
-// Creamos el contexto
 const AuthContext = createContext();
 
-// Provider que envolverá toda la app
-export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // 👈 CLAVE
 
-  const isLoggedIn = !!token;
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-  // Función para hacer login
-  const loginUser = (token, user) => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const decoded = jwt_decode(token);
+
+      const userData = {
+        id: decoded.id,
+        role: decoded.role,
+        email: decoded.email,
+      };
+
+      setUser(userData);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error("Token inválido:", err);
+      localStorage.removeItem("token");
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loginUser = (token, userData) => {
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setToken(token);
-    setUser(user);
+    setUser(userData);
+    setIsAuthenticated(true);
   };
 
-  // Logout
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setToken(null);
     setUser(null);
+    setIsAuthenticated(false);
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, isLoggedIn, loginUser, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        loading,
+        loginUser,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-// Hook para usar auth más fácil
 export const useAuth = () => useContext(AuthContext);
