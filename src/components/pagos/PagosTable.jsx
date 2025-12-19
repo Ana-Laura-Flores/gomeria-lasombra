@@ -53,7 +53,6 @@ export default function PagosTable({ pagos, totalPagado, saldo })
   </tr>
 </tfoot>
 
-
     </table>
   );
 }
