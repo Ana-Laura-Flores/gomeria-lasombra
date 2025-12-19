@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import { Link } from "react-router-dom";
 import { getOrdenesTrabajo } from "../services/api";
 
 export default function Ordenes() {
