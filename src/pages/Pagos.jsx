@@ -57,59 +57,51 @@ export default function Pagos() {
     );
   }
 
-  // 🔎 Cálculo en el front
-  const totalPagado = pagos.reduce((acc, p) => acc + Number(p.monto), 0);
-  const saldo = Math.max(Number(orden.total) - totalPagado, 0);
-
-  let estado = "pendiente";
-  if (totalPagado === 0) estado = "pendiente";
-  else if (totalPagado < Number(orden.total)) estado = "seña"; // parcial
-  else estado = "pagado";
+ 
 
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg">
         {/* HEADER */}
-        <h1 className="text-xl font-bold mb-4">
-          Pagos – Orden #{orden.comprobante_numero || orden.id}
-        </h1>
-
-        {/* INFO ORDEN */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div>
-            <p className="font-semibold">Cliente</p>
-            <p>
-              {orden.cliente
-                ? `${orden.cliente.nombre} ${orden.cliente.apellido || ""}`
-                : "-"}
-            </p>
-          </div>
+  <div>
+    <p className="font-semibold">Cliente</p>
+    <p>
+      {orden.cliente
+        ? `${orden.cliente.nombre} ${orden.cliente.apellido || ""}`
+        : "-"}
+    </p>
+  </div>
 
-          <div>
-            <p className="font-semibold">Total</p>
-            <p>{formatMoney(orden.total)}</p>
-          </div>
+  <div>
+    <p className="font-semibold">Total</p>
+    <p>{formatMoney(orden.total)}</p>
+  </div>
 
-          <div>
-            <p className="font-semibold">Pagado</p>
-            <p>{formatMoney(totalPagado)}</p>
-          </div>
+  <div>
+    <p className="font-semibold">Pagado</p>
+    <p>{formatMoney(orden.total_pagado)}</p>
+  </div>
 
-          <div>
-            <p className="font-semibold">Saldo</p>
-            <p className="text-red-400 font-bold">{formatMoney(saldo)}</p>
-          </div>
+  <div>
+    <p className="font-semibold">Saldo</p>
+    <p className="text-red-400 font-bold">
+      {formatMoney(orden.saldo)}
+    </p>
+  </div>
 
-          <div className="flex items-center">
-            <EstadoPagosBadge estado={estado} />
-          </div>
-        </div>
+  <div className="flex items-center">
+    <EstadoPagosBadge estado={orden.estado} />
+  </div>
+</div>
+
 
         {/* FORM */}
         {saldo > 0 && <PagosForm orden={orden} onSuccess={fetchData} />}
 
         {/* TABLA */}
-        <PagosTable pagos={pagos} />
+        <PagosTable pagos={pagos} orden={orden} />
+
 
         <div className="mt-6">
           <button
