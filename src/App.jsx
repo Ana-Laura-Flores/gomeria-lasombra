@@ -14,6 +14,8 @@ import NuevaOrden from "./pages/NuevaOrden";
 import Ordenes from "./pages/Ordenes";
 import OrdenDetalle from "./pages/OrdenDetalle";
 import CuentaCorriente from "./pages/CuentaCorriente";
+import Pagos from "./pages/Pagos";
+
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { isLoggedIn, user } = useAuth();
@@ -86,6 +88,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+<Route
+  path="/pagos/nuevo"
+  element={
+    <ProtectedRoute>
+      <Pagos />
+    </ProtectedRoute>
+  }
+/>
 
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
