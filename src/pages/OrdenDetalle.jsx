@@ -152,7 +152,7 @@ export default function OrdenDetalle() {
                 {/* ITEMS */}
                 <table className="w-full border-collapse mb-6">
                     <thead>
-                        <tr className="border-b border-gray-700 print:border-gray-300">
+                        <tr className="border-b mt-2px border-gray-700 print:border-gray-300">
                             <th className="p-2 text-left">Servicio</th>
                             <th className="p-2 text-right">Precio</th>
                         </tr>
@@ -201,7 +201,8 @@ export default function OrdenDetalle() {
                         Descargar PDF
                     </button>
                 </div>
-                {orden.saldo > 0 && (
+                <div>
+                    {orden.saldo > 0 && (
                     <Link
                         to={`/pagos/nuevo?orden=${orden.id}`}
                         className="bg-green-600 px-4 py-2 rounded"
@@ -209,6 +210,8 @@ export default function OrdenDetalle() {
                         Registrar pago
                     </Link>
                 )}
+                </div>
+                
             </div>
 
             {/* VISTA IMPRESIÓN (OCULTA) */}

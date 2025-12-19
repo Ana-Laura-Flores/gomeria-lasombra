@@ -19,6 +19,8 @@ export default function Login() {
     try {
       const res = await login(email, password);
       const token = res.data.access_token;
+      localStorage.setItem("token", token);
+
 
       // 🔑 Decodificamos el JWT de Directus
       const decoded = jwt_decode(token);
