@@ -49,6 +49,8 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
     setMonto("");
     setLoading(false);
     onPagoRegistrado(); // recargar orden / pagos
+    navigate("/dashboard");
+
   };
 
   return (

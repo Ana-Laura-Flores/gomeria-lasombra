@@ -6,7 +6,6 @@ import html2pdf from "html2pdf.js";
 import logo from "../assets/logo.jpg";
 import OrdenPrint from "../components/OrdenPrint";
 
-
 const formatMoney = (value) =>
     new Intl.NumberFormat("es-AR", {
         style: "currency",
@@ -20,6 +19,22 @@ export default function OrdenDetalle() {
     const [orden, setOrden] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const fetchOrden = async () => {
+        try {
+            setLoading(true);
+            const res = await getOrdenTrabajoById(id);
+            setOrden(res.data || null);
+        } catch (error) {
+            console.error("Error cargando orden:", error);
+            setOrden(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrden();
+    }, [id]);
     useEffect(() => {
         const fetchOrden = async () => {
             try {
@@ -57,35 +72,32 @@ export default function OrdenDetalle() {
             </MainLayout>
         );
     }
-   const exportarPDF = () => {
-  const element = document.getElementById("orden-print");
+    const exportarPDF = () => {
+        const element = document.getElementById("orden-print");
 
-  html2pdf()
-    .set({
-      margin: 5,
-      filename: `orden-${orden.id}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        backgroundColor: "#ffffff",
-      },
-      jsPDF: {
-        unit: "mm",
-        format: "a5",
-        orientation: "portrait",
-      },
-    })
-    .from(element)
-    .save();
-};
+        html2pdf()
+            .set({
+                margin: 5,
+                filename: `orden-${orden.id}.pdf`,
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    backgroundColor: "#ffffff",
+                },
+                jsPDF: {
+                    unit: "mm",
+                    format: "a5",
+                    orientation: "portrait",
+                },
+            })
+            .from(element)
+            .save();
+    };
 
     return (
         <MainLayout>
             {/* CONTENEDOR IMPRIMIBLE */}
-           <div
-  className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg"
->
-
+            <div className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg">
                 {/* HEADER */}
                 <div className="flex items-center gap-4">
                     <img
@@ -95,9 +107,7 @@ export default function OrdenDetalle() {
                     />
 
                     <div>
-                        <h1 className="text-xl font-bold">
-                            Gomería La Sombra
-                        </h1>
+                        <h1 className="text-xl font-bold">Gomería La Sombra</h1>
                         <p className="text-sm text-gray-400 print:text-gray-600">
                             Orden de trabajo
                         </p>
@@ -148,23 +158,22 @@ export default function OrdenDetalle() {
                         </tr>
                     </thead>
                     <tbody>
-  {Array.isArray(orden.items_orden) &&
-    typeof orden.items_orden[0] === "object" &&
-    orden.items_orden.map((item) => (
-      <tr
-        key={item.id}
-        className="border-b border-gray-800 print:border-gray-200"
-      >
-        <td className="p-2">
-          {item.tarifa?.servicio?.nombre || "-"}
-        </td>
-        <td className="p-2 text-right">
-          {formatMoney(item.subtotal)}
-        </td>
-      </tr>
-    ))}
-</tbody>
-
+                        {Array.isArray(orden.items_orden) &&
+                            typeof orden.items_orden[0] === "object" &&
+                            orden.items_orden.map((item) => (
+                                <tr
+                                    key={item.id}
+                                    className="border-b border-gray-800 print:border-gray-200"
+                                >
+                                    <td className="p-2">
+                                        {item.tarifa?.servicio?.nombre || "-"}
+                                    </td>
+                                    <td className="p-2 text-right">
+                                        {formatMoney(item.subtotal)}
+                                    </td>
+                                </tr>
+                            ))}
+                    </tbody>
                 </table>
 
                 {/* TOTALES */}
@@ -192,29 +201,27 @@ export default function OrdenDetalle() {
                         Descargar PDF
                     </button>
                 </div>
-                  {orden.saldo > 0 && (
-  <Link
-    to={`/pagos/nuevo?orden=${orden.id}`}
-    className="bg-green-600 px-4 py-2 rounded"
-  >
-    Registrar pago
-  </Link>
-)}
+                {orden.saldo > 0 && (
+                    <Link
+                        to={`/pagos/nuevo?orden=${orden.id}`}
+                        className="bg-green-600 px-4 py-2 rounded"
+                    >
+                        Registrar pago
+                    </Link>
+                )}
             </div>
-          
 
             {/* VISTA IMPRESIÓN (OCULTA) */}
-<div
-  style={{
-    position: "absolute",
-    top: "-9999px",
-    left: "-9999px",
-    visibility: "hidden",
-  }}
->
-  <OrdenPrint orden={orden} />
-</div>
-
+            <div
+                style={{
+                    position: "absolute",
+                    top: "-9999px",
+                    left: "-9999px",
+                    visibility: "hidden",
+                }}
+            >
+                <OrdenPrint orden={orden} />
+            </div>
         </MainLayout>
     );
 }
