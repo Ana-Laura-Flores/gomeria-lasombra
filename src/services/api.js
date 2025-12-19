@@ -88,3 +88,26 @@ export const getCuentaCorriente = async () => {
 
 
 
+// --------------------
+// PAGOS
+// --------------------
+export const crearPago = async (pago) => {
+  return apiFetch("pagos", {
+    method: "POST",
+    body: JSON.stringify({
+      orden: pago.orden,                // ID de la orden
+      metodo_pago: pago.metodo_pago,
+      monto: Number(pago.monto),
+      fecha: pago.fecha || new Date().toISOString(),
+      observaciones: pago.observaciones || "",
+      estado: "confirmado",
+    }),
+  });
+};
+
+// Traer pagos de una orden
+export const getPagosByOrden = async (ordenId) => {
+  return apiFetch(
+    `pagos?filter[orden][_eq]=${ordenId}&fields=*,orden.id`
+  );
+};

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { crearPago } from "../../services/pagos.api";
+import { crearPago } from "../../services/api";
 
 export default function PagoForm({ ordenId }) {
   const [monto, setMonto] = useState("");
