@@ -1,50 +1,89 @@
 import { useState } from "react";
 import { crearPago } from "../../services/api";
 
-export default function PagoForm({ ordenId }) {
-  const [monto, setMonto] = useState("");
-  const [metodo, setMetodo] = useState("cuenta corriente");
+export default function PagoForm({ orden, onSuccess }) {
+  const [monto, setMonto] = useState(orden.saldo);
+  const [metodo, setMetodo] = useState("efectivo");
   const [observaciones, setObservaciones] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await crearPago({
-      orden: ordenId,
-      monto: Number(monto),
-      metodo_pago: metodo,
-      fecha: new Date().toISOString(),
-    });
+    if (Number(monto) <= 0) return;
+    if (Number(monto) > orden.saldo) {
+      alert("El monto supera el saldo");
+      return;
+    }
 
-    alert("Pago registrado");
+    try {
+      setSaving(true);
+
+      await crearPago({
+        orden: orden.id,
+        monto,
+        metodo_pago: metodo,
+        observaciones,
+      });
+
+      setMonto("");
+      setObservaciones("");
+      onSuccess?.();
+    } catch (e) {
+      console.error(e);
+      alert("Error al registrar pago");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        type="number"
-        value={monto}
-        onChange={(e) => setMonto(e.target.value)}
-        placeholder="Monto"
-      />
+    <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded mb-6">
+      <h2 className="font-semibold mb-4">Registrar nuevo pago</h2>
 
-      <select value={metodo} onChange={(e) => setMetodo(e.target.value)}>
-        <option value="efectivo">Efectivo</option>
-        <option value="transferencia bancaria">Transferencia</option>
-        <option value="mercado pago">Mercado Pago</option>
-        <option value="cheque">Cheque</option>
-        <option value="cuenta corriente">Cuenta corriente</option>
-      </select>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label>Monto</label>
+          <input
+            type="number"
+            className="w-full p-2 rounded bg-gray-900"
+            value={monto}
+            onChange={(e) => setMonto(e.target.value)}
+          />
+        </div>
 
-      <textarea
-        value={observaciones}
-        onChange={(e) => setObservaciones(e.target.value)}
-        placeholder="Observaciones"
-      />
+        <div>
+          <label>Método</label>
+          <select
+            className="w-full p-2 rounded bg-gray-900"
+            value={metodo}
+            onChange={(e) => setMetodo(e.target.value)}
+          >
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="cuenta_corriente">Cuenta corriente</option>
+          </select>
+        </div>
 
-      <button className="bg-blue-600 px-4 py-2 rounded">
-        Guardar pago
-      </button>
+        <div>
+          <label>Observaciones</label>
+          <input
+            className="w-full p-2 rounded bg-gray-900"
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <button
+          disabled={saving}
+          className="px-4 py-2 bg-green-600 rounded"
+        >
+          {saving ? "Guardando..." : "Registrar pago"}
+        </button>
+      </div>
     </form>
   );
 }
