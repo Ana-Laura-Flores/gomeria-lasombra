@@ -152,7 +152,7 @@ export default function OrdenDetalle() {
                 {/* ITEMS */}
                 <table className="w-full border-collapse mb-6">
                     <thead>
-                        <tr className="border-b mt-2px border-gray-700 print:border-gray-300">
+                        <tr className="border-b mt-10px border-gray-700 print:border-gray-300">
                             <th className="p-2 text-left">Servicio</th>
                             <th className="p-2 text-right">Precio</th>
                         </tr>

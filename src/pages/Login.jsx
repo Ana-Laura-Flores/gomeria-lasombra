@@ -14,37 +14,33 @@ export default function Login() {
   const { loginUser } = useAuth();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const res = await login(email, password);
-      const token = res.data.access_token;
-      localStorage.setItem("token", token);
+  try {
+    const res = await login(email, password);
+    const token = res.data.access_token;
 
+    const decoded = jwt_decode(token);
 
-      // 🔑 Decodificamos el JWT de Directus
-      const decoded = jwt_decode(token);
+    const user = {
+      id: decoded.id,
+      role: decoded.role,
+      email: decoded.email,
+    };
 
-      // 🔥 EL ROL VIENE COMO ID (UUID)
-      const user = {
-        id: decoded.id,
-        role: decoded.role, // ← NO lo transformamos
-        email: decoded.email,
-      };
+    loginUser(token, user);
 
-      loginUser(token, user);
-
-      // 🔀 Redirección según rol
-      if (decoded.role === ROLES.ADMIN) {
-        navigate("/dashboard");
-      } else {
-        navigate("/ordenes"); // vista empleado
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Email o contraseña incorrectos");
+    if (decoded.role === ROLES.ADMIN) {
+      navigate("/dashboard");
+    } else {
+      navigate("/ordenes");
     }
-  };
+  } catch (error) {
+    console.error(error);
+    alert("Email o contraseña incorrectos");
+  }
+};
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 px-4">
