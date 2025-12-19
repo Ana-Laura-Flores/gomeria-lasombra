@@ -16,6 +16,7 @@ import OrdenDetalle from "./pages/OrdenDetalle";
 import CuentaCorriente from "./pages/CuentaCorriente";
 import Pagos from "./pages/Pagos";
 import Gastos from "./pages/Gastos";
+import NuevoGasto from "./pages/NuevoGasto";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { isLoggedIn, user } = useAuth();
