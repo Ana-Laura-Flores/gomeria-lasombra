@@ -1,4 +1,4 @@
-import EstadoPagosBadge from "./EstadosPagoBadge";
+import EstadoPagosBadge from "./EstadoPagosBadge";
 
 const formatMoney = (v) =>
   new Intl.NumberFormat("es-AR", {
@@ -6,7 +6,7 @@ const formatMoney = (v) =>
     currency: "ARS",
   }).format(Number(v) || 0);
 
-export default function PagosTable({ pagos }) {
+export default function PagosTable({ pagos, totalPagado, saldo }) {
   if (!pagos.length) {
     return <p className="text-gray-400">No hay pagos registrados</p>;
   }
@@ -28,15 +28,25 @@ export default function PagosTable({ pagos }) {
               {new Date(pago.fecha).toLocaleDateString()}
             </td>
             <td className="p-2 capitalize">{pago.metodo_pago}</td>
-            <td className="p-2 text-right">
-              {formatMoney(pago.monto)}
-            </td>
+            <td className="p-2 text-right">{formatMoney(pago.monto)}</td>
             <td className="p-2 text-center">
               <EstadoPagosBadge estado={pago.estado} />
             </td>
           </tr>
         ))}
       </tbody>
+      <tfoot>
+        <tr className="border-t border-gray-700 font-bold">
+          <td colSpan={2} className="p-2 text-right">Total Pagado:</td>
+          <td className="p-2 text-right">{formatMoney(totalPagado)}</td>
+          <td></td>
+        </tr>
+        <tr className="font-bold">
+          <td colSpan={2} className="p-2 text-right">Saldo:</td>
+          <td className="p-2 text-right text-red-400">{formatMoney(saldo)}</td>
+          <td></td>
+        </tr>
+      </tfoot>
     </table>
   );
 }

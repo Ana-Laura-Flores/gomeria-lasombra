@@ -4,6 +4,7 @@ import MainLayout from "../layouts/MainLayout";
 import { getOrdenTrabajoById, getPagosByOrden } from "../services/api";
 import PagosForm from "../components/pagos/PagoForm";
 import PagosTable from "../components/pagos/PagosTable";
+import EstadoPagosBadge from "../components/pagos/EstadoPagosBadge";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-AR", {
@@ -56,6 +57,15 @@ export default function Pagos() {
     );
   }
 
+  // 🔎 Cálculo en el front
+  const totalPagado = pagos.reduce((acc, p) => acc + Number(p.monto), 0);
+  const saldo = Math.max(Number(orden.total) - totalPagado, 0);
+
+  let estado = "pendiente";
+  if (totalPagado === 0) estado = "pendiente";
+  else if (totalPagado < Number(orden.total)) estado = "seña"; // parcial
+  else estado = "pagado";
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg">
@@ -65,7 +75,7 @@ export default function Pagos() {
         </h1>
 
         {/* INFO ORDEN */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <div>
             <p className="font-semibold">Cliente</p>
             <p>
@@ -82,21 +92,21 @@ export default function Pagos() {
 
           <div>
             <p className="font-semibold">Pagado</p>
-            <p>{formatMoney(orden.total_pagado)}</p>
+            <p>{formatMoney(totalPagado)}</p>
           </div>
 
           <div>
             <p className="font-semibold">Saldo</p>
-            <p className="text-red-400 font-bold">
-              {formatMoney(orden.saldo)}
-            </p>
+            <p className="text-red-400 font-bold">{formatMoney(saldo)}</p>
+          </div>
+
+          <div className="flex items-center">
+            <EstadoPagosBadge estado={estado} />
           </div>
         </div>
 
         {/* FORM */}
-        {orden.saldo > 0 && (
-          <PagosForm orden={orden} onSuccess={fetchData} />
-        )}
+        {saldo > 0 && <PagosForm orden={orden} onSuccess={fetchData} />}
 
         {/* TABLA */}
         <PagosTable pagos={pagos} />

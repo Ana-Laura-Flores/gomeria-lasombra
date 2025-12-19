@@ -28,7 +28,7 @@ export default function PagoForm({ orden, onSuccess }) {
 
       setMonto("");
       setObservaciones("");
-      onSuccess?.();
+      onSuccess?.(); // refresca datos en Pagos.jsx
     } catch (e) {
       console.error(e);
       alert("Error al registrar pago");

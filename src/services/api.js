@@ -111,3 +111,4 @@ export const getPagosByOrden = async (ordenId) => {
     `pagos?filter[orden][_eq]=${ordenId}&fields=*,orden.id`
   );
 };
+
