@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { Link } from "react-router-dom";
 import { getOrdenesTrabajo } from "../services/api";
@@ -6,27 +7,29 @@ import { getOrdenesTrabajo } from "../services/api";
 export default function Ordenes() {
     const [ordenes, setOrdenes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
+
 
     useEffect(() => {
-        const fetchOrdenes = async () => {
-            try {
-                const res = await getOrdenesTrabajo();
-                const data = Array.isArray(res.data)
-                    ? res.data
-                    : Array.isArray(res.data?.data)
-                    ? res.data.data
-                    : [];
+    const fetchOrdenes = async () => {
+        setLoading(true);
+        try {
+            const res = await getOrdenesTrabajo();
+            const data = Array.isArray(res.data)
+                ? res.data
+                : Array.isArray(res.data?.data)
+                ? res.data.data
+                : [];
+            setOrdenes(data);
+        } catch (err) {
+            console.error("Error cargando órdenes:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-                setOrdenes(data);
-            } catch (err) {
-                console.error("Error cargando órdenes:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchOrdenes();
-    }, []);
+    fetchOrdenes();
+}, [location.state]); // 👈 importante
 
     if (loading) {
         return (

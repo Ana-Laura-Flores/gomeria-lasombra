@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import MainLayout from "../layouts/MainLayout";
 import ClienteSelect from "../components/ClienteSelect";
 import ItemsTable from "../components/ItemsTable";
@@ -9,6 +11,7 @@ import useItems from "../hooks/useItems";
 import useTiposVehiculo from "../hooks/useTiposVehiculo";
 
 export default function NuevaOrden() {
+  const navigate = useNavigate();
   const [tipoVehiculo, setTipoVehiculo] = useState("");
   const { tipos: tiposVehiculo, loading: loadingTipos } = useTiposVehiculo();
   const { items: itemsDisponibles, loading: loadingItems } = useItems(tipoVehiculo);
@@ -167,9 +170,9 @@ export default function NuevaOrden() {
         metodoPago={metodoPago}
         items={itemsOrden}
         onSuccess={() => {
-          setShowModal(true);
-          resetForm();
-        }}
+  navigate("/ordenes", { state: { refresh: true } });
+}}
+
       />
 
       {/* Modal de confirmación */}

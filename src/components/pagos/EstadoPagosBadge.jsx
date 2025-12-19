@@ -1,9 +1,10 @@
 export default function EstadoPagosBadge({ estado }) {
   const colors = {
-    pendiente: "bg-yellow-600",
-    seña: "bg-blue-600",
-    pagado: "bg-green-600",
-  };
+  pendiente: "bg-yellow-600",
+  parcial: "bg-blue-600",
+  pagado: "bg-green-600",
+};
+
 
   return (
     <span

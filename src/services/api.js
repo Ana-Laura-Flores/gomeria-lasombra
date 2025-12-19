@@ -13,6 +13,7 @@ export const authHeaders = () => ({
 // --------------------
 export const apiFetch = async (endpoint, options = {}) => {
   const res = await fetch(`${API_URL}/items/${endpoint}`, {
+    cache: "no-store", // 👈 ACÁ
     ...options,
     headers: {
       ...authHeaders(),
@@ -24,8 +25,9 @@ export const apiFetch = async (endpoint, options = {}) => {
     throw new Error(`Error al llamar a API: ${res.statusText}`);
   }
 
-  return res.json(); // devuelve { data: [...] }
+  return res.json();
 };
+
 
 // --------------------
 // Tarifas (para tipos de vehículo y precios)
@@ -110,5 +112,12 @@ export const getPagosByOrden = async (ordenId) => {
   return apiFetch(
     `pagos?filter[orden][_eq]=${ordenId}&fields=*,orden.id`
   );
+};
+
+export const actualizarOrden = async (id, data) => {
+  return apiFetch(`ordenes_trabajo/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 };
 

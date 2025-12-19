@@ -1,89 +1,91 @@
 import { useState } from "react";
-import { crearPago } from "../../services/api";
+import { crearPago, actualizarOrden } from "../../services/api";
 
-export default function PagoForm({ orden, onSuccess }) {
-  const [monto, setMonto] = useState(orden.saldo);
+const calcularEstadoOrden = (total, totalPagadoAnterior, nuevoMonto) => {
+  const totalPagado =
+    Number(totalPagadoAnterior || 0) + Number(nuevoMonto || 0);
+
+  const saldo = Math.max(Number(total) - totalPagado, 0);
+
+  let estado = "pendiente";
+  if (totalPagado > 0 && saldo > 0) estado = "parcial";
+  if (saldo === 0) estado = "pagado";
+
+  return { totalPagado, saldo, estado };
+};
+
+export default function PagoForm({ orden, onPagoRegistrado }) {
+  const [monto, setMonto] = useState("");
   const [metodo, setMetodo] = useState("efectivo");
-  const [observaciones, setObservaciones] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (Number(monto) <= 0) return;
-    if (Number(monto) > orden.saldo) {
-      alert("El monto supera el saldo");
-      return;
-    }
+    const montoNumerico = Number(monto);
 
-    try {
-      setSaving(true);
+    // 1️⃣ Crear pago
+    await crearPago({
+      orden: orden.id,
+      metodo_pago: metodo,
+      monto: montoNumerico,
+    });
 
-      await crearPago({
-        orden: orden.id,
-        monto,
-        metodo_pago: metodo,
-        observaciones,
-      });
+    // 2️⃣ Recalcular usando datos ACTUALES de la orden
+    const { totalPagado, saldo, estado } = calcularEstadoOrden(
+      orden.total,
+      orden.total_pagado,
+      montoNumerico
+    );
 
-      setMonto("");
-      setObservaciones("");
-      onSuccess?.(); // refresca datos en Pagos.jsx
-    } catch (e) {
-      console.error(e);
-      alert("Error al registrar pago");
-    } finally {
-      setSaving(false);
-    }
+    // 3️⃣ Actualizar orden
+    await actualizarOrden(orden.id, {
+      total_pagado: totalPagado,
+      saldo,
+      estado,
+    });
+
+    setMonto("");
+    setLoading(false);
+    onPagoRegistrado(); // recargar orden / pagos
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded mb-6">
-      <h2 className="font-semibold mb-4">Registrar nuevo pago</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="bg-gray-800 p-4 rounded space-y-4"
+    >
+      <h2 className="font-semibold">Registrar pago</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label>Monto</label>
-          <input
-            type="number"
-            className="w-full p-2 rounded bg-gray-900"
-            value={monto}
-            onChange={(e) => setMonto(e.target.value)}
-          />
-        </div>
+      <select
+        value={metodo}
+        onChange={(e) => setMetodo(e.target.value)}
+        className="w-full p-2 bg-gray-700 rounded"
+      >
+        <option value="efectivo">Efectivo</option>
+        <option value="transferencia">Transferencia</option>
+        <option value="mercado_pago">Mercado Pago</option>
+        <option value="cuenta_corriente">Cuenta Corriente</option>
+        <option value="cheque">Cheque</option>
+      </select>
 
-        <div>
-          <label>Método</label>
-          <select
-            className="w-full p-2 rounded bg-gray-900"
-            value={metodo}
-            onChange={(e) => setMetodo(e.target.value)}
-          >
-            <option value="efectivo">Efectivo</option>
-            <option value="transferencia">Transferencia</option>
-            <option value="tarjeta">Tarjeta</option>
-            <option value="cuenta_corriente">Cuenta corriente</option>
-          </select>
-        </div>
+      <input
+        type="number"
+        value={monto}
+        onChange={(e) => setMonto(e.target.value)}
+        placeholder="Monto"
+        className="w-full p-2 bg-gray-700 rounded"
+        required
+        min="1"
+      />
 
-        <div>
-          <label>Observaciones</label>
-          <input
-            className="w-full p-2 rounded bg-gray-900"
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <button
-          disabled={saving}
-          className="px-4 py-2 bg-green-600 rounded"
-        >
-          {saving ? "Guardando..." : "Registrar pago"}
-        </button>
-      </div>
+      <button
+        disabled={loading}
+        className="bg-green-600 px-4 py-2 rounded"
+      >
+        {loading ? "Guardando..." : "Registrar pago"}
+      </button>
     </form>
   );
 }
