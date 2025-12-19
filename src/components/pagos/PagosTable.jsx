@@ -1,4 +1,4 @@
-import EstadoPagosBadge from "./EstadoPagosBadge";
+import EstadoPagosBadge from "./EstadosPagoBadge";
 
 const formatMoney = (v) =>
   new Intl.NumberFormat("es-AR", {
