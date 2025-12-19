@@ -6,7 +6,7 @@ import {
   crearGasto,
   getCategoriasGasto,
   getGastosPrefijados,
-} from "../services/api-gastos";
+} from "../services/api";
 
 export default function NuevoGasto() {
   const navigate = useNavigate();
