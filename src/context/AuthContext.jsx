@@ -1,67 +1,39 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import jwt_decode from "jwt-decode";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
+// Creamos el contexto
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true); // 👈 CLAVE
+// Provider que envolverá toda la app
+export const AuthProvider = ({ children }) => {
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("user")) || null
+  );
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  const isLoggedIn = !!token;
 
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const decoded = jwt_decode(token);
-
-      const userData = {
-        id: decoded.id,
-        role: decoded.role,
-        email: decoded.email,
-      };
-
-      setUser(userData);
-      setIsAuthenticated(true);
-    } catch (err) {
-      console.error("Token inválido:", err);
-      localStorage.removeItem("token");
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const loginUser = (token, userData) => {
+  // Función para hacer login
+  const loginUser = (token, user) => {
     localStorage.setItem("token", token);
-    setUser(userData);
-    setIsAuthenticated(true);
+    localStorage.setItem("user", JSON.stringify(user));
+    setToken(token);
+    setUser(user);
   };
 
+  // Logout
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
     setUser(null);
-    setIsAuthenticated(false);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated,
-        loading,
-        loginUser,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{ token, user, isLoggedIn, loading, loginUser, logout }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
+// Hook para usar auth más fácil
 export const useAuth = () => useContext(AuthContext);
