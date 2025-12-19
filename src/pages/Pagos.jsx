@@ -97,7 +97,10 @@ export default function Pagos() {
 
 
         {/* FORM */}
-        {saldo > 0 && <PagosForm orden={orden} onSuccess={fetchData} />}
+        {orden.saldo > 0 && (
+  <PagosForm orden={orden} onPagoRegistrado={fetchData} />
+)}
+
 
         {/* TABLA */}
         <PagosTable pagos={pagos} orden={orden} />
