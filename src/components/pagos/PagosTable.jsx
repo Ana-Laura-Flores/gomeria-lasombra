@@ -36,22 +36,28 @@ export default function PagosTable({ pagos, totalPagado, saldo })
           </tr>
         ))}
       </tbody>
-      <tfoot>
+    <tfoot>
   <tr className="border-t border-gray-700 font-bold">
-    <td colSpan={2} className="p-2 text-right">Total Pagado:</td>
+    <td colSpan={2} className="p-2 text-right">
+      Total Pagado:
+    </td>
     <td className="p-2 text-right">
       {formatMoney(totalPagado)}
     </td>
     <td />
   </tr>
+
   <tr className="font-bold">
-    <td colSpan={2} className="p-2 text-right">Saldo:</td>
+    <td colSpan={2} className="p-2 text-right">
+      Saldo:
+    </td>
     <td className="p-2 text-right text-red-400">
       {formatMoney(saldo)}
     </td>
     <td />
   </tr>
 </tfoot>
+
 
     </table>
   );
