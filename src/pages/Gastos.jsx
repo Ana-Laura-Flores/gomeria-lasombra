@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getGastos } from "../services/api";
+import MainLayout from "../layouts/MainLayout";
 
 export default function Gastos() {
   const [gastos, setGastos] = useState([]);
@@ -39,6 +40,7 @@ export default function Gastos() {
   }
 
   return (
+    <MainLayout>
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Gastos</h1>
 
@@ -114,5 +116,6 @@ export default function Gastos() {
         </table>
       </div>
     </div>
+    </MainLayout>
   );
 }
