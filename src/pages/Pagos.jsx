@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { getOrdenTrabajoById, getPagosByOrden } from "../services/api";
-import PagosForm from "../components/pagos/PagosForm";
+import PagosForm from "../components/pagos/PagoForm";
 import PagosTable from "../components/pagos/PagosTable";
 
 const formatMoney = (value) =>
