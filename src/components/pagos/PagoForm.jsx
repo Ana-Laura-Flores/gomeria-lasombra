@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { crearPago, actualizarOrden } from "../../services/api";
+import { useNavigate } from "react-router-dom";
+
 
 const calcularEstadoOrden = (total, totalPagadoAnterior, nuevoMonto) => {
   const totalPagado =
@@ -15,9 +17,11 @@ const calcularEstadoOrden = (total, totalPagadoAnterior, nuevoMonto) => {
 };
 
 export default function PagoForm({ orden, onPagoRegistrado }) {
+  const navigate = useNavigate();
   const [monto, setMonto] = useState("");
   const [metodo, setMetodo] = useState("efectivo");
   const [loading, setLoading] = useState(false);
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

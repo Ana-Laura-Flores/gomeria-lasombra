@@ -6,7 +6,8 @@ const formatMoney = (v) =>
     currency: "ARS",
   }).format(Number(v) || 0);
 
-export default function PagosTable({ pagos, orden })  {
+export default function PagosTable({ pagos, totalPagado, saldo })
+ {
   if (!pagos.length) {
     return <p className="text-gray-400">No hay pagos registrados</p>;
   }
@@ -39,18 +40,19 @@ export default function PagosTable({ pagos, orden })  {
   <tr className="border-t border-gray-700 font-bold">
     <td colSpan={2} className="p-2 text-right">Total Pagado:</td>
     <td className="p-2 text-right">
-      {formatMoney(orden.total_pagado)}
+      {formatMoney(totalPagado)}
     </td>
     <td />
   </tr>
   <tr className="font-bold">
     <td colSpan={2} className="p-2 text-right">Saldo:</td>
     <td className="p-2 text-right text-red-400">
-      {formatMoney(orden.saldo)}
+      {formatMoney(saldo)}
     </td>
     <td />
   </tr>
 </tfoot>
+
 
     </table>
   );

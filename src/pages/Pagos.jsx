@@ -57,7 +57,17 @@ export default function Pagos() {
     );
   }
 
- 
+ const totalPagado = pagos.reduce(
+  (acc, p) => acc + Number(p.monto || 0),
+  0
+);
+
+const saldo = Math.max(Number(orden.total) - totalPagado, 0);
+
+let estado = "pendiente";
+if (totalPagado > 0 && saldo > 0) estado = "parcial";
+if (saldo === 0) estado = "pagado";
+
 
   return (
     <MainLayout>
@@ -80,18 +90,16 @@ export default function Pagos() {
 
   <div>
     <p className="font-semibold">Pagado</p>
-    <p>{formatMoney(orden.total_pagado)}</p>
+    <p>{formatMoney(totalPagado)}</p>
   </div>
 
   <div>
     <p className="font-semibold">Saldo</p>
-    <p className="text-red-400 font-bold">
-      {formatMoney(orden.saldo)}
-    </p>
+    <p className="text-red-400 font-bold">{formatMoney(saldo)}</p>
   </div>
 
   <div className="flex items-center">
-    <EstadoPagosBadge estado={orden.estado} />
+    <EstadoPagosBadge estado={estado} />
   </div>
 </div>
 
