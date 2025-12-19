@@ -47,17 +47,24 @@ export default function OrdenPrint({ orden }) {
       </div>
 
       {/* ITEMS */}
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginBottom: "14px", // 👈 CLAVE
+        }}
+      >
+        <thead style={{ borderBottom: "1px solid #000" }}>
           <tr>
-            <th style={{ borderBottom: "1px solid #000", textAlign: "left" }}>
+            <th style={{ textAlign: "left", paddingBottom: 4 }}>
               Servicio
             </th>
-            <th style={{ borderBottom: "1px solid #000", textAlign: "right" }}>
+            <th style={{ textAlign: "right", paddingBottom: 4 }}>
               Precio
             </th>
           </tr>
         </thead>
+
         <tbody>
           {orden.items_orden?.map((item) => (
             <tr key={item.id}>
@@ -73,7 +80,7 @@ export default function OrdenPrint({ orden }) {
       </table>
 
       {/* TOTALES */}
-      <div style={{ marginTop: 12, textAlign: "right" }}>
+      <div style={{ marginTop: 8, textAlign: "right" }}>
         <div>Total: <strong>{formatMoney(orden.total)}</strong></div>
         <div>Pagado: {formatMoney(orden.total_pagado)}</div>
         <div>Saldo: {formatMoney(orden.saldo)}</div>

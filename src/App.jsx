@@ -15,7 +15,7 @@ import Ordenes from "./pages/Ordenes";
 import OrdenDetalle from "./pages/OrdenDetalle";
 import CuentaCorriente from "./pages/CuentaCorriente";
 import Pagos from "./pages/Pagos";
-
+import Gastos from "./pages/Gastos";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { isLoggedIn, user } = useAuth();
@@ -103,3 +103,13 @@ export default function App() {
     </AuthProvider>
   );
 }
+
+<Route
+  path="/gastos"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+      <Gastos />
+    </ProtectedRoute>
+  }
+/>
+

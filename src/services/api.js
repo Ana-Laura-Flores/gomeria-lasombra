@@ -121,3 +121,16 @@ export const actualizarOrden = async (id, data) => {
   });
 };
 
+// GASTOS
+export const getGastos = async () =>
+  apiFetch("gastos?sort=-fecha&fields=*,categoria.nombre");
+
+export const crearGasto = async (data) =>
+  apiFetch("gastos", { method: "POST", body: JSON.stringify(data) });
+
+export const getCategoriasGasto = async () =>
+  apiFetch("categorias_gasto?filter[activo][_eq]=true");
+
+export const getGastosPrefijados = async () =>
+  apiFetch("gastos_prefijados?filter[activo][_eq]=true");
+

@@ -114,8 +114,7 @@ export default function Pagos() {
                     totalPagado={totalPagado}
                     saldo={saldo}
                 />
-                <PagosTable pagos={pagos} orden={orden} />
-
+                
                 <div className="mt-6">
                     <button
                         onClick={() => navigate(`/ordenes/${orden.id}`)}

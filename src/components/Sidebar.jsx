@@ -42,6 +42,12 @@ export default function Sidebar() {
             >
               Nueva Orden
             </Link>
+            <Link
+              to="/gastos"
+              className="block px-4 py-2 rounded hover:bg-gray-700"
+            >
+              Gastos
+            </Link>
           </>
         )}
       </nav>
