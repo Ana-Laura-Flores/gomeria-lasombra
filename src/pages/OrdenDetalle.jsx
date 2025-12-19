@@ -193,6 +193,15 @@ export default function OrdenDetalle() {
                     </button>
                 </div>
             </div>
+            {orden.saldo > 0 && (
+  <Link
+    to={`/pagos/nuevo?orden=${orden.id}`}
+    className="bg-green-600 px-4 py-2 rounded"
+  >
+    Registrar pago
+  </Link>
+)}
+
             {/* VISTA IMPRESIÓN (OCULTA) */}
 <div
   style={{
