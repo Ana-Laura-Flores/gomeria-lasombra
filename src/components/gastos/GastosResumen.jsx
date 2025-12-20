@@ -5,11 +5,11 @@ export default function GastosResumen({ gastos }) {
   );
 
   const fijos = gastos
-    .filter((g) => g.tipo === "FIJO")
+    .filter((g) => g.TIPO === "fijo")
     .reduce((acc, g) => acc + Number(g.monto || 0), 0);
 
   const variables = gastos
-    .filter((g) => g.tipo === "variable")
+    .filter((g) => g.TIPO === "variable")
     .reduce((acc, g) => acc + Number(g.monto || 0), 0);
 
   return (

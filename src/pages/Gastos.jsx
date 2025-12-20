@@ -14,9 +14,7 @@ export default function Gastos() {
   const [mes, setMes] = useState(
     new Date().toISOString().slice(0, 7)
   );
-
-  useEffect(() => {
-    const fetchGastos = async () => {
+   const fetchGastos = async () => {
       try {
         const res = await getGastos();
         setGastos(res.data || []);
@@ -27,7 +25,8 @@ export default function Gastos() {
       }
     };
 
-    fetchGastos();
+  useEffect(() => {
+      fetchGastos();
   }, []);
 
   const gastosDelMes = gastos.filter((g) => {
