@@ -14,16 +14,20 @@ export default function Gastos() {
   const [mes, setMes] = useState(
     new Date().toISOString().slice(0, 7)
   );
-   const fetchGastos = async () => {
-      try {
-        const res = await getGastos();
-        setGastos(res.data || []);
-      } catch (error) {
-        console.error("Error cargando gastos:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchGastos = async () => {
+  try {
+    const res = await getGastos();
+    const normalizados = (res.data || []).map(g => ({
+      ...g,
+      tipo: g.TIPO ? g.TIPO.toLowerCase() : "variable" // 👈 default si viene null
+    }));
+    setGastos(normalizados);
+  } catch (error) {
+    console.error("Error cargando gastos:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
       fetchGastos();
@@ -78,7 +82,7 @@ export default function Gastos() {
                   </td>
                   <td className="p-3">{g.concepto}</td>
                   <td className="p-3">{g.categoria?.nombre || "-"}</td>
-                  <td className="p-3">{g.TIPO}</td>
+                  <td className="p-3">{g.tipo || "-"}</td>
                   <td className="p-3 text-right">
                     ${Number(g.monto).toLocaleString("es-AR")}
                   </td>
