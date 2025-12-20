@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { getDashboardOrdenes, getGastos } from "../services/api";
-
 import Card from "../components/Card";
-import FiltroMes from "../components/FiltroMes";
-import IngresosResumen from "../components/ingresos/IngresosResumen";
-import GastosResumen from "../components/gastos/GastosResumen";
-import ResultadoMes from "../components/ResultadoMes";
+
+const formatMoney = (value) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+  }).format(Number(value) || 0);
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 📆 MES ACTUAL (YYYY-MM)
   const [mes, setMes] = useState(
     new Date().toISOString().slice(0, 7)
   );
@@ -48,7 +50,7 @@ export default function Dashboard() {
     );
   }
 
-  // 📆 FILTRO POR MES (SIN Date)
+  // 🧠 FILTRO POR MES (SIN Date)
   const ordenesMes = ordenes.filter(
     (o) => o.fecha && o.fecha.slice(0, 7) === mes
   );
@@ -57,35 +59,58 @@ export default function Dashboard() {
     (g) => g.fecha && g.fecha.slice(0, 7) === mes
   );
 
+  // 📊 INGRESOS
+  const totalOrdenes = ordenesMes.length;
+  const totalFacturado = ordenesMes.reduce(
+    (acc, o) => acc + Number(o.total),
+    0
+  );
+  const totalCobrado = ordenesMes.reduce(
+    (acc, o) => acc + Number(o.total_pagado),
+    0
+  );
+  const saldoPendiente = ordenesMes.reduce(
+    (acc, o) => acc + Number(o.saldo),
+    0
+  );
+
+  // 📉 GASTOS
+  const totalGastos = gastosMes.reduce(
+    (acc, g) => acc + Number(g.monto || 0),
+    0
+  );
+
+  // 📈 RESULTADO
+  const resultadoMes = totalCobrado - totalGastos;
+
   return (
     <MainLayout>
-      {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <FiltroMes mes={mes} setMes={setMes} />
+
+        <input
+          type="month"
+          value={mes}
+          onChange={(e) => setMes(e.target.value)}
+          className="bg-gray-800 p-2 rounded"
+        />
       </div>
 
-      {/* INGRESOS */}
-      <IngresosResumen ordenes={ordenesMes} />
-
-      {/* GASTOS */}
-      <GastosResumen gastos={gastosMes} />
-
-      {/* RESULTADO */}
-      <ResultadoMes
-        ingresos={ordenesMes}
-        gastos={gastosMes}
-      />
-
-      {/* ACCESOS */}
-      <div className="mt-6">
-        <button
-          onClick={() => navigate("/cuenta-corriente")}
-          className="bg-green-600 px-4 py-2 rounded"
-        >
-          Ver Cuenta Corriente
-        </button>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card title="Órdenes del mes" value={totalOrdenes} />
+        <Card title="Facturado" value={formatMoney(totalFacturado)} />
+        <Card title="Cobrado" value={formatMoney(totalCobrado)} />
+        <Card title="Gastos" value={formatMoney(totalGastos)} />
+        <Card title="Saldo pendiente" value={formatMoney(saldoPendiente)} />
+        <Card title="Resultado del mes" value={formatMoney(resultadoMes)} />
       </div>
+
+      <button
+        onClick={() => navigate("/cuenta-corriente")}
+        className="bg-green-600 px-4 py-2 rounded mt-6"
+      >
+        Ver Cuenta Corriente
+      </button>
     </MainLayout>
   );
 }
