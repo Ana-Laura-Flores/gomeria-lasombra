@@ -64,6 +64,8 @@ export default function Dashboard() {
   );
 
   const resultadoMes = totalCobrado - totalGastos;
+  const totalOrdenes = ordenes.length;    
+  const ordenesConDeuda = ordenes.filter((o) => Number(o.saldo) > 0).length; const ordenesPagadas = ordenes.filter( (o) => Number(o.saldo) === 0 && Number(o.total) > 0 ).length;
 
   return (
     <MainLayout>
@@ -77,12 +79,16 @@ export default function Dashboard() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card title="Total de órdenes" value={totalOrdenes} />
+        <Card title="Órdenes con deuda" value={ordenesConDeuda} />
+        <Card title="Órdenes pagadas" value={ordenesPagadas} />
         <Card title="Total facturado" value={formatMoney(totalFacturado)} />
         <Card title="Ingresos cobrados" value={formatMoney(totalCobrado)} />
         <Card title="Gastos del mes" value={formatMoney(totalGastos)} />
         <Card title="Saldo pendiente" value={formatMoney(saldoPendiente)} />
         <Card title="Resultado del mes" value={formatMoney(resultadoMes)} />
       </div>
+      <button onClick={() => navigate("/cuenta-corriente")} className="bg-green-600 px-4 py-2 rounded mt-4" > {" "} Ver Cuenta Corriente{" "} </button>{" "}
     </MainLayout>
   );
 }
