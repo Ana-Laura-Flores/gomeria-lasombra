@@ -57,7 +57,7 @@ export default function NuevoGasto() {
       ...form,
       concepto: elegido.nombre,
       monto: elegido.monto_default,
-      categoria: elegido.categoria,
+      categoria: elegido.categoria?.id || "",
       tipo: elegido.es_fijo ? "FIJO" : "variable",
     });
   };
@@ -183,10 +183,22 @@ export default function NuevoGasto() {
       </div>
 
       {/* MODAL */}
-      <Modal isOpen={modalOpen} onClose={() => navigate("/gastos")}>
-        <h2 className="text-xl font-bold mb-2">Gasto guardado</h2>
-        <p>El gasto se registró correctamente.</p>
-      </Modal>
+      <Modal
+  open={modalOpen}
+  title="Gasto guardado"
+  onClose={() => navigate("/gastos")}
+  actions={
+    <button
+      onClick={() => navigate("/gastos")}
+      className="bg-green-600 px-4 py-2 rounded font-bold"
+    >
+      Aceptar
+    </button>
+  }
+>
+  <p>El gasto se registró correctamente.</p>
+</Modal>
+
     </MainLayout>
   );
 }
