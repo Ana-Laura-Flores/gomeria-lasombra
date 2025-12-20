@@ -200,8 +200,7 @@ export default function OrdenDetalle() {
                     >
                         Descargar PDF
                     </button>
-                </div>
-                <div>
+                     <div>
                     {orden.saldo > 0 && (
                     <Link
                         to={`/pagos/nuevo?orden=${orden.id}`}
@@ -211,6 +210,8 @@ export default function OrdenDetalle() {
                     </Link>
                 )}
                 </div>
+                </div>
+               
                 
             </div>
 
