@@ -107,7 +107,12 @@ export default function Pagos() {
 
                 {/* FORM */}
                 {orden.saldo > 0 && (
-                    <PagosForm orden={orden} onPagoRegistrado={fetchData} />
+                    <PagosForm orden={orden} onPagoRegistrado={async () => {
+              await fetchData();
+              setShowModal(true); // 👈 abrir modal después de registrar pago
+            }}
+ />
+                    
                 )}
 
                 {/* TABLA */}
