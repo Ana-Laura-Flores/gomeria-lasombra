@@ -1,19 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import { getDashboardOrdenes, getGastos } from "../services/api";
-import Card from "../components/Card";
+import { getGastos } from "../services/api";
 
-const formatMoney = (value) =>
-  new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(Number(value) || 0);
+import FiltroMes from "../components/gastos/FiltroMes";
+import GastosResumen from "../components/gastos/GastosResumen";
 
-export default function Dashboard() {
-  const navigate = useNavigate();
-
-  const [ordenes, setOrdenes] = useState([]);
+export default function Gastos() {
   const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,88 +13,89 @@ export default function Dashboard() {
     new Date().toISOString().slice(0, 7)
   );
 
-  // ✅ HOOK EN NIVEL SUPERIOR
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [ordRes, gasRes] = await Promise.all([
-          getDashboardOrdenes(),
-          getGastos(),
-        ]);
+ 
 
-        setOrdenes(ordRes.data || []);
-        setGastos(gasRes.data || []);
-      } catch (error) {
-        console.error("Error cargando dashboard:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  // 📆 FILTRO POR MES
+  const gastosDelMes = gastos.filter((g) => {
+    const fecha = new Date(g.fecha).toISOString().slice(0, 7);
+    return fecha === mes;
+  });
 
   if (loading) {
-    return (
-      <MainLayout>
-        <p>Cargando dashboard...</p>
-      </MainLayout>
-    );
+    return <p className="text-center mt-10">Cargando gastos...</p>;
   }
-
-  // 📆 FILTRO MES
-  const ordenesMes = ordenes.filter((o) =>
-    new Date(o.fecha).toISOString().slice(0, 7) === mes
-  );
-
-  const gastosMes = gastos.filter((g) =>
-    new Date(g.fecha).toISOString().slice(0, 7) === mes
-  );
-
-  // 📊 MÉTRICAS
-  const totalOrdenes = ordenesMes.length;
-  const totalFacturado = ordenesMes.reduce((a, o) => a + Number(o.total), 0);
-  const totalCobrado = ordenesMes.reduce((a, o) => a + Number(o.total_pagado), 0);
-  const saldoPendiente = ordenesMes.reduce((a, o) => a + Number(o.saldo), 0);
-
-  const totalGastos = gastosMes.reduce(
-    (a, g) => a + Number(g.monto || 0),
-    0
-  );
-
-  const resultadoMes = totalCobrado - totalGastos;
 
   return (
     <MainLayout>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="p-6">
 
-        <input
-          type="month"
-          value={mes}
-          onChange={(e) => setMes(e.target.value)}
-          className="bg-gray-800 p-2 rounded"
-        />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+  <h1 className="text-2xl font-bold">Gastos</h1>
+
+  <div className="flex gap-3 items-center">
+    <FiltroMes mes={mes} setMes={setMes} />
+
+    <button
+      onClick={() => navigate("/gastos/nuevo")}
+      className="bg-green-600 px-4 py-2 rounded font-semibold"
+    >
+      + Nuevo gasto
+    </button>
+  </div>
+</div>
+
+
+        {/* RESUMEN MENSUAL */}
+        <GastosResumen gastos={gastosDelMes} />
+
+        {/* TABLA */}
+        <div className="overflow-x-auto bg-gray-900 rounded">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-800 text-gray-300">
+              <tr>
+                <th className="p-3 text-left">Fecha</th>
+                <th className="p-3 text-left">Concepto</th>
+                <th className="p-3 text-left">Categoría</th>
+                <th className="p-3 text-left">Tipo</th>
+                <th className="p-3 text-right">Monto</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {gastosDelMes.map((g) => (
+                <tr
+                  key={g.id}
+                  className="border-b border-gray-800 hover:bg-gray-800"
+                >
+                  <td className="p-3">
+                    {new Date(g.fecha).toLocaleDateString("es-AR")}
+                  </td>
+                  <td className="p-3">{g.concepto}</td>
+                  <td className="p-3">{g.categoria?.nombre || "-"}</td>
+                  <td className="p-3">{g.tipo}</td>
+                  <td className="p-3 text-right">
+                    ${Number(g.monto).toLocaleString("es-AR")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+
+            <tfoot className="bg-gray-800 font-bold">
+              <tr>
+                <td colSpan="4" className="p-3 text-right">
+                  Total mes
+                </td>
+                <td className="p-3 text-right text-red-400">
+                  $
+                  {gastosDelMes
+                    .reduce((acc, g) => acc + Number(g.monto || 0), 0)
+                    .toLocaleString("es-AR")}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card title="Órdenes del mes" value={totalOrdenes} />
-        <Card title="Facturado" value={formatMoney(totalFacturado)} />
-        <Card title="Cobrado" value={formatMoney(totalCobrado)} />
-        <Card title="Gastos" value={formatMoney(totalGastos)} />
-        <Card title="Saldo pendiente" value={formatMoney(saldoPendiente)} />
-        <Card
-          title="Resultado del mes"
-          value={formatMoney(resultadoMes)}
-        />
-      </div>
-
-      <button
-        onClick={() => navigate("/cuenta-corriente")}
-        className="bg-green-600 px-4 py-2 rounded mt-6"
-      >
-        Ver Cuenta Corriente
-      </button>
     </MainLayout>
   );
 }
