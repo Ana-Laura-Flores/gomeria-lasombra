@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { getDashboardOrdenes, getGastosPorMes, getPagosPorMes } from "../services/api";
+import {
+    getDashboardOrdenes,
+    getGastosPorMes,
+    getPagosPorMes,
+} from "../services/api";
 import Card from "../components/Card";
 import { useNavigate } from "react-router-dom";
 
@@ -73,6 +77,8 @@ export default function Dashboard() {
         acc[metodo] = (acc[metodo] || 0) + Number(p.monto || 0);
         return acc;
     }, {});
+    const formatMetodoPago = (m) =>
+        m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
     return (
         <MainLayout>
@@ -99,16 +105,19 @@ export default function Dashboard() {
                     title="Saldo pendiente por cobrar"
                     value={formatMoney(saldoPendiente)}
                 />
-
-                <h2 className="text-xl font-bold mt-10 mb-4">
-                    Ingresos por método de pago
-                </h2>
+            </div>
+            <div>
+                <div>
+                    <h2 className="text-xl font-bold mt-10 mb-4">
+                        Ingresos por método de pago
+                    </h2>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
                         <Card
                             key={metodo}
-                            title={`Ingresos ${metodo}`}
+                            title={`Ingresos ${formatMetodoPago(metodo)}`}
                             value={formatMoney(total)}
                         />
                     ))}

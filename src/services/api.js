@@ -124,12 +124,10 @@ export const actualizarOrden = async (id, data) => {
 
 export const getPagosPorMes = async (desde, hasta) => {
   return apiFetch(
-    `pagos?` +
-      `filter[estado][_eq]=confirmado&` +
-      `filter[fecha][_between]=${desde},${hasta}&` +
-      `fields=id,metodo_pago,monto,fecha,estado`
+    `pagos?filter[fecha][_between]=${desde},${hasta}`
   );
 };
+
 // GASTOS
 export const getGastos = async () =>
   apiFetch("gastos?sort=-fecha&fields=*,categoria.nombre");
