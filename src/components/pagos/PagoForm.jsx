@@ -24,38 +24,36 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
   
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    const montoNumerico = Number(monto);
+  const montoNumerico = Number(monto);
 
-    // 1️⃣ Crear pago
-    await crearPago({
-      orden: orden.id,
-      metodo_pago: metodo,
-      monto: montoNumerico,
-    });
+  await crearPago({
+    orden: orden.id,
+    metodo_pago: metodo,
+    monto: montoNumerico,
+  });
 
-    // 2️⃣ Recalcular usando datos ACTUALES de la orden
-    const { totalPagado, saldo, estado } = calcularEstadoOrden(
-      orden.total,
-      orden.total_pagado,
-      montoNumerico
-    );
+  const { totalPagado, saldo, estado } = calcularEstadoOrden(
+    orden.total,
+    orden.total_pagado,
+    montoNumerico
+  );
 
-    // 3️⃣ Actualizar orden
-    await actualizarOrden(orden.id, {
-      total_pagado: totalPagado,
-      saldo,
-      estado,
-    });
+  await actualizarOrden(orden.id, {
+    total_pagado: totalPagado,
+    saldo,
+    estado,
+  });
 
-    setMonto("");
-    setLoading(false);
-    onPagoRegistrado(); // recargar orden / pagos
-    navigate("/dashboard");
+  setMonto("");
+  setLoading(false);
 
-  };
+  // 🔑 refrescar y abrir modal
+  onPagoRegistrado();
+  setShowModal(true); // <-- en vez de navigate acá
+};
 
   return (
     <form

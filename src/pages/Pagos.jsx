@@ -124,6 +124,14 @@ export default function Pagos() {
                     </button>
                 </div>
             </div>
+            {showModal && (
+  <Modal onClose={() => {
+      setShowModal(false);
+      navigate("/dashboard"); // navegar recién al cerrar modal
+  }}>
+    <p>El pago se registró correctamente ✅</p>
+  </Modal>
+)}
         </MainLayout>
     );
 }

@@ -85,7 +85,7 @@ export default function Dashboard() {
         <Card title="Total facturado" value={formatMoney(totalFacturado)} />
         <Card title="Ingresos cobrados" value={formatMoney(totalCobrado)} />
         <Card title="Gastos del mes" value={formatMoney(totalGastos)} />
-        <Card title="Saldo pendiente" value={formatMoney(saldoPendiente)} />
+        <Card title="Saldo pendiente por cobrar" value={formatMoney(saldoPendiente)} />
         <Card title="Resultado del mes" value={formatMoney(resultadoMes)} />
       </div>
       <button onClick={() => navigate("/cuenta-corriente")} className="bg-green-600 px-4 py-2 rounded mt-4" > {" "} Ver Cuenta Corriente{" "} </button>{" "}
