@@ -15,11 +15,17 @@ const formatMoney = (v) =>
     }).format(Number(v) || 0);
 
 const getRangoMes = (mes) => {
-    const [y, m] = mes.split("-");
-    const desde = `${y}-${m}-01`;
-    const hasta = `${y}-${m}-31`;
-    return { desde, hasta };
+  const [y, m] = mes.split("-");
+
+  const desde = `${y}-${m}-01`;
+
+  // último día real del mes
+  const ultimoDia = new Date(y, Number(m), 0).getDate();
+  const hasta = `${y}-${m}-${String(ultimoDia).padStart(2, "0")}`;
+
+  return { desde, hasta };
 };
+
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -122,14 +128,16 @@ export default function Dashboard() {
                         />
                     ))}
                 </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
- <Card title="Gastos del mes" value={formatMoney(totalGastos)} />
-                <Card
-                    title="Resultado del mes"
-                    value={formatMoney(resultadoMes)}
-                />
-                    </div>
-               
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card
+                        title="Gastos del mes"
+                        value={formatMoney(totalGastos)}
+                    />
+                    <Card
+                        title="Resultado del mes"
+                        value={formatMoney(resultadoMes)}
+                    />
+                </div>
             </div>
             <button
                 onClick={() => navigate("/cuenta-corriente")}

@@ -7,4 +7,6 @@ export default defineConfig({
     react(),       // 🔥 ESTO ES CLAVE
     tailwindcss(),
   ],
+  base: "/",
+
 });
