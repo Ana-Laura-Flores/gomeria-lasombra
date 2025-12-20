@@ -42,10 +42,21 @@ export default function Gastos() {
     <MainLayout>
       <div className="p-6">
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-          <h1 className="text-2xl font-bold">Gastos</h1>
-          <FiltroMes mes={mes} setMes={setMes} />
-        </div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+  <h1 className="text-2xl font-bold">Gastos</h1>
+
+  <div className="flex gap-3 items-center">
+    <FiltroMes mes={mes} setMes={setMes} />
+
+    <button
+      onClick={() => navigate("/gastos/nuevo")}
+      className="bg-green-600 px-4 py-2 rounded font-semibold"
+    >
+      + Nuevo gasto
+    </button>
+  </div>
+</div>
+
 
         {/* RESUMEN MENSUAL */}
         <GastosResumen gastos={gastosDelMes} />
