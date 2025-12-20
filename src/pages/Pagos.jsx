@@ -21,6 +21,8 @@ export default function Pagos() {
     const [pagos, setPagos] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const [showModal, setShowModal] = useState(false); 
+
     const fetchData = async () => {
         try {
             const [ordenRes, pagosRes] = await Promise.all([
