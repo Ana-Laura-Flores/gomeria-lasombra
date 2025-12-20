@@ -1,76 +1,91 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import { getDashboardOrdenes } from "../services/api";
+import { getDashboardOrdenes, getGastos } from "../services/api";
+
 import Card from "../components/Card";
-const formatMoney = (value) =>
-    new Intl.NumberFormat("es-AR", {
-        style: "currency",
-        currency: "ARS",
-    }).format(Number(value) || 0);
+import FiltroMes from "../components/FiltroMes";
+import IngresosResumen from "../components/ingresos/IngresosResumen";
+import GastosResumen from "../components/gastos/GastosResumen";
+import ResultadoMes from "../components/ResultadoMes";
+
 export default function Dashboard() {
-    const [ordenes, setOrdenes] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await getDashboardOrdenes();
-                setOrdenes(res.data || []);
-            } catch (error) {
-                console.error("Error cargando dashboard:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
-    if (loading)
-        return (
-            <MainLayout>
-                <p>Cargando dashboard...</p>
-            </MainLayout>
-        );
-    const totalOrdenes = ordenes.length;
-    const totalFacturado = ordenes.reduce((acc, o) => acc + Number(o.total), 0);
-    const totalCobrado = ordenes.reduce(
-        (acc, o) => acc + Number(o.total_pagado),
-        0
-    );
-    const saldoPendiente = ordenes.reduce((acc, o) => acc + Number(o.saldo), 0);
-    const ordenesConDeuda = ordenes.filter((o) => Number(o.saldo) > 0).length;
-    const ordenesPagadas = ordenes.filter(
-        (o) => Number(o.saldo) === 0 && Number(o.total) > 0
-    ).length;
+  const navigate = useNavigate();
+
+  const [ordenes, setOrdenes] = useState([]);
+  const [gastos, setGastos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [mes, setMes] = useState(
+    new Date().toISOString().slice(0, 7)
+  );
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [ordRes, gasRes] = await Promise.all([
+          getDashboardOrdenes(),
+          getGastos(),
+        ]);
+
+        setOrdenes(ordRes.data || []);
+        setGastos(gasRes.data || []);
+      } catch (error) {
+        console.error("Error cargando dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
     return (
-        <MainLayout>
-            {" "}
-            <h1 className="text-2xl font-bold mb-6">Dashboard</h1>{" "}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {" "}
-                <Card title="Total de órdenes" value={totalOrdenes} />{" "}
-                <Card
-                    title="Total facturado"
-                    value={formatMoney(totalFacturado)}
-                />{" "}
-                <Card
-                    title="Ingresos cobrados"
-                    value={formatMoney(totalCobrado)}
-                />{" "}
-                <Card
-                    title="Saldo pendiente"
-                    value={formatMoney(saldoPendiente)}
-                />{" "}
-                <Card title="Órdenes con deuda" value={ordenesConDeuda} />{" "}
-                <Card title="Órdenes pagadas" value={ordenesPagadas} />{" "}
-            </div>{" "}
-            <button
-                onClick={() => navigate("/cuenta-corriente")}
-                className="bg-green-600 px-4 py-2 rounded mt-4"
-            >
-                {" "}
-                Ver Cuenta Corriente{" "}
-            </button>{" "}
-        </MainLayout>
+      <MainLayout>
+        <p>Cargando dashboard...</p>
+      </MainLayout>
     );
+  }
+
+  // 📆 FILTRO POR MES (SIN Date)
+  const ordenesMes = ordenes.filter(
+    (o) => o.fecha && o.fecha.slice(0, 7) === mes
+  );
+
+  const gastosMes = gastos.filter(
+    (g) => g.fecha && g.fecha.slice(0, 7) === mes
+  );
+
+  return (
+    <MainLayout>
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <FiltroMes mes={mes} setMes={setMes} />
+      </div>
+
+      {/* INGRESOS */}
+      <IngresosResumen ordenes={ordenesMes} />
+
+      {/* GASTOS */}
+      <GastosResumen gastos={gastosMes} />
+
+      {/* RESULTADO */}
+      <ResultadoMes
+        ingresos={ordenesMes}
+        gastos={gastosMes}
+      />
+
+      {/* ACCESOS */}
+      <div className="mt-6">
+        <button
+          onClick={() => navigate("/cuenta-corriente")}
+          className="bg-green-600 px-4 py-2 rounded"
+        >
+          Ver Cuenta Corriente
+        </button>
+      </div>
+    </MainLayout>
+  );
 }
