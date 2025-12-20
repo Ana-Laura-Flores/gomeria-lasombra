@@ -16,6 +16,14 @@ export default function Dashboard() {
   const [ordenes, setOrdenes] = useState([]);
   const [gastos, setGastos] = useState([]);
   const [loading, setLoading] = useState(true);
+const getMesFromFecha = (fecha) => {
+  if (!fecha) return null;
+
+  const d = new Date(fecha);
+  if (isNaN(d.getTime())) return null;
+
+  return d.toISOString().slice(0, 7);
+};
 
   const [mes, setMes] = useState(
     new Date().toISOString().slice(0, 7)
@@ -51,13 +59,14 @@ export default function Dashboard() {
   }
 
   // 📆 FILTRO MES
-  const ordenesMes = ordenes.filter((o) =>
-    new Date(o.fecha).toISOString().slice(0, 7) === mes
-  );
+  const ordenesMes = ordenes.filter(
+  (o) => getMesFromFecha(o.fecha) === mes
+);
 
-  const gastosMes = gastos.filter((g) =>
-    new Date(g.fecha).toISOString().slice(0, 7) === mes
-  );
+const gastosMes = gastos.filter(
+  (g) => getMesFromFecha(g.fecha) === mes
+);
+
 
   // 📊 MÉTRICAS
   const totalOrdenes = ordenesMes.length;

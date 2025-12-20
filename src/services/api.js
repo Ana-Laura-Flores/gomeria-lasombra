@@ -134,3 +134,4 @@ export const getCategoriasGasto = async () =>
 export const getGastosPrefijados = async () =>
   apiFetch("gastos_prefijados?filter[activo][_eq]=true");
 
+
