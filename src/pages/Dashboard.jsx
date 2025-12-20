@@ -122,12 +122,14 @@ export default function Dashboard() {
                         />
                     ))}
                 </div>
-
-                <Card title="Gastos del mes" value={formatMoney(totalGastos)} />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+ <Card title="Gastos del mes" value={formatMoney(totalGastos)} />
                 <Card
                     title="Resultado del mes"
                     value={formatMoney(resultadoMes)}
                 />
+                    </div>
+               
             </div>
             <button
                 onClick={() => navigate("/cuenta-corriente")}

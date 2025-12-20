@@ -9,6 +9,7 @@ import Modal from "../components/Modal";
 import useClientes from "../hooks/useClientes";
 import useItems from "../hooks/useItems";
 import useTiposVehiculo from "../hooks/useTiposVehiculo";
+import { METODOS_PAGO } from "../hooks/useMetodoPago"
 
 export default function NuevaOrden() {
   const navigate = useNavigate();
@@ -130,15 +131,20 @@ export default function NuevaOrden() {
     <label className="block mb-1">Método de pago</label>
     <select
       value={metodoPago}
-      onChange={e => setMetodoPago(e.target.value)}
+      onChange={(e) => setMetodoPago(e.target.value)}
       className="w-full p-2 rounded bg-gray-800 border border-gray-700"
     >
-      <option value="efectivo">Efectivo</option>
-      <option value="tarjeta">Tarjeta</option>
-      <option value="transferencia">Transferencia</option>
+      <option value="">Seleccionar</option>
+
+      {METODOS_PAGO.map((m) => (
+        <option key={m.value} value={m.value}>
+          {m.label}
+        </option>
+      ))}
     </select>
   </div>
 )}
+
 
       {/* Botón para agregar items */}
       <button
