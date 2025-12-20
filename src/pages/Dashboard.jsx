@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { getDashboardOrdenes, getGastosPorMes } from "../services/api";
+import { getDashboardOrdenes, getGastosPorMes, getPagosPorMes } from "../services/api";
 import Card from "../components/Card";
 import { useNavigate } from "react-router-dom";
 
@@ -34,7 +34,7 @@ export default function Dashboard() {
                 const [oRes, gRes, pRes] = await Promise.all([
                     getDashboardOrdenes(desde, hasta),
                     getGastosPorMes(desde, hasta),
-                    getPagosporMes(desde, hasta),
+                    getPagosPorMes(desde, hasta),
                 ]);
 
                 setOrdenes(oRes.data || []);
@@ -69,11 +69,10 @@ export default function Dashboard() {
         (o) => Number(o.saldo) === 0 && Number(o.total) > 0
     ).length;
     const pagosPorMetodo = pagos.reduce((acc, p) => {
-  const metodo = p.metodo_pago || "sin_metodo";
-  acc[metodo] = (acc[metodo] || 0) + Number(p.monto || 0);
-  return acc;
-}, {});
-
+        const metodo = p.metodo_pago || "sin_metodo";
+        acc[metodo] = (acc[metodo] || 0) + Number(p.monto || 0);
+        return acc;
+    }, {});
 
     return (
         <MainLayout>
@@ -106,14 +105,13 @@ export default function Dashboard() {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                   {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
-  <Card
-    key={metodo}
-    title={`Ingresos ${metodo}`}
-    value={formatMoney(total)}
-  />
-))}
-
+                    {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
+                        <Card
+                            key={metodo}
+                            title={`Ingresos ${metodo}`}
+                            value={formatMoney(total)}
+                        />
+                    ))}
                 </div>
 
                 <Card title="Gastos del mes" value={formatMoney(totalGastos)} />
