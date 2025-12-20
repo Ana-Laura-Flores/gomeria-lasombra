@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getDashboardOrdenes, getGastosPorMes } from "../services/api";
 import Card from "../components/Card";
+import { useNavigate } from "react-router-dom";
 
 const formatMoney = (v) =>
   new Intl.NumberFormat("es-AR", {
@@ -17,6 +18,7 @@ const getRangoMes = (mes) => {
 };
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [ordenes, setOrdenes] = useState([]);
   const [gastos, setGastos] = useState([]);
   const [mes, setMes] = useState("2025-12");
