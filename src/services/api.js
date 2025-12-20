@@ -77,11 +77,12 @@ export const getOrdenTrabajoById = async (id) => {
   );
 };
 
-export const getDashboardOrdenes = async () => {
+export const getDashboardOrdenes = async (mes) => {
   return apiFetch(
-    "ordenes_trabajo?fields=id,total,total_pagado,saldo"
+    `ordenes_trabajo?fields=id,total,total_pagado,saldo&filter[fecha][_starts_with]=${mes}`
   );
 };
+
 
 // Traer todas las órdenes para cuenta corriente
 export const getCuentaCorriente = async () => {
@@ -133,5 +134,10 @@ export const getCategoriasGasto = async () =>
 
 export const getGastosPrefijados = async () =>
   apiFetch("gastos_prefijados?filter[activo][_eq]=true");
+export const getGastosPorMes = async (mes) =>
+  apiFetch(
+    `gastos?sort=-fecha&filter[fecha][_starts_with]=${mes}&fields=*,categoria.nombre`
+  );
+
 
 
