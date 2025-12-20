@@ -58,7 +58,7 @@ export default function NuevoGasto() {
       concepto: elegido.nombre,
       monto: elegido.monto_default,
       categoria: elegido.categoria?.id || "",
-      tipo: elegido.es_fijo ? "FIJO" : "variable",
+      tipo: elegido.es_fijo ? "fijo" : "variable",
     });
   };
 
@@ -161,7 +161,7 @@ export default function NuevoGasto() {
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-800"
           >
-            <option value="FIJO">FIJO</option>
+            <option value="fijo">Fijo</option>
             <option value="variable">Variable</option>
           </select>
 
