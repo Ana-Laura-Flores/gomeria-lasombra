@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getGastos } from "../services/api";
 
-import FiltroMes from "../components/gastos/FiltroMes";
+import FiltroMes from "../components/FiltroMes";
 import GastosResumen from "../components/gastos/GastosResumen";
 
 export default function Gastos() {
