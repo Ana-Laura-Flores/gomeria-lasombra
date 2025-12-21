@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { crearPago, actualizarOrden } from "../../services/api";
 import { useNavigate } from "react-router-dom";
-import { useMetodosPago } from "../../hooks/useMetodoPago";
+import { useMetodoPago } from "../../hooks/useMetodoPago";
 
 
 
