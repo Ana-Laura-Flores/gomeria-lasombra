@@ -13,7 +13,7 @@ export const authHeaders = () => ({
 // --------------------
 export const apiFetch = async (endpoint, options = {}) => {
   const res = await fetch(`${API_URL}/items/${endpoint}`, {
-    cache: "no-store",
+    cache: "no-store", // 👈 ACÁ
     ...options,
     headers: {
       ...authHeaders(),
@@ -21,16 +21,12 @@ export const apiFetch = async (endpoint, options = {}) => {
     },
   });
 
-  const data = await res.json();
-
   if (!res.ok) {
-    console.error("❌ Error Directus:", data);
-    throw data;
+    throw new Error(`Error al llamar a API: ${res.statusText}`);
   }
 
-  return data;
+  return res.json();
 };
-
 
 
 // --------------------
