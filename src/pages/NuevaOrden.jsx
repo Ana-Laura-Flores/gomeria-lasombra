@@ -9,7 +9,7 @@ import Modal from "../components/Modal";
 import useClientes from "../hooks/useClientes";
 import useItems from "../hooks/useItems";
 import useTiposVehiculo from "../hooks/useTiposVehiculo";
-import { useMetodoPago } from "../../hooks/useMetodoPago";
+import { useMetodoPago } from "../hooks/useMetodoPago";
 
 export default function NuevaOrden() {
   const navigate = useNavigate();
