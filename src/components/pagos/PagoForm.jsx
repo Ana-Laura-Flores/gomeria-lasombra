@@ -27,7 +27,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+ console.log("🚨 SUBMIT EJECUTADO");
         if (!metodo) {
             alert("Seleccioná un método de pago");
             return;
