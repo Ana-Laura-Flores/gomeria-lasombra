@@ -20,43 +20,48 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
     const navigate = useNavigate();
     const [monto, setMonto] = useState("");
     const metodos = useMetodoPago();
-    const [metodo, setMetodo] = useState("");
+   
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-        const montoNumerico = Number(monto);
+  const formData = new FormData(e.currentTarget);
+  const metodoSeleccionado = formData.get("metodo_pago");
 
-        await crearPago({
-            orden: orden.id,
-            metodo_pago: metodo,
-            monto: montoNumerico,
-        });
+  const montoNumerico = Number(monto);
 
-        const { totalPagado, saldo, estado } = calcularEstadoOrden(
-            orden.total,
-            orden.total_pagado,
-            montoNumerico
-        );
+  await crearPago({
+    orden: orden.id,
+    metodo_pago: metodoSeleccionado,
+    monto: montoNumerico,
+  });
 
-        await actualizarOrden(orden.id, {
-            total_pagado: totalPagado,
-            saldo,
-            estado,
-        });
+  const { totalPagado, saldo, estado } = calcularEstadoOrden(
+    orden.total,
+    orden.total_pagado,
+    montoNumerico
+  );
 
-        setMonto("");
-        setLoading(false);
+  await actualizarOrden(orden.id, {
+    total_pagado: totalPagado,
+    saldo,
+    estado,
+  });
 
-        // 🔑 refrescar y abrir modal
-        onPagoRegistrado();
-        {
+  setMonto("");
+  setLoading(false);
+
+  onPagoRegistrado();
+      {
             showModal && <PagoModal onClose={() => setShowModal(false)} />;
         } // <-- en vez de navigate acá
-    };
+};
+
+    
+    
 
     return (
         <form
@@ -66,19 +71,19 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
             <h2 className="font-semibold">Registrar pago</h2>
 
             <select
-                value={metodo}
-                onChange={(e) => setMetodo(e.target.value)}
-                className="w-full p-2 bg-gray-700 rounded"
-                required
-            >
-                <option value="">Seleccionar método</option>
+  name="metodo_pago"
+  className="w-full p-2 bg-gray-700 rounded"
+  required
+>
+  <option value="">Seleccionar método</option>
 
-                {metodos.map((m) => (
-                    <option key={m.value} value={m.value}>
-                        {m.text}
-                    </option>
-                ))}
-            </select>
+  {metodos.map((m) => (
+    <option key={m.value} value={m.value}>
+      {m.text}
+    </option>
+  ))}
+</select>
+
 
             <input
                 type="number"
