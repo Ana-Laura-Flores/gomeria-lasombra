@@ -27,7 +27,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
- console.log("🚨 SUBMIT EJECUTADO");
+ 
         if (!metodo) {
             alert("Seleccioná un método de pago");
             return;
@@ -37,11 +37,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
 
         const montoNumerico = Number(monto);
 
-        console.log("CREANDO PAGO", {
-            orden: orden.id,
-            metodo_pago: metodo,
-            monto: montoNumerico,
-        });
+       
 
         await crearPago({
             orden: orden.id,

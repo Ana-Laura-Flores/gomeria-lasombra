@@ -1,5 +1,6 @@
-import { API_URL, authHeaders } from "../services/api";
+import { API_URL, authHeaders, crearPago } from "../services/api";
 import { useState } from "react";
+
 
 export default function OrdenFooter({
   total,
@@ -51,6 +52,14 @@ export default function OrdenFooter({
           }),
         });
       }
+// 3️⃣ Crear PAGO si es contado
+if (condicionCobro === "contado" && metodoPago) {
+  await crearPago({
+    orden: ordenId,
+    metodo_pago: metodoPago,
+    monto: total,
+  });
+}
 
       onSuccess(); // abre modal + reset
 
@@ -61,6 +70,7 @@ export default function OrdenFooter({
     }
   };
 
+  
   return (
     <div className="mt-6 flex justify-between items-center border-t border-gray-700 pt-4">
       <div className="text-xl font-bold">Total: $ {total}</div>
