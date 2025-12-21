@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {apiFetch} from "../services/api"; // tu cliente axios/fetch hacia Directus
+import { getMetodosPagoField } from "../services/api";
 
 export function useMetodoPago() {
   const [metodos, setMetodos] = useState([]);
@@ -7,9 +7,8 @@ export function useMetodoPago() {
   useEffect(() => {
     const fetchMetodos = async () => {
       try {
-        const res = await api.get("/fields/pagos/metodo_pago");
-        const opciones = res.data?.meta?.options || [];
-        // Filtrás solo los de contado (sin cuenta corriente)
+        const data = await getMetodosPagoField();
+        const opciones = data?.meta?.options || [];
         const filtrados = opciones.filter(
           (opt) => opt.value !== "cuenta_corriente"
         );

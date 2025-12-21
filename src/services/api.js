@@ -129,6 +129,14 @@ export const getPagosPorMes = async (desde, hasta) => {
   );
 };
 
+// services/api.js
+export const getMetodosPagoField = async () => {
+  const res = await fetch(`${API_URL}/fields/pagos/metodo_pago`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Error al cargar métodos de pago");
+  return res.json();
+}; 
 // GASTOS
 export const getGastos = async () =>
   apiFetch("gastos?sort=-fecha&fields=*,categoria.nombre");
