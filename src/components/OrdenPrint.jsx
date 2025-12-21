@@ -35,7 +35,7 @@ export default function OrdenPrint({ orden }) {
       {/* INFO */}
       <div style={{ marginBottom: 12 }}>
         <div><strong>Fecha:</strong> {new Date(orden.fecha).toLocaleDateString()}</div>
-        <div><strong>Comprobante:</strong> {orden.comprobante_numero || "-"}</div>
+        <div><strong>Comprobante:</strong> {orden.comprobante || "-"}</div>
         <div>
           <strong>Cliente:</strong>{" "}
           {orden.cliente

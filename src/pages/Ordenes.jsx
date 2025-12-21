@@ -28,7 +28,7 @@ export default function Ordenes() {
     };
 
     fetchOrdenes();
-}, [location.state]); // 👈 importante
+}, [location.key]); // 👈 importante
 
     if (loading) {
         return (
@@ -106,7 +106,7 @@ export default function Ordenes() {
                                 </td>
 
                                 <td className="p-2">
-                                    {orden.comprobante_numero || "-"}
+                                    {orden.comprobante || "-"}
                                 </td>
 
                                 <td className="p-2">
