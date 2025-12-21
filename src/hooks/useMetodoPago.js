@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../services/api"; // tu cliente de Directus
+import api from "../services/api"; // tu cliente axios/fetch hacia Directus
 
 export function useMetodosPago() {
   const [metodos, setMetodos] = useState([]);
