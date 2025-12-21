@@ -9,7 +9,7 @@ import Modal from "../components/Modal";
 import useClientes from "../hooks/useClientes";
 import useItems from "../hooks/useItems";
 import useTiposVehiculo from "../hooks/useTiposVehiculo";
-import { METODOS_PAGO } from "../hooks/useMetodoPago"
+import { useMetodoPago } from "../../hooks/useMetodoPago";
 
 export default function NuevaOrden() {
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ export default function NuevaOrden() {
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [condicionCobro, setCondicionCobro] = useState("contado");
   const [metodoPago, setMetodoPago] = useState("efectivo");
-
+  const metodos = useMetodoPago();
   const total = itemsOrden.reduce((acc, i) => acc + i.subtotal, 0);
 
   const agregarItem = () => {
@@ -49,7 +49,7 @@ export default function NuevaOrden() {
     setPatente("");
     setItemsOrden([]);
     setCondicionCobro("contado");
-    setMetodoPago("efectivo");
+    setMetodoPago("");
     setFecha(new Date().toISOString().slice(0, 10));
     setTipoVehiculo("");
   };
@@ -136,11 +136,11 @@ export default function NuevaOrden() {
     >
       <option value="">Seleccionar</option>
 
-      {METODOS_PAGO.map((m) => (
-        <option key={m.value} value={m.value}>
-          {m.label}
-        </option>
-      ))}
+     {metodos.map((m) => (
+  <option key={m.value} value={m.value}>
+    {m.text}
+  </option>
+))}
     </select>
   </div>
 )}
@@ -176,7 +176,9 @@ export default function NuevaOrden() {
         metodoPago={metodoPago}
         items={itemsOrden}
         onSuccess={() => {
-  navigate("/ordenes", { state: { refresh: true } });
+    setShowModal(true);
+    navigate("/ordenes", { state: { refresh: true } });
+
 }}
 
       />
