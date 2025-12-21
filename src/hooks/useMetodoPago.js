@@ -7,16 +7,18 @@ export function useMetodoPago() {
   useEffect(() => {
     const fetchMetodos = async () => {
       try {
-        const data = await getMetodosPagoField();
-        const opciones = data?.meta?.options || [];
+        const opciones = await getMetodosPagoField();
+
         const filtrados = opciones.filter(
           (opt) => opt.value !== "cuenta_corriente"
         );
+
         setMetodos(filtrados);
       } catch (err) {
         console.error("Error cargando métodos de pago:", err);
       }
     };
+
     fetchMetodos();
   }, []);
 
