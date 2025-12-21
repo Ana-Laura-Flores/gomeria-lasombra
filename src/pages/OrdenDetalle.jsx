@@ -120,7 +120,7 @@ export default function OrdenDetalle() {
                         </p>
                         <p>
                             <strong>Comprobante:</strong>{" "}
-                            {orden.comprobante || "-"}
+                            {orden.comprobante[0].numero || "-"}
                         </p>
                     </div>
                 </div>
