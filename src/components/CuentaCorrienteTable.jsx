@@ -48,7 +48,7 @@ export default function CuentaCorrienteTable({ clientes, onVerDetalle }) {
                             <td className="p-2 space-y-1">
                                 {/* Registrar pago */}
                                 <Link
-                                    to={`/cuentas/${c.id}/registrar-pago`}
+                                    to={`/ordenes/${o.id}`}
                                     className="block text-green-400 hover:underline"
                                 >
                                     Registrar pago
