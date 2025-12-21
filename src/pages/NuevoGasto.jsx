@@ -18,7 +18,7 @@ export default function NuevoGasto() {
     fecha: new Date().toISOString().slice(0, 10),
     concepto: "",
     monto: "",
-    TIPO: "",
+    tipo: "",
     categoria: "",
     observaciones: "",
   });
