@@ -44,13 +44,26 @@ export default function CuentaCorrienteTable({ clientes, onVerDetalle }) {
                                     Ver órdenes
                                 </button>
                             </td>
-                            <td className="p-2">
+                            {/* Acciones: registrar pago y ver órdenes */}
+                            <td className="p-2 space-y-1">
+                                {/* Registrar pago */}
                                 <Link
-                                    to={`/ordenes/${orden.id}`}
-                                    className="text-blue-400 hover:underline"
+                                    to={`/cuentas/${c.id}/registrar-pago`}
+                                    className="block text-green-400 hover:underline"
                                 >
-                                    Ver
+                                    Registrar pago
                                 </Link>
+
+                                {/* Ver cada orden asociada */}
+                                {c.ordenes.map((o) => (
+                                    <Link
+                                        key={o.id}
+                                        to={`/ordenes/${o.id}`}
+                                        className="block text-blue-400 hover:underline"
+                                    >
+                                        Ver orden #{o.id}
+                                    </Link>
+                                ))}
                             </td>
                         </tr>
                     ))}
