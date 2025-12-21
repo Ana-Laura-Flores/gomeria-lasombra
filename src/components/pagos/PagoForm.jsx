@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { crearPago, actualizarOrden } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import { useMetodosPago } from "../../hooks/useMetodoPago";
+
 
 
 const calcularEstadoOrden = (total, totalPagadoAnterior, nuevoMonto) => {
@@ -19,8 +21,10 @@ const calcularEstadoOrden = (total, totalPagadoAnterior, nuevoMonto) => {
 export default function PagoForm({ orden, onPagoRegistrado }) {
   const navigate = useNavigate();
   const [monto, setMonto] = useState("");
-  const [metodo, setMetodo] = useState("efectivo");
+  const metodos = useMetodosPago();
+  const [metodo, setMetodo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   
 
   const handleSubmit = async (e) => {
@@ -52,7 +56,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
 
   // 🔑 refrescar y abrir modal
   onPagoRegistrado();
-  setShowModal(true); // <-- en vez de navigate acá
+  {showModal && <PagoModal onClose={() => setShowModal(false)} />}; // <-- en vez de navigate acá
 };
 
   return (
@@ -63,16 +67,17 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
       <h2 className="font-semibold">Registrar pago</h2>
 
       <select
-        value={metodo}
-        onChange={(e) => setMetodo(e.target.value)}
-        className="w-full p-2 bg-gray-700 rounded"
-      >
-        <option value="efectivo">Efectivo</option>
-        <option value="transferencia">Transferencia</option>
-        <option value="mercado_pago">Mercado Pago</option>
-        <option value="cuenta_corriente">Cuenta Corriente</option>
-        <option value="cheque">Cheque</option>
-      </select>
+      value={metodo}
+      onChange={(e) => setMetodo(e.target.value)}
+      className="w-full p-2 bg-gray-700 rounded"
+    >
+      {metodos.map((m) => (
+        <option key={m.value} value={m.value}>
+          {m.text}
+        </option>
+      ))}
+    </select>
+
 
       <input
         type="number"

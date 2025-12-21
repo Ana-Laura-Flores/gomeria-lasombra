@@ -1,6 +1,25 @@
-export const METODOS_PAGO = [
-  { value: "efectivo", label: "Efectivo" },
-  { value: "mercado_pago", label: "Mercado Pago" },
-  { value: "transferencia_bancaria", label: "Transferencia bancaria" },
-  { value: "cheque", label: "Cheque" },
-];
+import { useEffect, useState } from "react";
+import api from "../services/api"; // tu cliente de Directus
+
+export function useMetodosPago() {
+  const [metodos, setMetodos] = useState([]);
+
+  useEffect(() => {
+    const fetchMetodos = async () => {
+      try {
+        const res = await api.get("/fields/pagos/metodo_pago");
+        const opciones = res.data?.meta?.options || [];
+        // Filtrás solo los de contado (sin cuenta corriente)
+        const filtrados = opciones.filter(
+          (opt) => opt.value !== "cuenta_corriente"
+        );
+        setMetodos(filtrados);
+      } catch (err) {
+        console.error("Error cargando métodos de pago:", err);
+      }
+    };
+    fetchMetodos();
+  }, []);
+
+  return metodos;
+}
