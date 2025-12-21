@@ -144,8 +144,7 @@ export const getMetodosPagoField = async () => {
 
   const json = await res.json();
 
-  return json.data.meta?.options || [];
-
+  return json.data.meta?.options?.choices || [];
 };
 
 // GASTOS
