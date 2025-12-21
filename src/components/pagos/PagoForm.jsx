@@ -34,7 +34,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
   const montoNumerico = Number(monto);
 
   await crearPago({
-    orden: orden.uuid,
+    orden: orden.id,
     metodo_pago: metodoSeleccionado,
     monto: montoNumerico,
   });
