@@ -1,5 +1,5 @@
 import SidebarDesktop from "../components/Sidebar";
-import BottomNav from "../components/BottomNav";
+import BottomNav from "../components/BotoomNav";
 
 export default function MainLayout({ children }) {
   return (
