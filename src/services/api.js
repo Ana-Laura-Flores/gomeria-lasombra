@@ -67,15 +67,35 @@ export const getClientes = async () => {
 
 export const getOrdenesTrabajo = async () => {
   return apiFetch(
-    "ordenes_trabajo?fields=*,comprobante.numero, cliente.id,cliente.nombre,pagos.*,items_orden.*"
+    "ordenes_trabajo?fields=*, cliente.id,cliente.nombre,pagos.*,items_orden.*"
   );
 };
 
 export const getOrdenTrabajoById = async (id) => {
   return apiFetch(
-    `ordenes_trabajo/${id}?fields=*,comprobante.numero, cliente.id,cliente.nombre,pagos.*,items_orden.*,items_orden.tarifa.servicio.nombre`
+    `ordenes_trabajo/${id}?fields=*, cliente.id,cliente.nombre,pagos.*,items_orden.*,items_orden.tarifa.servicio.nombre`
   );
 };
+
+// --------------------
+// Último comprobante
+// --------------------
+export const getUltimoComprobante = async () => {
+  const res = await apiFetch(
+    "ordenes_trabajo?fields=comprobante&sort=-comprobante&limit=1"
+  );
+  return res.data[0]?.comprobante || null;
+};
+
+export const generarNumeroComprobante = async () => {
+  const ultimo = await getUltimoComprobante();
+  let siguiente = 1;
+  if (ultimo) {
+    siguiente = Number(ultimo) + 1;
+  }
+  return String(siguiente).padStart(6, "0"); // Ej: 000001
+};
+
 
 export const getDashboardOrdenes = async (desde, hasta) => {
   return apiFetch(

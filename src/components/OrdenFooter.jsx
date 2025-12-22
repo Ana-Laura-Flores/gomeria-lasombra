@@ -1,10 +1,11 @@
-import { API_URL, authHeaders, crearPago } from "../services/api";
+import { generarNumeroComprobante, API_URL, authHeaders, crearPago } from "../services/api";
 import { useState } from "react";
 
 
 export default function OrdenFooter({
   total,
   fecha,
+  comprobante,
   cliente,
   patente,
   condicionCobro,
@@ -19,6 +20,7 @@ export default function OrdenFooter({
 
     try {
       setLoading(true);
+      const numeroComprobante = await generarNumeroComprobante();
 
       // 1️⃣ Crear ORDEN
       const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
@@ -27,6 +29,7 @@ export default function OrdenFooter({
         body: JSON.stringify({
           fecha,
           cliente,
+          comprobante: numeroComprobante, 
           patente,
           estado: condicionCobro === "contado" ? "pagado" : "pendiente",
           total,

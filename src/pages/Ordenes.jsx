@@ -106,7 +106,7 @@ export default function Ordenes() {
                                 </td>
 
                                 <td className="p-2">
-                                    {orden.comprobante.numero || "-"}
+                                    {orden.comprobante || "-"}
                                 </td>
 
                                 <td className="p-2">
