@@ -1,32 +1,3 @@
-import { useEffect, useState } from "react";
-import MainLayout from "../layouts/MainLayout";
-import {
-    getDashboardOrdenes,
-    getGastosPorMes,
-    getPagosPorMes,
-} from "../services/api";
-import Card from "../components/Card";
-import { useNavigate } from "react-router-dom";
-
-const formatMoney = (v) =>
-    new Intl.NumberFormat("es-AR", {
-        style: "currency",
-        currency: "ARS",
-    }).format(Number(v) || 0);
-
-const getRangoMes = (mes) => {
-  const [y, m] = mes.split("-");
-
-  const desde = `${y}-${m}-01`;
-
-  // último día real del mes
-  const ultimoDia = new Date(y, Number(m), 0).getDate();
-  const hasta = `${y}-${m}-${String(ultimoDia).padStart(2, "0")}`;
-
-  return { desde, hasta };
-};
-
-
 export default function Dashboard() {
     const navigate = useNavigate();
     const [ordenes, setOrdenes] = useState([]);
@@ -78,23 +49,11 @@ export default function Dashboard() {
     const ordenesPagadas = ordenes.filter(
         (o) => Number(o.saldo) === 0 && Number(o.total) > 0
     ).length;
-    const pagosPorMetodo = {};
-
-// 1️⃣ Pagos registrados
-pagos.forEach((p) => {
-  const metodo = p.metodo_pago || "sin_metodo";
-  pagosPorMetodo[metodo] =
-    (pagosPorMetodo[metodo] || 0) + Number(p.monto || 0);
-});
-
-// 2️⃣ Órdenes al contado (no pasan por pagos)
-ordenes
-  .filter((o) => o.condicionCobro === "contado")
-  .forEach((o) => {
-    const metodo = o.metodo_pago || "sin_metodo";
-    pagosPorMetodo[metodo] =
-      (pagosPorMetodo[metodo] || 0) + Number(o.total_pagado || 0);
-  });
+    const pagosPorMetodo = pagos.reduce((acc, p) => {
+        const metodo = p.metodo_pago || "sin_metodo";
+        acc[metodo] = (acc[metodo] || 0) + Number(p.monto || 0);
+        return acc;
+    }, {});
     const formatMetodoPago = (m) =>
         m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
@@ -135,7 +94,7 @@ ordenes
                     {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
                         <Card
                             key={metodo}
-                            title={`Ingresos ${formatMetodoPago(metodo)}`}
+                            title={Ingresos ${formatMetodoPago(metodo)}}
                             value={formatMoney(total)}
                         />
                     ))}
