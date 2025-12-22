@@ -78,11 +78,23 @@ export default function Dashboard() {
     const ordenesPagadas = ordenes.filter(
         (o) => Number(o.saldo) === 0 && Number(o.total) > 0
     ).length;
-    const pagosPorMetodo = pagos.reduce((acc, p) => {
-        const metodo = p.metodo_pago || "sin_metodo";
-        acc[metodo] = (acc[metodo] || 0) + Number(p.monto || 0);
-        return acc;
-    }, {});
+    const pagosPorMetodo = {};
+
+// 1️⃣ Pagos registrados
+pagos.forEach((p) => {
+  const metodo = p.metodo_pago || "sin_metodo";
+  pagosPorMetodo[metodo] =
+    (pagosPorMetodo[metodo] || 0) + Number(p.monto || 0);
+});
+
+// 2️⃣ Órdenes al contado (no pasan por pagos)
+ordenes
+  .filter((o) => o.condicionCobro === "contado")
+  .forEach((o) => {
+    const metodo = o.metodo_pago || "sin_metodo";
+    pagosPorMetodo[metodo] =
+      (pagosPorMetodo[metodo] || 0) + Number(o.total_pagado || 0);
+  });
     const formatMetodoPago = (m) =>
         m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 

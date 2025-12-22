@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ROLES } from "../constants/roles";
 
-export default function SidebarDesktop() {
+export default function Sidebar() {
   const { user } = useAuth();
 
   return (

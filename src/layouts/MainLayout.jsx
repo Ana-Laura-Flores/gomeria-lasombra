@@ -1,4 +1,4 @@
-import SidebarDesktop from "../components/SidebarDesktop";
+import SidebarDesktop from "../components/Sidebar";
 import BottomNav from "../components/BottomNav";
 
 export default function MainLayout({ children }) {
