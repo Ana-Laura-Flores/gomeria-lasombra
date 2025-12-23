@@ -103,11 +103,14 @@ export default function App() {
   </ProtectedRoute>
 } />
 
-<Route path="/gastos/nuevo" element={
-  <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-    <NuevoGasto />
-  </ProtectedRoute>
-} />
+<Route
+  path="/gastos/nuevo"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}>
+      <NuevoGasto />
+    </ProtectedRoute>
+  }
+/>
 
 
           <Route path="*" element={<Navigate to="/login" />} />
