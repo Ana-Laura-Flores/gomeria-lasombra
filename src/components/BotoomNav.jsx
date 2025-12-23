@@ -12,6 +12,20 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 flex justify-around py-2 md:hidden z-50">
       
+      {/* SOLO ADMIN */}
+      {user?.role === ROLES.ADMIN && (
+        <>
+          <Link
+            to="/dashboard"
+            className={`flex flex-col items-center text-sm ${isActive("/dashboard")}`}
+          >
+            📊
+            <span>Dashboard</span>
+          </Link>
+
+        </>
+      )}
+
       {(user?.role === ROLES.ADMIN || user?.role === ROLES.EMPLEADO) && (
         <>
           <Link
@@ -46,14 +60,7 @@ export default function BottomNav() {
       {/* SOLO ADMIN */}
       {user?.role === ROLES.ADMIN && (
         <>
-          <Link
-            to="/dashboard"
-            className={`flex flex-col items-center text-sm ${isActive("/dashboard")}`}
-          >
-            📊
-            <span>Dashboard</span>
-          </Link>
-
+          
           <Link
             to="/gastos"
             className={`flex flex-col items-center text-sm ${isActive("/gastos")}`}
