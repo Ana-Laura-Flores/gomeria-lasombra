@@ -188,8 +188,7 @@ const handleCondicionCobroChange = (value) => {
         items={itemsOrden}
         onSuccess={() => {
     setShowModal(true);
-    navigate("/ordenes", { state: { refresh: true } });
-
+   
 }}
 
       />

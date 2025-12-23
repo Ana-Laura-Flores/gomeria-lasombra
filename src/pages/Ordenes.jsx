@@ -8,26 +8,26 @@ export default function Ordenes() {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
-  useEffect(() => {
-    const fetchOrdenes = async () => {
-      setLoading(true);
-      try {
-        const res = await getOrdenesTrabajo();
-        const data = Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data?.data)
-          ? res.data.data
-          : [];
-        setOrdenes(data);
-      } catch (err) {
-        console.error("Error cargando órdenes:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchOrdenes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getOrdenesTrabajo();
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+        ? res.data.data
+        : [];
+      setOrdenes(data);
+    } catch (err) {
+      console.error("Error cargando órdenes:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  useEffect(() => {
     fetchOrdenes();
-  }, [location.key]);
+  }, [location.key, fetchOrdenes]);
 
   if (loading) {
     return (
@@ -36,6 +36,7 @@ export default function Ordenes() {
       </MainLayout>
     );
   }
+
 
   const getEstadoVisual = (orden) => {
     const total = Number(orden.total) || 0;
