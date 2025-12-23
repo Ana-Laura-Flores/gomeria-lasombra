@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext"; 
 import { ROLES } from "../constants/roles";
 
 export default function BottomNav() {
@@ -11,28 +11,53 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 flex justify-around py-2 md:hidden z-50">
+      
       {(user?.role === ROLES.ADMIN || user?.role === ROLES.EMPLEADO) && (
         <>
-          <Link to="/ordenes" className={`flex flex-col items-center text-sm ${isActive("/ordenes")}`}>
+          <Link
+            to="/ordenes"
+            className={`flex flex-col items-center text-sm ${isActive("/ordenes")}`}
+          >
             📋
             <span>Órdenes</span>
           </Link>
 
-          <Link to="/ordenes/nueva" className={`flex flex-col items-center text-sm ${isActive("/ordenes/nueva")}`}>
+          <Link
+            to="/ordenes/nueva"
+            className={`flex flex-col items-center text-sm ${isActive("/ordenes/nueva")}`}
+          >
             ➕
             <span>Nueva</span>
           </Link>
         </>
       )}
 
+      {/* SOLO EMPLEADO */}
+      {user?.role === ROLES.EMPLEADO && (
+        <Link
+          to="/gastos/nuevo"
+          className={`flex flex-col items-center text-sm ${isActive("/gastos/nuevo")}`}
+        >
+          💸
+          <span>Nuevo gasto</span>
+        </Link>
+      )}
+
+      {/* SOLO ADMIN */}
       {user?.role === ROLES.ADMIN && (
         <>
-          <Link to="/dashboard" className={`flex flex-col items-center text-sm ${isActive("/dashboard")}`}>
+          <Link
+            to="/dashboard"
+            className={`flex flex-col items-center text-sm ${isActive("/dashboard")}`}
+          >
             📊
             <span>Dashboard</span>
           </Link>
 
-          <Link to="/gastos" className={`flex flex-col items-center text-sm ${isActive("/gastos")}`}>
+          <Link
+            to="/gastos"
+            className={`flex flex-col items-center text-sm ${isActive("/gastos")}`}
+          >
             💸
             <span>Gastos</span>
           </Link>
