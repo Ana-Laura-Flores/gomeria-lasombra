@@ -6,41 +6,42 @@ import { login } from "../services/api-login";
 import { useAuth } from "../context/AuthContext";
 import jwt_decode from "jwt-decode";
 import { ROLES } from "../constants/roles";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const navigate = useNavigate();
   const { loginUser } = useAuth();
 
   const handleLogin = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await login(email, password);
-    const token = res.data.access_token;
+    try {
+      const res = await login(email, password);
+      const token = res.data.access_token;
+      const decoded = jwt_decode(token);
 
-    const decoded = jwt_decode(token);
+      const user = {
+        id: decoded.id,
+        role: decoded.role,
+        email: decoded.email,
+      };
 
-    const user = {
-      id: decoded.id,
-      role: decoded.role,
-      email: decoded.email,
-    };
+      loginUser(token, user);
 
-    loginUser(token, user);
-
-    if (decoded.role === ROLES.ADMIN) {
-      navigate("/dashboard");
-    } else {
-      navigate("/ordenes");
+      if (decoded.role === ROLES.ADMIN) {
+        navigate("/dashboard");
+      } else {
+        navigate("/ordenes");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Email o contraseña incorrectos");
     }
-  } catch (error) {
-    console.error(error);
-    alert("Email o contraseña incorrectos");
-  }
-};
-
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 px-4">
@@ -60,13 +61,27 @@ export default function Login() {
           placeholder="Ingrese su email"
         />
 
-        <Input
-          label="Contraseña"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Ingrese su contraseña"
-        />
+        {/* CONTRASEÑA CON OJITO */}
+        <div className="relative">
+          <Input
+            label="Contraseña"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Ingrese su contraseña"
+            className="pr-10"
+          />
+
+          {password.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9 text-gray-400 hover:text-gray-100"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          )}
+        </div>
 
         <Button type="submit">Ingresar</Button>
       </form>

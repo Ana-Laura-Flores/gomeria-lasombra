@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { getOrdenesTrabajo } from "../services/api";
@@ -8,27 +8,26 @@ export default function Ordenes() {
     const [loading, setLoading] = useState(true);
     const location = useLocation();
 
-
     useEffect(() => {
-    const fetchOrdenes = async () => {
-        setLoading(true);
-        try {
-            const res = await getOrdenesTrabajo();
-            const data = Array.isArray(res.data)
-                ? res.data
-                : Array.isArray(res.data?.data)
-                ? res.data.data
-                : [];
-            setOrdenes(data);
-        } catch (err) {
-            console.error("Error cargando órdenes:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+        const fetchOrdenes = async () => {
+            setLoading(true);
+            try {
+                const res = await getOrdenesTrabajo();
+                const data = Array.isArray(res.data)
+                    ? res.data
+                    : Array.isArray(res.data?.data)
+                    ? res.data.data
+                    : [];
+                setOrdenes(data);
+            } catch (err) {
+                console.error("Error cargando órdenes:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    fetchOrdenes();
-}, [location.key]); // 👈 importante
+        fetchOrdenes();
+    }, [location.key]); // 👈 importante
 
     if (loading) {
         return (
@@ -63,8 +62,8 @@ export default function Ordenes() {
         <MainLayout>
             <h1 className="text-2xl font-bold mb-6">Órdenes</h1>
 
-            <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+            <div className="-mx-4 md:mx-0 overflow-x-auto">
+                <table className="min-w-[900px] w-full border-collapse">
                     <thead>
                         <tr className="border-b border-gray-700 text-left">
                             <th className="p-2">Fecha</th>
