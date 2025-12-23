@@ -106,9 +106,13 @@ export const getDashboardOrdenes = async (desde, hasta) => {
 // Traer todas las órdenes para cuenta corriente
 export const getCuentaCorriente = async () => {
   return apiFetch(
-    "ordenes_trabajo?fields=*,cliente.id,cliente.nombre,total,total_pagado,saldo,condicionCobro&filter[condicionCobro][_eq]=cuenta_corriente"
+    "ordenes_trabajo" +
+    "?fields=id,fecha,total,total_pagado,saldo,condicion_cobro," +
+    "cliente.id,cliente.nombre" +
+    "&filter[condicion_cobro][_eq]=cuenta_corriente"
   );
 };
+
 
 
 
