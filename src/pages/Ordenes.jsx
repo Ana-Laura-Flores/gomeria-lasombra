@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { getOrdenesTrabajo } from "../services/api";
@@ -27,7 +27,7 @@ export default function Ordenes() {
 
   useEffect(() => {
     fetchOrdenes();
-  }, [location.key, fetchOrdenes]);
+  }, [location.state, fetchOrdenes]);
 
   if (loading) {
     return (
