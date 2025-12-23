@@ -56,12 +56,13 @@ export default function NuevaOrden() {
 const handleCondicionCobroChange = (value) => {
   setCondicionCobro(value);
 
-  if (value === "cuenta_corriente") {
-    setMetodoPago("cuenta_corriente");
+  if (value === "contado") {
+    setMetodoPago("efectivo"); // default
   } else {
-    setMetodoPago(""); // o "efectivo" si querés default
+    setMetodoPago(""); // vacío
   }
 };
+
 
   return (
     <MainLayout>

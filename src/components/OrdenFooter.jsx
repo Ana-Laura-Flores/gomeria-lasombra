@@ -31,6 +31,7 @@ export default function OrdenFooter({
           cliente,
           comprobante: numeroComprobante, 
           patente,
+          condicion_cobro: condicionCobro, //
           estado: condicionCobro === "contado" ? "pagado" : "pendiente",
           total,
           total_pagado: condicionCobro === "contado" ? total : 0,

@@ -32,6 +32,7 @@ export default function CuentaCorrientePage() {
   const clientesCC = useMemo(() => {
     const acc = {};
     ordenes.forEach(o => {
+      if (o.condicion_cobro !== "cuenta_corriente") return;
       // Filtrado por fechas
       if (
         (fechaDesde && new Date(o.fecha) < new Date(fechaDesde)) ||
