@@ -53,6 +53,15 @@ export default function NuevaOrden() {
     setFecha(new Date().toISOString().slice(0, 10));
     setTipoVehiculo("");
   };
+const handleCondicionCobroChange = (value) => {
+  setCondicionCobro(value);
+
+  if (value === "cuenta_corriente") {
+    setMetodoPago("cuenta_corriente");
+  } else {
+    setMetodoPago(""); // o "efectivo" si querés default
+  }
+};
 
   return (
     <MainLayout>
@@ -116,13 +125,14 @@ export default function NuevaOrden() {
 <div className="mb-4">
   <label className="block mb-1">Condición de cobro</label>
   <select
-    value={condicionCobro}
-    onChange={e => setCondicionCobro(e.target.value)}
-    className="w-full p-2 rounded bg-gray-800 border border-gray-700"
-  >
-    <option value="contado">Contado</option>
-    <option value="cuenta_corriente">Cuenta corriente</option>
-  </select>
+  value={condicionCobro}
+  onChange={(e) => handleCondicionCobroChange(e.target.value)}
+  className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+>
+  <option value="contado">Contado</option>
+  <option value="cuenta_corriente">Cuenta corriente</option>
+</select>
+
 </div>
 
 {/* Método de pago: solo si es contado */}
@@ -190,21 +200,26 @@ export default function NuevaOrden() {
         onClose={() => setShowModal(false)}
         actions={
           <>
-            <button
-              onClick={() => setShowModal(false)}
-              className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
-            >
-              Seguir cargando
-            </button>
-            <button
-              onClick={() => {
-                setShowModal(false);
-                window.scrollTo(0, 0);
-              }}
-              className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
-            >
-              Nueva orden
-            </button>
+             <button
+        onClick={() => {
+          setShowModal(false);
+          navigate("/ordenes", { state: { refresh: true } });
+        }}
+        className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+      >
+        Ir a órdenes
+      </button>
+
+      <button
+        onClick={() => {
+          setShowModal(false);
+          resetForm();
+          window.scrollTo(0, 0);
+        }}
+        className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+      >
+        Nueva orden
+      </button>
           </>
         }
       >
