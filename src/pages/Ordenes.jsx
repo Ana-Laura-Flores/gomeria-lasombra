@@ -7,6 +7,8 @@ export default function Ordenes() {
   const [ordenes, setOrdenes] = useState([]);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const [search, setSearch] = useState("");
+
 
   const fetchOrdenes = useCallback(async () => {
     setLoading(true);
@@ -58,9 +60,31 @@ export default function Ordenes() {
       minimumFractionDigits: 2,
     }).format(Number(value) || 0);
 
+    const ordenesFiltradas = ordenes.filter((orden) => {
+  const texto = search.toLowerCase();
+
+  return (
+    orden.comprobante?.toString().includes(texto) ||
+    orden.patente?.toLowerCase().includes(texto) ||
+    orden.cliente?.nombre?.toLowerCase().includes(texto) ||
+    orden.cliente?.apellido?.toLowerCase().includes(texto) ||
+    getEstadoVisual(orden).label.toLowerCase().includes(texto)
+  );
+});
+
   return (
     <MainLayout>
       <h1 className="text-2xl font-bold mb-6">Órdenes</h1>
+      <div className="mb-4">
+  <input
+    type="text"
+    placeholder="Buscar por cliente, patente, comprobante o estado..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="w-full md:max-w-md p-2 rounded bg-gray-800 border border-gray-700"
+  />
+</div>
+
 
       {/* ================= MOBILE: CARDS ================= */}
       <div className="space-y-4 md:hidden">
@@ -70,7 +94,7 @@ export default function Ordenes() {
           </p>
         )}
 
-        {ordenes.map((orden) => {
+        {ordenesFiltradas.map((orden) => {
           const estado = getEstadoVisual(orden);
 
           return (
@@ -158,7 +182,7 @@ export default function Ordenes() {
           </thead>
 
           <tbody>
-            {ordenes.map((orden) => {
+            {ordenesFiltradas.map((orden) => {
               const estado = getEstadoVisual(orden);
 
               return (
