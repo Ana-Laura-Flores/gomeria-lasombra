@@ -107,14 +107,15 @@ export default function Pagos() {
                 </div>
 
                 {/* FORM */}
-                {orden.saldo > 0 && (
-                    <PagosForm orden={orden} onPagoRegistrado={async () => {
-              await fetchData();
-              setShowModal(true); // 👈 abrir modal después de registrar pago
-            }}
- />
-                    
-                )}
+                {saldo > 0 && (
+  <PagosForm
+    orden={orden}
+    onPagoRegistrado={async () => {
+  setShowModal(true);
+  await fetchData();
+}}
+  />
+)}
 
                 {/* TABLA */}
                 <PagosTable
@@ -132,14 +133,17 @@ export default function Pagos() {
                     </button>
                 </div>
             </div>
-            {showModal && (
-  <Modal onClose={() => {
-      setShowModal(false);
-      navigate("/dashboard"); // navegar recién al cerrar modal
-  }}>
-    <p>El pago se registró correctamente ✅</p>
-  </Modal>
-)}
+     <Modal
+  open={showModal}
+  title="Pago registrado"
+  onClose={() => {
+    setShowModal(false);
+    navigate("/dashboard");
+  }}
+>
+  <p>El pago se registró correctamente ✅</p>
+</Modal>
+
         </MainLayout>
     );
 }
