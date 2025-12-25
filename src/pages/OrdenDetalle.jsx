@@ -186,33 +186,34 @@ export default function OrdenDetalle() {
                 </div>
 
                 {/* ACCIONES */}
-                <div className="mt-6 flex gap-4 print:hidden">
+                <div className="mt-6 flex items-center justify-between print:hidden">
+                    {/* IZQUIERDA */}
                     <button
                         onClick={() => navigate("/ordenes")}
-                        className="px-4 py-2 bg-gray-700 rounded"
+                        className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
                     >
                         Volver
                     </button>
 
-                    <button
-                        onClick={exportarPDF}
-                        className="px-4 py-2 bg-green-600 rounded"
-                    >
-                        Descargar PDF
-                    </button>
-                     <div>
-                    {orden.saldo > 0 && (
-                    <Link
-                        to={`/pagos/nuevo?orden=${orden.id}`}
-                        className="bg-green-600 px-4 py-2 rounded"
-                    >
-                        Registrar pago
-                    </Link>
-                )}
+                    {/* DERECHA */}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={exportarPDF}
+                            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+                        >
+                            Descargar PDF
+                        </button>
+
+                        {orden.saldo > 0 && (
+                            <Link
+                                to={`/pagos/nuevo?orden=${orden.id}`}
+                                className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+                            >
+                                Registrar pago
+                            </Link>
+                        )}
+                    </div>
                 </div>
-                </div>
-               
-                
             </div>
 
             {/* VISTA IMPRESIÓN (OCULTA) */}

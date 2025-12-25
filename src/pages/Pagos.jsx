@@ -5,6 +5,7 @@ import { getOrdenTrabajoById, getPagosByOrden } from "../services/api";
 import PagosForm from "../components/pagos/PagoForm";
 import PagosTable from "../components/pagos/PagosTable";
 import EstadoPagosBadge from "../components/pagos/EstadoPagosBadge";
+import Modal from "../components/Modal"
 
 const formatMoney = (value) =>
     new Intl.NumberFormat("es-AR", {
