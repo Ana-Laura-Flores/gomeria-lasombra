@@ -1,3 +1,26 @@
+import { useNavigate } from "react-router-dom";
+
+import MainLayout from "../layouts/MainLayout";
+
+// hook central
+import useNuevaOrden from "../hooks/useNuevaOrden";
+
+// data hooks existentes
+import useClientes from "../hooks/useClientes";
+import useTiposVehiculo from "../hooks/useTiposVehiculo";
+import useItems from "../hooks/useItems";
+import { useMetodoPago } from "../hooks/useMetodoPago";
+
+// secciones
+import DatosPrincipales from "../components/nueva-orden/DatosPrincipales";
+import ClienteSection from "../components/nueva-orden/ClienteSection";
+import VehiculoSection from "../components/nueva-orden/VehiculoSection";
+import CobroSection from "../components/nueva-orden/CobroSection";
+import ItemsSection from "../components/nueva-orden/ItemsSection";
+
+// footer existente
+import OrdenFooter from "../components/OrdenFooter"
+
 export default function NuevaOrden() {
   const navigate = useNavigate();
   const estado = useNuevaOrden();
