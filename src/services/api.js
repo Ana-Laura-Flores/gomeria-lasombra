@@ -5,7 +5,7 @@ export const API_URL = import.meta.env.VITE_API_URL;
 // --------------------
 export const authHeaders = () => ({
   "Content-Type": "application/json",
-  
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
 
 // --------------------
@@ -14,7 +14,6 @@ export const authHeaders = () => ({
 export const apiFetch = async (endpoint, options = {}) => {
   const res = await fetch(`${API_URL}/items/${endpoint}`, {
     cache: "no-store", // 👈 ACÁ
-    credentials: "include", 
     ...options,
     headers: {
       ...authHeaders(),
@@ -162,8 +161,7 @@ export const getMetodosPagoField = async () => {
   const res = await fetch(
     `${API_URL}/fields/pagos/metodo_pago`,
     {
-      credentials: "include",
-      headers: authHeaders(), // 👈 seguimos usando auth
+      headers: authHeaders(),
     }
   );
 
@@ -172,9 +170,9 @@ export const getMetodosPagoField = async () => {
   }
 
   const json = await res.json();
+
   return json.data.meta?.options?.choices || [];
 };
-
 
 // GASTOS
 export const getGastos = async () =>
