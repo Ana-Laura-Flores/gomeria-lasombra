@@ -28,18 +28,23 @@ export default function CuentaCorrientePage() {
     fetchData();
   }, []);
 
-  // Agrupar por cliente y calcular totales
+  // ================= AGRUPAR POR CLIENTE =================
   const clientesCC = useMemo(() => {
     const acc = {};
-    ordenes.forEach(o => {
+
+    ordenes.forEach((o) => {
       if (o.condicion_cobro !== "cuenta_corriente") return;
-      // Filtrado por fechas
+
+      // Filtro fechas
       if (
         (fechaDesde && new Date(o.fecha) < new Date(fechaDesde)) ||
         (fechaHasta && new Date(o.fecha) > new Date(fechaHasta))
-      ) return;
+      ) {
+        return;
+      }
 
       const id = o.cliente.id;
+
       if (!acc[id]) {
         acc[id] = {
           id,
@@ -47,32 +52,49 @@ export default function CuentaCorrientePage() {
           total: 0,
           pagado: 0,
           saldo: 0,
-          ordenes: []
+          ordenes: [],
         };
       }
+
       acc[id].total += Number(o.total);
       acc[id].pagado += Number(o.total_pagado);
       acc[id].saldo += Number(o.saldo);
       acc[id].ordenes.push(o);
     });
+
     return Object.values(acc);
   }, [ordenes, fechaDesde, fechaHasta]);
 
-  // Aplicar filtro deuda
+  // ================= FILTROS =================
   const clientesFiltrados = useMemo(() => {
-    let res = filtroDeuda ? clientesCC.filter(c => c.saldo > 0) : clientesCC;
+    let res = filtroDeuda
+      ? clientesCC.filter((c) => c.saldo > 0)
+      : clientesCC;
+
     if (searchNombre) {
-      res = res.filter(c => c.nombre.toLowerCase().includes(searchNombre.toLowerCase()));
+      res = res.filter((c) =>
+        c.nombre.toLowerCase().includes(searchNombre.toLowerCase())
+      );
     }
+
     return res.sort((a, b) => a.nombre.localeCompare(b.nombre));
   }, [clientesCC, filtroDeuda, searchNombre]);
 
-  if (loading) return <MainLayout><p>Cargando cuenta corriente...</p></MainLayout>;
+  if (loading) {
+    return (
+      <MainLayout>
+        <p>Cargando cuenta corriente...</p>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
-      <h1 className="text-2xl font-bold mb-4">Cuenta Corriente de Clientes</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        Cuenta Corriente de Clientes
+      </h1>
 
+      {/* ================= FILTROS ================= */}
       <Filters
         filtroDeuda={filtroDeuda}
         setFiltroDeuda={setFiltroDeuda}
@@ -84,13 +106,72 @@ export default function CuentaCorrientePage() {
         setFechaHasta={setFechaHasta}
       />
 
-      <CuentaCorrienteTable
-        clientes={clientesFiltrados}
-        onVerDetalle={setDetalleCliente}
-      />
+      {/* ================= MOBILE: CARDS ================= */}
+      <div className="space-y-4 md:hidden">
+        {clientesFiltrados.length === 0 && (
+          <p className="text-center text-gray-400">
+            No hay clientes con cuenta corriente
+          </p>
+        )}
 
+        {clientesFiltrados.map((cliente) => (
+          <div
+            key={cliente.id}
+            className="bg-gray-800 rounded-lg p-4 shadow"
+          >
+            <p className="font-semibold text-lg mb-1">
+              {cliente.nombre}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 text-sm mt-3">
+              <div>
+                <span className="text-gray-400">Total</span>
+                <p>${cliente.total.toFixed(2)}</p>
+              </div>
+
+              <div>
+                <span className="text-gray-400">Pagado</span>
+                <p>${cliente.pagado.toFixed(2)}</p>
+              </div>
+
+              <div className="col-span-2">
+                <span className="text-gray-400">Saldo</span>
+                <p
+                  className={`font-semibold ${
+                    cliente.saldo > 0
+                      ? "text-red-400"
+                      : "text-green-400"
+                  }`}
+                >
+                  ${cliente.saldo.toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setDetalleCliente(cliente)}
+              className="mt-4 w-full bg-blue-600 py-2 rounded font-semibold"
+            >
+              Ver detalle
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* ================= DESKTOP: TABLA ================= */}
+      <div className="hidden md:block">
+        <CuentaCorrienteTable
+          clientes={clientesFiltrados}
+          onVerDetalle={setDetalleCliente}
+        />
+      </div>
+
+      {/* ================= MODAL ================= */}
       {detalleCliente && (
-        <CuentaCorrienteModal cliente={detalleCliente} onClose={() => setDetalleCliente(null)} />
+        <CuentaCorrienteModal
+          cliente={detalleCliente}
+          onClose={() => setDetalleCliente(null)}
+        />
       )}
     </MainLayout>
   );
