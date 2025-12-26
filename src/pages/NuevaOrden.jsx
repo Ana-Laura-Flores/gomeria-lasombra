@@ -28,6 +28,8 @@ export default function NuevaOrden() {
   const navigate = useNavigate();
   const estado = useNuevaOrden();
   const [showModal, setShowModal] = useState(false);
+  const [ordenIdCreada, setOrdenCreadaId] = useState(null);
+
 
 
   // data hooks
