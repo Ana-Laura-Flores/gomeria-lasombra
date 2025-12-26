@@ -92,20 +92,22 @@ export default function NuevaOrden() {
       />
 
       {/* Footer */}
-      <OrdenFooter
-        total={estado.total}
-        cliente={estado.cliente}
-        fecha={estado.fecha}
-        patente={estado.patente}
-        condicionCobro={estado.condicionCobro}
-        metodoPago={estado.metodoPago}
-        items={estado.itemsOrden}
-        onSuccess={(id) => {
+     <OrdenFooter
+  total={estado.total}
+  cliente={estado.cliente}
+  modoClienteNuevo={estado.modoClienteNuevo}
+  clienteNuevoNombre={estado.clienteNuevoNombre}
+  fecha={estado.fecha}
+  patente={estado.patente}
+  condicionCobro={estado.condicionCobro}
+  metodoPago={estado.metodoPago}
+  items={estado.itemsOrden}
+  onSuccess={(id) => {
     setOrdenCreadaId(id);
     setShowModal(true);
   }}
+/>
 
-      />
        {/* Modal de confirmación */}
       <Modal
   open={showModal}

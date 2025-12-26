@@ -11,6 +11,8 @@ export default function OrdenFooter({
     fecha,
     comprobante,
     cliente,
+     modoClienteNuevo,
+  clienteNuevoNombre,
     patente,
     condicionCobro,
     metodoPago,
