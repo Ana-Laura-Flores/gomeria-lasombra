@@ -1,106 +1,85 @@
 export const API_URL = import.meta.env.VITE_API_URL;
 
 // --------------------
-// Fetch para ITEMS (/items)
+// Headers de autenticación
+// --------------------
+export const authHeaders = () => ({
+  "Content-Type": "application/json",
+  
+});
+
+// --------------------
+// Fetch genérico
 // --------------------
 export const apiFetch = async (endpoint, options = {}) => {
-  const url = `${API_URL}/items/${endpoint}`;
-
-  const res = await fetch(url, {
+  const res = await fetch(`${API_URL}/items/${endpoint}`, {
+    cache: "no-store", // 👈 ACÁ
+    credentials: "include", 
     ...options,
-    credentials: "include", // 👈 CLAVE
-    cache: "no-store",
     headers: {
-      "Content-Type": "application/json",
+      ...authHeaders(),
       ...(options.headers || {}),
     },
   });
 
-  if (res.status === 401) {
-    window.location.href = "/login";
-    return;
-  }
-
   if (!res.ok) {
-    throw new Error(`Error API: ${res.status}`);
+    throw new Error(`Error al llamar a API: ${res.statusText}`);
   }
 
   return res.json();
 };
 
-// --------------------
-// Fetch para endpoints NO items
-// (fields, auth, etc)
-// --------------------
-export const apiFetchSystem = async (endpoint, options = {}) => {
-  const url = `${API_URL}/${endpoint}`;
-
-  const res = await fetch(url, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
-
-  if (res.status === 401) {
-    window.location.href = "/login";
-    return;
-  }
-
-  if (!res.ok) {
-    throw new Error(`Error API: ${res.status}`);
-  }
-
-  return res.json();
-};
 
 // --------------------
-// Tarifas
+// Tarifas (para tipos de vehículo y precios)
 // --------------------
-export const getTarifas = async () =>
-  apiFetch(
+export const getTarifas = async () => {
+  return apiFetch(
     "tarifas?fields=id,precio,tipo_vehiculo,servicio.id,servicio.nombre"
   );
+};
 
 // --------------------
 // Items de orden
 // --------------------
-export const getItemsOrden = async () =>
-  apiFetch(
+export const getItemsOrden = async () => {
+  return apiFetch(
     "items_orden?fields=*,tarifa.id,tarifa.precio,tarifa.tipo_vehiculo,tarifa.servicio.id,tarifa.servicio.nombre"
   );
+};
 
 // --------------------
-// Servicios
+// Servicios con tarifas
 // --------------------
-export const getServicios = async () =>
-  apiFetch(
+export const getServicios = async () => {
+  return apiFetch(
     "servicios?fields=*,tarifas.id,tarifas.precio,tarifas.tipo_vehiculo"
   );
+};
 
 // --------------------
 // Clientes
 // --------------------
-export const getClientes = async () =>
-  apiFetch("clientes?fields=id,nombre,apellido,telefono,email");
-
-// --------------------
-// Órdenes
-// --------------------
-export const getOrdenesTrabajo = async () =>
-  apiFetch(
-    "ordenes_trabajo?fields=*,cliente.id,cliente.nombre,pagos.*,items_orden.*"
+export const getClientes = async () => {
+  return apiFetch(
+    "clientes?fields=id,nombre,apellido,telefono,email"
   );
+};
 
-export const getOrdenTrabajoById = async (id) =>
-  apiFetch(
-    `ordenes_trabajo/${id}?fields=*,cliente.id,cliente.nombre,pagos.*,items_orden.*,items_orden.tarifa.servicio.nombre`
+export const getOrdenesTrabajo = async () => {
+  return apiFetch(
+    "ordenes_trabajo?fields=*, cliente.id,cliente.nombre,pagos.*,items_orden.*"
   );
+};
+
+export const getOrdenTrabajoById = async (id) => {
+  return apiFetch(
+    `ordenes_trabajo/${id}?fields=*, cliente.id,cliente.nombre,pagos.*,items_orden.*,items_orden.tarifa.servicio.nombre`
+  );
+};
 
 // --------------------
-// Comprobantes
+// Último comprobante
 // --------------------
 export const getUltimoComprobante = async () => {
   const res = await apiFetch(
@@ -111,81 +90,98 @@ export const getUltimoComprobante = async () => {
 
 export const generarNumeroComprobante = async () => {
   const ultimo = await getUltimoComprobante();
-  let siguiente = ultimo ? Number(ultimo) + 1 : 1;
-  return String(siguiente).padStart(6, "0");
+  let siguiente = 1;
+  if (ultimo) {
+    siguiente = Number(ultimo) + 1;
+  }
+  return String(siguiente).padStart(6, "0"); // Ej: 000001
 };
 
-// --------------------
-// Dashboard
-// --------------------
-export const getDashboardOrdenes = async (desde, hasta) =>
-  apiFetch(
+
+export const getDashboardOrdenes = async (desde, hasta) => {
+  return apiFetch(
     `ordenes_trabajo?fields=id,total,total_pagado,saldo,fecha&filter[fecha][_between]=${desde},${hasta}`
   );
+};
 
-// --------------------
-// Cuenta corriente
-// --------------------
-export const getCuentaCorriente = async () =>
-  apiFetch(
+// Traer todas las órdenes para cuenta corriente
+export const getCuentaCorriente = async () => {
+  return apiFetch(
     "ordenes_trabajo" +
       "?fields=id,fecha,total,total_pagado,saldo,condicion_cobro," +
       "cliente.id,cliente.nombre," +
       "pagos.id,pagos.fecha,pagos.metodo_pago,pagos.monto,pagos.estado" +
       "&filter[condicion_cobro][_eq]=cuenta_corriente"
   );
+};
+
+
+
+
 
 // --------------------
-// Pagos
+// PAGOS
 // --------------------
-export const crearPago = async (pago) =>
-  apiFetch("pagos", {
+export const crearPago = async (pago) => {
+  return apiFetch("pagos", {
     method: "POST",
     body: JSON.stringify({
-      orden: pago.orden,
+      orden: pago.orden,                // ID de la orden
       metodo_pago: pago.metodo_pago,
       monto: Number(pago.monto),
       fecha: pago.fecha || new Date().toISOString(),
       observaciones: pago.observaciones || "",
       estado: "confirmado",
+    
     }),
   });
+};
 
-export const getPagosByOrden = async (ordenId) =>
-  apiFetch(
+// Traer pagos de una orden
+export const getPagosByOrden = async (ordenId) => {
+  return apiFetch(
     `pagos?filter[orden][_eq]=${ordenId}&fields=*,orden.id`
   );
+};
 
-export const actualizarOrden = async (id, data) =>
-  apiFetch(`ordenes_trabajo/${id}`, {
+export const actualizarOrden = async (id, data) => {
+  return apiFetch(`ordenes_trabajo/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
-
-export const getPagosPorMes = async (desde, hasta) =>
-  apiFetch(
-    `pagos?filter[fecha][_between]=${desde},${hasta}`
-  );
-
-// --------------------
-// Fields (NO items)
-// --------------------
-export const getMetodosPagoField = async () => {
-  const res = await apiFetchSystem("fields/pagos/metodo_pago");
-  return res.data.meta?.options?.choices || [];
 };
 
-// --------------------
-// Gastos
-// --------------------
+export const getPagosPorMes = async (desde, hasta) => {
+  return apiFetch(
+    `pagos?filter[fecha][_between]=${desde},${hasta}`
+  );
+};
+
+// services/api.js
+export const getMetodosPagoField = async () => {
+  const res = await fetch(
+    `${API_URL}/fields/pagos/metodo_pago`,
+    {
+      credentials: "include",
+      headers: authHeaders(), // 👈 seguimos usando auth
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Error al cargar métodos de pago");
+  }
+
+  const json = await res.json();
+  return json.data.meta?.options?.choices || [];
+};
+
+
+// GASTOS
 export const getGastos = async () =>
   apiFetch("gastos?sort=-fecha&fields=*,categoria.nombre");
 
 export const crearGasto = async (data) =>
-  apiFetch("gastos", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
+  apiFetch("gastos", { method: "POST", body: JSON.stringify(data) });
 
 export const getCategoriasGasto = async () =>
   apiFetch("categorias_gasto?filter[activo][_eq]=true");
@@ -193,7 +189,11 @@ export const getCategoriasGasto = async () =>
 export const getGastosPrefijados = async () =>
   apiFetch("gastos_prefijados?filter[activo][_eq]=true");
 
-export const getGastosPorMes = async (desde, hasta) =>
-  apiFetch(
+export const getGastosPorMes = async (desde, hasta) => {
+  return apiFetch(
     `gastos?fields=id,monto,fecha&filter[fecha][_between]=${desde},${hasta}`
   );
+};
+
+
+
