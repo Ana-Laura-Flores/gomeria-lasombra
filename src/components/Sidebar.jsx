@@ -31,7 +31,7 @@ export default function Sidebar() {
             <Link to="/ordenes/nueva" className="block px-4 py-2 rounded hover:bg-gray-700">
               Nueva Orden
             </Link>
-            <Link to="cuenta-corriente" className="block px-4 py-2 rounded hover:bg-gray-700">
+            <Link to="/cuenta-corriente" className="block px-4 py-2 rounded hover:bg-gray-700">
             Cuentas Corrientes
             </Link>
           </>

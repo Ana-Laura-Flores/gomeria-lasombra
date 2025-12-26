@@ -114,6 +114,30 @@ export const getCuentaCorriente = async () => {
   );
 };
 
+export const crearOCrearCuentaCorriente = async (clienteId) => {
+  // Buscar si ya existe una cuenta corriente activa para este cliente
+  const res = await apiFetch(
+    `cuenta_corriente?filter[cliente][_eq]=${clienteId}&filter[activa][_eq]=true`
+  );
+
+  if (res.data.length > 0) {
+    return res.data[0].id; // Devuelve la cuenta existente
+  }
+
+  // Si no existe, crear nueva cuenta
+  const crearRes = await apiFetch("cuenta_corriente", {
+    method: "POST",
+    body: JSON.stringify({
+      cliente: clienteId,
+      saldo: 0,
+      total_ordenes: 0,
+      total_pagos: 0,
+      activa: true,
+    }),
+  });
+
+  return crearRes.data.id; // Devuelve el ID de la nueva cuenta
+};
 
 
 
