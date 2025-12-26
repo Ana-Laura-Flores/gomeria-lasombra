@@ -100,7 +100,10 @@ export default function NuevaOrden() {
         condicionCobro={estado.condicionCobro}
         metodoPago={estado.metodoPago}
         items={estado.itemsOrden}
-        onSuccess={() => setShowModal(true)}
+        onSuccess={(id) => {
+    setOrdenCreadaId(id);
+    setShowModal(true);
+  }}
 
       />
        {/* Modal de confirmación */}

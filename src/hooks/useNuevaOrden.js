@@ -17,6 +17,8 @@ export default function useNuevaOrden() {
   const [condicionCobro, setCondicionCobro] = useState("contado");
   const [metodoPago, setMetodoPago] = useState("efectivo");
 
+  const [ordenCreadaId, setOrdenCreadaId] = useState(null);
+
   const agregarItem = () => {
     setItemsOrden((prev) => [
       ...prev,
@@ -49,6 +51,7 @@ export default function useNuevaOrden() {
     setCondicionCobro(value);
     setMetodoPago(value === "contado" ? "efectivo" : "");
   };
+  
 
   return {
     // state
@@ -62,6 +65,7 @@ export default function useNuevaOrden() {
     condicionCobro,
     metodoPago,
     total,
+    ordenCreadaId,  
 
     // setters
     setFecha,
@@ -72,6 +76,7 @@ export default function useNuevaOrden() {
     setTipoVehiculo,
     setItemsOrden,
     setMetodoPago,
+    setOrdenCreadaId,
 
     // actions
     agregarItem,
