@@ -11,97 +11,108 @@ export default function CuentaCorrienteModal({ cliente, onClose }) {
   const [ordenAbierta, setOrdenAbierta] = useState(null);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">
-            Cuenta Corriente · {cliente.nombre}
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
+      <div
+        className="
+          bg-gray-900 w-full h-[100dvh]
+          md:h-auto md:max-w-3xl md:rounded-lg
+          flex flex-col
+        "
+      >
+        {/* ================= HEADER ================= */}
+        <div className="flex justify-between items-center p-4 border-b border-gray-700">
+          <h2 className="text-lg font-bold">
+            Cuenta corriente · {cliente.nombre}
           </h2>
-          <button onClick={onClose} className="text-white font-bold">
+          <button onClick={onClose} className="text-xl font-bold">
             ✕
           </button>
         </div>
 
-        {/* RESUMEN CLIENTE */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        {/* ================= RESUMEN ================= */}
+        <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
           <Resumen label="Total" value={cliente.total} />
           <Resumen label="Pagado" value={cliente.pagado} />
           <Resumen label="Saldo" value={cliente.saldo} saldo />
         </div>
 
-        {/* ÓRDENES */}
-        <table className="min-w-full bg-gray-800 text-gray-100 rounded-lg">
-          <thead className="bg-gray-700">
-            <tr>
-              <th className="p-2 text-left">Orden</th>
-              <th className="p-2 text-right">Total</th>
-              <th className="p-2 text-right">Pagado</th>
-              <th className="p-2 text-right">Saldo</th>
-              <th className="p-2 text-center">Pagos</th>
-            </tr>
-          </thead>
+        {/* ================= CONTENIDO CON SCROLL ================= */}
+        <div className="flex-1 overflow-y-auto p-4">
 
-          <tbody>
-            {cliente.ordenes.map((o) => (
-              <>
-                <tr
+          <table className="min-w-full bg-gray-800 text-gray-100 rounded-lg">
+            <thead className="bg-gray-700 sticky top-0 z-10">
+              <tr>
+                <th className="p-2 text-left">Orden</th>
+                <th className="p-2 text-right">Total</th>
+                <th className="p-2 text-right">Pagado</th>
+                <th className="p-2 text-right">Saldo</th>
+                <th className="p-2 text-center">Pagos</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {cliente.ordenes.map((o) => (
+                <FragmentOrden
                   key={o.id}
-                  className="border-b border-gray-700 hover:bg-gray-700"
-                >
-                  <td className="p-2">
-                    #{o.comprobante || o.id}
-                  </td>
-                  <td className="p-2 text-right">
-                    {formatMoney(o.total)}
-                  </td>
-                  <td className="p-2 text-right">
-                    {formatMoney(o.total_pagado)}
-                  </td>
-                  <td className="p-2 text-right">
-                    {formatMoney(o.saldo)}
-                  </td>
-                  <td className="p-2 text-center">
-                    <button
-                      onClick={() =>
-                        setOrdenAbierta(
-                          ordenAbierta?.id === o.id ? null : o
-                        )
-                      }
-                      className="text-blue-400 hover:underline"
-                    >
-                      {ordenAbierta?.id === o.id
-                        ? "Ocultar"
-                        : "Ver"}
-                    </button>
-                  </td>
-                </tr>
+                  orden={o}
+                  abierta={ordenAbierta}
+                  setOrdenAbierta={setOrdenAbierta}
+                />
+              ))}
+            </tbody>
+          </table>
 
-                {/* DETALLE DE PAGOS */}
-                {ordenAbierta?.id === o.id && (
-                  <tr className="bg-gray-850">
-                    <td colSpan={5} className="p-4">
-                      <PagosTable
-                        pagos={o.pagos || []}
-                        totalPagado={o.total_pagado}
-                        saldo={o.saldo}
-                      />
-                    </td>
-                  </tr>
-                )}
-              </>
-            ))}
-          </tbody>
-        </table>
+        </div>
       </div>
     </div>
   );
 }
 
+/* ================= SUBCOMPONENTES ================= */
+
+function FragmentOrden({ orden, abierta, setOrdenAbierta }) {
+  const abiertaEsta = abierta?.id === orden.id;
+
+  return (
+    <>
+      <tr className="border-b border-gray-700 hover:bg-gray-700">
+        <td className="p-2">#{orden.comprobante || orden.id}</td>
+        <td className="p-2 text-right">{formatMoney(orden.total)}</td>
+        <td className="p-2 text-right">{formatMoney(orden.total_pagado)}</td>
+        <td className="p-2 text-right">{formatMoney(orden.saldo)}</td>
+        <td className="p-2 text-center">
+          <button
+            onClick={() =>
+              setOrdenAbierta(abiertaEsta ? null : orden)
+            }
+            className="text-blue-400 hover:underline"
+          >
+            {abiertaEsta ? "Ocultar" : "Ver"}
+          </button>
+        </td>
+      </tr>
+
+      {/* ===== DETALLE DE PAGOS ===== */}
+      {abiertaEsta && (
+        <tr className="bg-gray-850">
+          <td colSpan={5} className="p-3">
+            <div className="max-h-[40vh] overflow-y-auto rounded-lg">
+              <PagosTable
+                pagos={orden.pagos || []}
+                totalPagado={orden.total_pagado}
+                saldo={orden.saldo}
+              />
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
 function Resumen({ label, value, saldo }) {
   return (
-    <div className="bg-gray-800 p-3 rounded">
+    <div className="bg-gray-800 p-3 rounded text-center">
       <span className="text-gray-400 text-sm">{label}</span>
       <p
         className={`text-lg font-bold ${
