@@ -1,5 +1,5 @@
 import { useState } from "react";
-import PagosTable from "./PagosTable";
+import PagosTable from "../components/pagos/PagosTable";
 
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-AR", {
