@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 import MainLayout from "../layouts/MainLayout";
+import Modal from "../components/Modal";
 
 // hook central
 import useNuevaOrden from "../hooks/useNuevaOrden";
 
-// data hooks existentes
+// data hooks
 import useClientes from "../hooks/useClientes";
 import useTiposVehiculo from "../hooks/useTiposVehiculo";
 import useItems from "../hooks/useItems";
@@ -18,12 +20,15 @@ import VehiculoSection from "../components/nueva-orden/VehiculoSection";
 import CobroSection from "../components/nueva-orden/CobroSection";
 import ItemsSection from "../components/nueva-orden/ItemsSection";
 
-// footer existente
-import OrdenFooter from "../components/OrdenFooter"
+// footer
+import OrdenFooter from "../components/OrdenFooter";
+
 
 export default function NuevaOrden() {
   const navigate = useNavigate();
   const estado = useNuevaOrden();
+  const [showModal, setShowModal] = useState(false);
+
 
   // data hooks
   const { clientes, loading: loadingClientes } = useClientes();
@@ -95,8 +100,49 @@ export default function NuevaOrden() {
         condicionCobro={estado.condicionCobro}
         metodoPago={estado.metodoPago}
         items={estado.itemsOrden}
-        onSuccess={() => navigate("/ordenes", { state: { refresh: true } })}
+        onSuccess={() => setShowModal(true)}
+
       />
+       {/* Modal de confirmación */}
+      <Modal
+  open={showModal}
+  title="Orden guardada correctamente"
+  onClose={() => setShowModal(false)}
+  actions={
+    <>
+    <button
+  onClick={() => navigate(`/ordenes/${ordenIdCreada}`)}
+  className="px-4 py-2 bg-blue-600 rounded"
+>
+  Ver orden y descargar PDF
+</button>
+
+      <button
+        onClick={() => {
+          setShowModal(false);
+          navigate("/ordenes", { state: { refresh: true } });
+        }}
+        className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+      >
+        Ir a órdenes
+      </button>
+
+      <button
+        onClick={() => {
+          setShowModal(false);
+          estado.resetForm();
+          window.scrollTo(0, 0);
+        }}
+        className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+      >
+        Nueva orden
+      </button>
+    </>
+  }
+>
+  La orden se guardó en el sistema. Podés cargar otra o seguir trabajando.
+</Modal>
+
     </MainLayout>
   );
 }

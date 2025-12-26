@@ -2,9 +2,11 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getOrdenTrabajoById } from "../services/api";
-import html2pdf from "html2pdf.js";
+
 import logo from "../assets/logo.jpg";
 import OrdenPrint from "../components/OrdenPrint";
+import { exportarPDFOrden } from "../utils/exportarPDFOrden";
+
 
 const formatMoney = (value) =>
     new Intl.NumberFormat("es-AR", {
@@ -32,24 +34,24 @@ export default function OrdenDetalle() {
         }
     };
 
-    useEffect(() => {
-        fetchOrden();
-    }, [id]);
-    useEffect(() => {
-        const fetchOrden = async () => {
-            try {
-                const res = await getOrdenTrabajoById(id);
-                setOrden(res.data || null);
-            } catch (error) {
-                console.error("Error cargando orden:", error);
-                setOrden(null);
-            } finally {
-                setLoading(false);
-            }
-        };
+    
+   useEffect(() => {
+  const fetchOrden = async () => {
+    try {
+      setLoading(true);
+      const res = await getOrdenTrabajoById(id);
+      setOrden(res.data || null);
+    } catch (error) {
+      console.error("Error cargando orden:", error);
+      setOrden(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        fetchOrden();
-    }, [id]);
+  fetchOrden();
+}, [id]);
+
 
     if (loading) {
         return (
@@ -72,27 +74,13 @@ export default function OrdenDetalle() {
             </MainLayout>
         );
     }
-    const exportarPDF = () => {
-        const element = document.getElementById("orden-print");
+   const exportarPDF = () => {
+  exportarPDFOrden({
+    elementId: "orden-print",
+    filename: `orden-${orden.id}.pdf`,
+  });
+};
 
-        html2pdf()
-            .set({
-                margin: 5,
-                filename: `orden-${orden.id}.pdf`,
-                image: { type: "jpeg", quality: 0.98 },
-                html2canvas: {
-                    scale: 2,
-                    backgroundColor: "#ffffff",
-                },
-                jsPDF: {
-                    unit: "mm",
-                    format: "a5",
-                    orientation: "portrait",
-                },
-            })
-            .from(element)
-            .save();
-    };
 
     return (
         <MainLayout>
