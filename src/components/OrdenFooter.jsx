@@ -51,29 +51,38 @@ export default function OrdenFooter({
 
             const numeroComprobante = await generarNumeroComprobante();
 
+            let cuentaCorrienteId = null;
+
+if (condicionCobro === "cuenta_corriente") {
+  cuentaCorrienteId = await crearOCrearCuentaCorriente(clienteId);
+}
+const ordenBody = {
+  fecha,
+  cliente: clienteId,
+  comprobante: numeroComprobante,
+  patente,
+  condicion_cobro: condicionCobro,
+  estado: condicionCobro === "contado" ? "pagado" : "pendiente",
+  total,
+  total_pagado: condicionCobro === "contado" ? total : 0,
+  saldo: condicionCobro === "contado" ? 0 : total,
+  ...(cuentaCorrienteId && { cuenta_corriente: cuentaCorrienteId }),
+};
+
             // 1️⃣ Crear ORDEN
 const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({
-        fecha,
-        cliente: clienteId,
-        comprobante: numeroComprobante,
-        patente,
-        condicion_cobro: condicionCobro,
-        estado:
-            condicionCobro === "contado" ? "pagado" : "pendiente",
-        total,
-        total_pagado: condicionCobro === "contado" ? total : 0,
-        saldo: condicionCobro === "contado" ? 0 : total,
-        // 🔹 Campo cuenta corriente
-        ...(condicionCobro === "cuenta_corriente" && {
-            cuenta_corriente: await crearOCrearCuentaCorriente(clienteId)
-        }),
-    }),
+  method: "POST",
+  headers: authHeaders(),
+  body: JSON.stringify(ordenBody),
 });
 
 const ordenData = await ordenRes.json();
+
+if (!ordenData?.data?.id) {
+  console.error("Error creando orden:", ordenData);
+  return;
+}
+
 const ordenId = ordenData.data.id;
 
 
