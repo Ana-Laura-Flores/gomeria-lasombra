@@ -1,5 +1,5 @@
 import {
-    //generarNumeroComprobante,
+    generarNumeroComprobante,
     API_URL,
     authHeaders,
     crearPago,
@@ -10,7 +10,7 @@ import { useState } from "react";
 export default function OrdenFooter({
     total,
     fecha,
-    // comprobante,
+    comprobante,
     cliente,
      modoClienteNuevo,
   clienteNuevoNombre,
@@ -49,7 +49,7 @@ export default function OrdenFooter({
                 clienteId = await crearClienteNuevo();
             }
 
-            // const numeroComprobante = await generarNumeroComprobante();
+            const numeroComprobante = await generarNumeroComprobante();
 
             let cuentaCorrienteId = null;
 
@@ -59,7 +59,7 @@ if (condicionCobro === "cuenta_corriente") {
 const ordenBody = {
   fecha,
   cliente: clienteId,
-//   comprobante: numeroComprobante,
+  comprobante: numeroComprobante,
   patente,
   condicion_cobro: condicionCobro,
   estado: condicionCobro === "contado" ? "pagado" : "pendiente",

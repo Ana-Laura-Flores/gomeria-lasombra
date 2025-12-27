@@ -80,19 +80,19 @@ export const getOrdenTrabajoById = async (id) => {
 // --------------------
 // Último comprobante
 // --------------------
-// export const getUltimoComprobante = async () => {
-//   const res = await apiFetch(
-//     "ordenes_trabajo?fields=comprobante&sort=-comprobante&limit=1"
-//   );
-//   const ultimo = res.data[0]?.comprobante || null;
-//   return ultimo ? Number(ultimo) : null;
-// };
+export const getUltimoComprobante = async () => {
+  const res = await apiFetch(
+    "ordenes_trabajo?fields=comprobante&sort=-comprobante&limit=1"
+  );
+  const ultimo = res.data[0]?.comprobante || null;
+  return ultimo ? Number(ultimo) : null;
+};
 
-// export const generarNumeroComprobante = async () => {
-//   const ultimo = await getUltimoComprobante();
-//   const siguiente = (ultimo || 0) + 1;
-//   return String(siguiente).padStart(6, "0");
-// };
+export const generarNumeroComprobante = async () => {
+  const ultimo = await getUltimoComprobante();
+  const siguiente = (ultimo || 0) + 1;
+  return String(siguiente).padStart(6, "0");
+};
 
 
 export const getDashboardOrdenes = async (desde, hasta) => {
