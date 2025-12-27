@@ -3,7 +3,6 @@ import {
     API_URL,
     authHeaders,
     crearPago,
-    crearOCrearCuentaCorriente,
 } from "../services/api";
 import { useState } from "react";
 
@@ -51,32 +50,26 @@ export default function OrdenFooter({
 
             const numeroComprobante = await generarNumeroComprobante();
 
-            
             // 1️⃣ Crear ORDEN
-const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({
-        fecha,
-        cliente: clienteId,
-        comprobante: numeroComprobante,
-        patente,
-        condicion_cobro: condicionCobro,
-        estado:
-            condicionCobro === "contado" ? "pagado" : "pendiente",
-        total,
-        total_pagado: condicionCobro === "contado" ? total : 0,
-        saldo: condicionCobro === "contado" ? 0 : total,
-        // 🔹 Campo cuenta corriente
-        ...(condicionCobro === "cuenta_corriente" && {
-            cuenta_corriente: await crearOCrearCuentaCorriente(clienteId)
-        }),
-    }),
-});
+            const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({
+                    fecha,
+                    cliente: clienteId,
+                    comprobante: numeroComprobante,
+                    patente,
+                    condicion_cobro: condicionCobro,
+                    estado:
+                        condicionCobro === "contado" ? "pagado" : "pendiente",
+                    total,
+                    total_pagado: condicionCobro === "contado" ? total : 0,
+                    saldo: condicionCobro === "contado" ? 0 : total,
+                }),
+            });
 
-const ordenData = await ordenRes.json();
-const ordenId = ordenData.data.id;
-
+            const ordenData = await ordenRes.json();
+            const ordenId = ordenData.data.id;
 
             // 2️⃣ Crear ITEMS
             for (const item of items) {
