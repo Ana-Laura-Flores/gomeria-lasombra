@@ -49,7 +49,7 @@ export default function OrdenFooter({
                 clienteId = await crearClienteNuevo();
             }
 
-            const numeroComprobante = await generarNumeroComprobante();
+            // const numeroComprobante = await generarNumeroComprobante();
 
             let cuentaCorrienteId = null;
 
