@@ -78,8 +78,9 @@ const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
 
 const ordenData = await ordenRes.json();
 
-if (!ordenData?.data?.id) {
-  console.error("Error creando orden:", ordenData);
+if (!ordenRes.ok) {
+  console.error("❌ Error creando orden");
+  console.error(JSON.stringify(ordenData, null, 2));
   return;
 }
 
