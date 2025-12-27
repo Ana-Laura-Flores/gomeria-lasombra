@@ -11,8 +11,8 @@ export default function OrdenFooter({
     fecha,
     comprobante,
     cliente,
-    modoClienteNuevo,
-    clienteNuevoNombre,
+     modoClienteNuevo,
+  clienteNuevoNombre,
     patente,
     condicionCobro,
     metodoPago,
@@ -69,12 +69,6 @@ export default function OrdenFooter({
             });
 
             const ordenData = await ordenRes.json();
-
-            if (!ordenRes.ok || !ordenData?.data?.id) {
-                console.error("Error creando orden:", ordenData);
-                throw new Error("No se pudo crear la orden");
-            }
-
             const ordenId = ordenData.data.id;
 
             // 2️⃣ Crear ITEMS
