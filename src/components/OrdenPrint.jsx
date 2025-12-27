@@ -85,17 +85,12 @@ export default function OrdenPrint({ orden }) {
                 </thead>
 
                 <tbody>
-                        {Array.isArray(orden.items_orden) &&
-                            orden.items_orden.map((item) => (
-                                <tr
-                                    key={item.id}
-                                    className="border-b border-gray-800 print:border-gray-200"
-                                >
-                                    <td className="p-2">
-                                        {item.tarifa?.servicio?.nombre || "-"}
-                                    </td>
-
-                                    <td className="p-2 text-right">
+                    {orden.items_orden?.map((item) => (
+                        <tr key={item.id}>
+                            <td style={{ padding: "4px 0" }}>
+                                {item.tarifa?.servicio?.nombre || "-"}
+                            </td>
+                          <td className="p-2 text-right">
                                         {item.cantidad}
                                     </td>
 
@@ -106,9 +101,9 @@ export default function OrdenPrint({ orden }) {
                                     <td className="p-2 text-right font-semibold">
                                         {formatMoney(item.subtotal)}
                                     </td>
-                                </tr>
-                            ))}
-                    </tbody>
+                        </tr>
+                    ))}
+                </tbody>
             </table>
 
             {/* TOTALES */}
