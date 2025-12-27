@@ -7,7 +7,6 @@ import logo from "../assets/logo.jpg";
 import OrdenPrint from "../components/OrdenPrint";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 
-
 const formatMoney = (value) =>
     new Intl.NumberFormat("es-AR", {
         style: "currency",
@@ -34,24 +33,22 @@ export default function OrdenDetalle() {
         }
     };
 
-    
-   useEffect(() => {
-  const fetchOrden = async () => {
-    try {
-      setLoading(true);
-      const res = await getOrdenTrabajoById(id);
-      setOrden(res.data || null);
-    } catch (error) {
-      console.error("Error cargando orden:", error);
-      setOrden(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    useEffect(() => {
+        const fetchOrden = async () => {
+            try {
+                setLoading(true);
+                const res = await getOrdenTrabajoById(id);
+                setOrden(res.data || null);
+            } catch (error) {
+                console.error("Error cargando orden:", error);
+                setOrden(null);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  fetchOrden();
-}, [id]);
-
+        fetchOrden();
+    }, [id]);
 
     if (loading) {
         return (
@@ -74,13 +71,12 @@ export default function OrdenDetalle() {
             </MainLayout>
         );
     }
-   const exportarPDF = () => {
-  exportarPDFOrden({
-    elementId: "orden-print",
-    filename: `orden-${orden.id}.pdf`,
-  });
-};
-
+    const exportarPDF = () => {
+        exportarPDFOrden({
+            elementId: "orden-print",
+            filename: `orden-${orden.id}.pdf`,
+        });
+    };
 
     return (
         <MainLayout>
@@ -142,12 +138,13 @@ export default function OrdenDetalle() {
                     <thead>
                         <tr className="border-b border-gray-700 print:border-gray-300">
                             <th className="p-2 text-left">Servicio</th>
-                            <th className="p-2 text-right">Precio</th>
+                            <th className="p-2 text-right">Cantidad</th>
+                            <th className="p-2 text-right">Precio unit.</th>
+                            <th className="p-2 text-right">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {Array.isArray(orden.items_orden) &&
-                            typeof orden.items_orden[0] === "object" &&
                             orden.items_orden.map((item) => (
                                 <tr
                                     key={item.id}
@@ -156,7 +153,16 @@ export default function OrdenDetalle() {
                                     <td className="p-2">
                                         {item.tarifa?.servicio?.nombre || "-"}
                                     </td>
+
                                     <td className="p-2 text-right">
+                                        {item.cantidad}
+                                    </td>
+
+                                    <td className="p-2 text-right">
+                                        {formatMoney(item.precio_unitario)}
+                                    </td>
+
+                                    <td className="p-2 text-right font-semibold">
                                         {formatMoney(item.subtotal)}
                                     </td>
                                 </tr>
