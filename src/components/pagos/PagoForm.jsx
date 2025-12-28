@@ -82,6 +82,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
       // 1️⃣ Crear todos los pagos
       for (const pago of pagos) {
         await crearPago({
+          cliente: orden.cliente,
           orden: orden.id,
           metodo_pago: pago.metodo,
           monto: Number(pago.monto),
