@@ -131,6 +131,9 @@ export const crearPago = async (pago) => {
       fecha: pago.fecha || new Date().toISOString(),
       observaciones: pago.observaciones || "",
       estado: "confirmado",
+      banco: pago.banco || null,
+      numero_cheque: pago.numero_cheque || null,
+      fecha_cobro: pago.fecha_cobro || null,
     
     }),
   });
