@@ -77,18 +77,15 @@ function FragmentOrden({ orden, abierta, setOrdenAbierta }) {
   return (
     <>
       <tr className="border-b border-gray-700 hover:bg-gray-700">
-        <td className="p-2">
-    {pago.orden ? (
-      <Link
-        to={`/ordenes/${pago.orden.id}`}
-        className="text-blue-400 hover:underline"
-      >
-        #{pago.orden.comprobante || pago.orden.id}
-      </Link>
-    ) : (
-      <span className="text-gray-500">—</span>
-    )}
-  </td>
+    <td className="p-2">
+  <Link
+    to={`/ordenes/${orden.id}`}
+    className="text-blue-400 hover:underline"
+  >
+    #{orden.comprobante || orden.id}
+  </Link>
+</td>
+
         <td className="p-2 text-right">{formatMoney(orden.total)}</td>
         <td className="p-2 text-right">{formatMoney(orden.total_pagado)}</td>
         <td className="p-2 text-right">{formatMoney(orden.saldo)}</td>
