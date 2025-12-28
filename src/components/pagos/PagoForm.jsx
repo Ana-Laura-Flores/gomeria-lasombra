@@ -27,7 +27,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
     monto: "",
     banco: "",
     numero_cheque: "",
-    fecha_cheque: "",
+    fecha_cobro: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
       pagoActual.metodo === "cheque" &&
       (!pagoActual.banco ||
         !pagoActual.numero_cheque ||
-        !pagoActual.fecha_cheque)
+        !pagoActual.fecha_cobro)
     ) {
       alert("Completá todos los datos del cheque");
       return;
@@ -60,7 +60,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
       monto: "",
       banco: "",
       numero_cheque: "",
-      fecha_cheque: "",
+      fecha_cobro: "",
     });
   };
 
@@ -87,7 +87,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
           monto: Number(pago.monto),
           banco: pago.banco || null,
           numero_cheque: pago.numero_cheque || null,
-          fecha_cheque: pago.fecha_cheque || null,
+          fecha_cobro: pago.fecha_cobro || null,
         });
       }
 
@@ -174,11 +174,11 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
 
           <input
             type="date"
-            value={pagoActual.fecha_cheque}
+            value={pagoActual.fecha_cobro}
             onChange={(e) =>
               setPagoActual({
                 ...pagoActual,
-                fecha_cheque: e.target.value,
+                fecha_cobro: e.target.value,
               })
             }
             className="w-full p-2 bg-gray-700 rounded"
@@ -210,7 +210,7 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
                 {p.metodo === "cheque" && (
                   <p className="text-sm text-gray-300">
                     {p.banco} | Nº {p.numero_cheque} |{" "}
-                    {p.fecha_cheque}
+                    {p.fecha_cobro}
                   </p>
                 )}
               </div>
