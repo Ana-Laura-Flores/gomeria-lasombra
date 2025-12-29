@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import PagosTable from "../components/pagos/PagosTable";
 import { Link } from "react-router-dom";
-
+import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-AR", {
     style: "currency",
