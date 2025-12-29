@@ -105,10 +105,15 @@ export const getDashboardOrdenes = async (desde, hasta) => {
 
 
 export const getOrdenesCuentaCorriente = async (clienteId) => {
+  if (!clienteId) {
+    return { data: [] };
+  }
+
   return apiFetch(
     `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente`
   );
 };
+
 
 // Traer todas las órdenes para cuenta corriente
 export const getCuentasCorrientes = async () => {
@@ -119,18 +124,28 @@ export const getCuentasCorrientes = async () => {
 
 
 export const getCuentaCorrienteByCliente = async (clienteId) => {
+  if (!clienteId) {
+    return { data: [] };
+  }
+
   return apiFetch(
     `cuenta_corriente?filter[cliente][_eq]=${clienteId}&limit=1`
   );
 };
 
 
+
 //Pagos por cliente
 export const getPagosCuentaCorriente = async (clienteId) => {
+  if (!clienteId) {
+    return { data: [] };
+  }
+
   return apiFetch(
     `pagos?fields=id,fecha,monto,orden,estado&filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado`
   );
 };
+
 
 
 
