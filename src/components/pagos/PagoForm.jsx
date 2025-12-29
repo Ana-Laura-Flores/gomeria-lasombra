@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { crearPago, actualizarOrden } from "../../services/api";
+import {
+    crearPago,
+    actualizarOrden,
+    getClienteById,
+    actualizarCliente,
+} from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
 
@@ -101,6 +106,16 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
                 saldo,
                 estado,
             });
+
+            // 3️⃣ ACTUALIZAR CLIENTE (SOLO CUENTA CORRIENTE)
+            if (orden.condicion_cobro === "cuenta_corriente") {
+                const clienteRes = await getClienteById(orden.cliente.id);
+                const saldoActual = Number(clienteRes.data.saldo_cc) || 0;
+
+                await actualizarCliente(orden.cliente.id, {
+                    saldo_cc: Math.max(saldoActual - totalPagos, 0),
+                });
+            }
 
             onPagoRegistrado();
         } catch (error) {

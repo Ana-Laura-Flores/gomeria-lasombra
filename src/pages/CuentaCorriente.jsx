@@ -7,6 +7,8 @@ import Filters from "../components/Filters";
 
 export default function CuentaCorrientePage() {
   const [ordenes, setOrdenes] = useState([]);
+const [pagos, setPagos] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [detalleCliente, setDetalleCliente] = useState(null);
   const [filtroDeuda, setFiltroDeuda] = useState(false);
@@ -15,55 +17,85 @@ export default function CuentaCorrientePage() {
   const [fechaHasta, setFechaHasta] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getCuentaCorriente();
-        setOrdenes(res.data || []);
-      } catch (error) {
-        console.error("Error cargando cuenta corriente:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const fetchData = async () => {
+    try {
+      const [resOrdenes, resPagos] = await Promise.all([
+        getOrdenesCuentaCorriente(),
+        getPagosCuentaCorriente(),
+      ]);
+
+      setOrdenes(resOrdenes.data || []);
+      setPagos(resPagos.data || []);
+    } catch (error) {
+      console.error("Error cargando cuenta corriente:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   // ================= AGRUPAR POR CLIENTE =================
-  const clientesCC = useMemo(() => {
-    const acc = {};
+ const clientesCC = useMemo(() => {
+  const acc = {};
 
-    ordenes.forEach((o) => {
-      if (o.condicion_cobro !== "cuenta_corriente") return;
+  // ÓRDENES
+  ordenes.forEach((o) => {
+    if (
+      (fechaDesde && new Date(o.fecha) < new Date(fechaDesde)) ||
+      (fechaHasta && new Date(o.fecha) > new Date(fechaHasta))
+    ) {
+      return;
+    }
 
-      // Filtro fechas
-      if (
-        (fechaDesde && new Date(o.fecha) < new Date(fechaDesde)) ||
-        (fechaHasta && new Date(o.fecha) > new Date(fechaHasta))
-      ) {
-        return;
-      }
+    const id = o.cliente.id;
 
-      const id = o.cliente.id;
+    if (!acc[id]) {
+      acc[id] = {
+        id,
+        nombre: o.cliente.nombre,
+        total: 0,
+        pagado: 0,
+        saldo: 0,
+        ordenes: [],
+        pagos: [],
+      };
+    }
 
-      if (!acc[id]) {
-        acc[id] = {
-          id,
-          nombre: o.cliente.nombre,
-          total: 0,
-          pagado: 0,
-          saldo: 0,
-          ordenes: [],
-        };
-      }
+    acc[id].total += Number(o.total);
+    acc[id].ordenes.push(o);
+  });
 
-      acc[id].total += Number(o.total);
-      acc[id].pagado += Number(o.total_pagado);
-      acc[id].saldo += Number(o.saldo);
-      acc[id].ordenes.push(o);
-    });
+  // PAGOS
+  pagos.forEach((p) => {
+    const id = p.cliente.id;
 
-    return Object.values(acc);
-  }, [ordenes, fechaDesde, fechaHasta]);
+    if (!acc[id]) {
+      acc[id] = {
+        id,
+        nombre: p.cliente.nombre,
+        total: 0,
+        pagado: 0,
+        saldo: 0,
+        ordenes: [],
+        pagos: [],
+      };
+    }
+
+    acc[id].pagado += Number(p.monto);
+    acc[id].pagos.push(p);
+  });
+
+  // SALDO FINAL
+  Object.values(acc).forEach((c) => {
+    c.saldo = c.total - c.pagado;
+  });
+
+  return Object.values(acc);
+}, [ordenes, pagos, fechaDesde, fechaHasta]);
+
 
   // ================= FILTROS =================
   const clientesFiltrados = useMemo(() => {

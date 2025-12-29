@@ -104,17 +104,32 @@ export const getDashboardOrdenes = async (desde, hasta) => {
 };
 
 // Traer todas las órdenes para cuenta corriente
-export const getCuentaCorriente = async () => {
+export const getOrdenesCuentaCorriente = async () => {
   return apiFetch(
     "ordenes_trabajo" +
-      "?fields=id,fecha,total,total_pagado,saldo,condicion_cobro," +
-      "cliente.id,cliente.nombre," +
-      "pagos.id,pagos.fecha,pagos.metodo_pago,pagos.monto,pagos.estado" +
+      "?fields=id,fecha,total,cliente.id,cliente.nombre,condicion_cobro" +
       "&filter[condicion_cobro][_eq]=cuenta_corriente"
   );
 };
 
+//Pagos por cliente
+export const getPagosCuentaCorriente = async () => {
+  return apiFetch(
+    "pagos?fields=id,fecha,monto,cliente.id,cliente.nombre,orden.id,estado" +
+    "&filter[estado][_eq]=confirmado"
+  );
+};
 
+export const getClienteById = async (id) => {
+  return apiFetch(`clientes/${id}?fields=id,saldo_cc`);
+};
+
+export const actualizarCliente = async (id, data) => {
+  return apiFetch(`clientes/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+};
 
 
 

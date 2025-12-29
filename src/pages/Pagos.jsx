@@ -133,16 +133,30 @@ export default function Pagos() {
                     </button>
                 </div>
             </div>
-     <Modal
+   <Modal
   open={showModal}
   title="Pago registrado"
   onClose={() => {
     setShowModal(false);
-    navigate("/dashboard");
+    navigate("/ordenes");
   }}
 >
-  <p>El pago se registró correctamente ✅</p>
+  <div className="flex justify-between items-start">
+    <p>El pago se registró correctamente ✅</p>
+
+    <button
+      onClick={() => {
+        setShowModal(false);
+        navigate("/ordenes");
+      }}
+      className="ml-4 text-xl font-bold text-gray-400 hover:text-white"
+      aria-label="Cerrar"
+    >
+      ✕
+    </button>
+  </div>
 </Modal>
+
 
         </MainLayout>
     );
