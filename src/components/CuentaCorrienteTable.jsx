@@ -26,8 +26,7 @@ export default function CuentaCorrienteTable({ clientes, onVerDetalle }) {
                   className="bg-blue-600 px-3 py-1 rounded hover:bg-blue-500"
                   onClick={() => onVerDetalle(c)}
                 >
-                  Ver órdenes
-                </button>
+                  Ver Detalles                </button>
               </td>
               
             </tr>

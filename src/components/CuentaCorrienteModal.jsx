@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import PagosTable from "../components/pagos/PagosTable";
 import { Link } from "react-router-dom";
 
@@ -7,9 +7,32 @@ const formatMoney = (value) =>
     style: "currency",
     currency: "ARS",
   }).format(Number(value) || 0);
+  
+
 
 export default function CuentaCorrienteModal({ cliente, onClose }) {
   const [ordenAbierta, setOrdenAbierta] = useState(null);
+  const movimientos = useMemo(() => {
+  const ordenes = cliente.ordenes.map(o => ({
+    fecha: o.fecha,
+    tipo: "ORDEN",
+    referencia: o.comprobante || o.id,
+    debe: Number(o.total),
+    haber: 0,
+  }));
+
+  const pagos = cliente.pagos.map(p => ({
+    fecha: p.fecha,
+    tipo: "PAGO",
+    referencia: p.orden?.comprobante || "-",
+    debe: 0,
+    haber: Number(p.monto),
+  }));
+
+  return [...ordenes, ...pagos].sort(
+    (a, b) => new Date(a.fecha) - new Date(b.fecha)
+  );
+}, [cliente]);
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
@@ -50,6 +73,15 @@ export default function CuentaCorrienteModal({ cliente, onClose }) {
                 <th className="p-2 text-center">Pagos</th>
               </tr>
             </thead>
+<div className="flex-1 overflow-y-auto p-4 space-y-6">
+
+  <CuentaCorrienteMovimientos movimientos={movimientos} />
+
+  <table className="min-w-full bg-gray-800 text-gray-100 rounded-lg">
+    ...
+  </table>
+
+</div>
 
             <tbody>
               {cliente.ordenes.map((o) => (

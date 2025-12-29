@@ -1,9 +1,8 @@
 import { useState } from "react";
 import {
-    crearPago,
-    actualizarOrden,
-    getClienteById,
-    actualizarCliente,
+   crearPago, 
+   actualizarOrden, 
+   impactarPagoEnCuentaCorriente
 } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
@@ -70,61 +69,59 @@ export default function PagoForm({ orden, onPagoRegistrado }) {
         setPagos(pagos.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  
 
-        if (pagos.length === 0) {
-            alert("Agregá al menos un pago");
-            return;
-        }
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-        setLoading(true);
+  if (pagos.length === 0) return;
 
-        try {
-            // 1️⃣ Crear todos los pagos
-            for (const pago of pagos) {
-                await crearPago({
-                    orden: orden.id,
-                    cliente: orden.cliente.id,
-                    metodo_pago: pago.metodo,
-                    monto: Number(pago.monto),
-                    banco: pago.banco || null,
-                    numero_cheque: pago.numero_cheque || null,
-                    fecha_cobro: pago.fecha_cobro || null,
-                });
-            }
+  setLoading(true);
 
-            // 2️⃣ Actualizar orden
-            const { totalPagado, saldo, estado } = calcularEstadoOrden(
-                orden.total,
-                orden.total_pagado,
-                totalPagos
-            );
+  try {
+    // 1️⃣ Crear pagos
+    for (const pago of pagos) {
+      await crearPago({
+        orden: orden.id,
+        cliente: orden.cliente.id,
+        metodo_pago: pago.metodo,
+        monto: pago.monto,
+        banco: pago.banco || null,
+        numero_cheque: pago.numero_cheque || null,
+        fecha_cobro: pago.fecha_cobro || null,
+      });
+    }
 
-            await actualizarOrden(orden.id, {
-                total_pagado: totalPagado,
-                saldo,
-                estado,
-            });
+    // 2️⃣ Impactar CUENTA CORRIENTE
+    if (orden.condicion_cobro === "cuenta_corriente") {
+      await impactarPagoEnCuentaCorriente(
+        orden.cliente.id,
+        totalPagos
+      );
+    }
 
-            // 3️⃣ ACTUALIZAR CLIENTE (SOLO CUENTA CORRIENTE)
-            if (orden.condicion_cobro === "cuenta_corriente") {
-                const clienteRes = await getClienteById(orden.cliente.id);
-                const saldoActual = Number(clienteRes.data.saldo_cc) || 0;
+    // 3️⃣ Actualizar orden (solo referencia)
+    const { totalPagado, saldo, estado } = calcularEstadoOrden(
+      orden.total,
+      orden.total_pagado,
+      totalPagos
+    );
 
-                await actualizarCliente(orden.cliente.id, {
-                    saldo_cc: Math.max(saldoActual - totalPagos, 0),
-                });
-            }
+    await actualizarOrden(orden.id, {
+      total_pagado: totalPagado,
+      saldo,
+      estado,
+    });
 
-            onPagoRegistrado();
-        } catch (error) {
-            console.error("Error registrando pago:", error);
-            alert("Error al registrar el pago");
-        } finally {
-            setLoading(false);
-        }
-    };
+    onPagoRegistrado();
+  } catch (err) {
+    console.error(err);
+    alert("Error al registrar el pago");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     return (
         <form

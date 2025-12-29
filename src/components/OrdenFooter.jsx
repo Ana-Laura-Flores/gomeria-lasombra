@@ -3,8 +3,11 @@ import {
     API_URL,
     authHeaders,
     crearPago,
+    getCuentaCorrienteByCliente, 
+    actualizarCuentaCorriente,
 } from "../services/api";
 import { useState } from "react";
+
 
 export default function OrdenFooter({
     total,
@@ -51,6 +54,7 @@ export default function OrdenFooter({
             const numeroComprobante = await generarNumeroComprobante();
 
             // 1️⃣ Crear ORDEN
+            
             const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
                 method: "POST",
                 headers: authHeaders(),
@@ -70,6 +74,36 @@ export default function OrdenFooter({
 
             const ordenData = await ordenRes.json();
             const ordenId = ordenData.data.id;
+            // 2️⃣ IMPACTAR CUENTA CORRIENTE SI CORRESPONDE
+if (condicionCobro === "cuenta_corriente") {
+    const ccRes = await getCuentaCorrienteByCliente(clienteId);
+    let cc = ccRes.data[0];
+
+    if (!cc) {
+        const res = await fetch(`${API_URL}/items/cuenta_corriente`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({
+                cliente: clienteId,
+                total_ordenes: 0,
+                total_pagos: 0,
+                saldo: 0,
+                saldo_actualizado: 0,
+                activa: true,
+            }),
+        });
+
+        const data = await res.json();
+        cc = data.data;
+    }
+
+    await actualizarCuentaCorriente(cc.id, {
+        total_ordenes: Number(cc.total_ordenes) + Number(total),
+        saldo: Number(cc.saldo) + Number(total),
+        saldo_actualizado: Number(cc.saldo) + Number(total),
+    });
+}
+
 
             // 2️⃣ Crear ITEMS
             for (const item of items) {

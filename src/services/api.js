@@ -103,22 +103,52 @@ export const getDashboardOrdenes = async (desde, hasta) => {
   );
 };
 
-// Traer todas las órdenes para cuenta corriente
-export const getOrdenesCuentaCorriente = async () => {
+
+export const getOrdenesCuentaCorriente = async (clienteId) => {
   return apiFetch(
-    "ordenes_trabajo" +
-      "?fields=id,fecha,total,cliente.id,cliente.nombre,condicion_cobro" +
-      "&filter[condicion_cobro][_eq]=cuenta_corriente"
+    `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente`
   );
 };
 
-//Pagos por cliente
-export const getPagosCuentaCorriente = async () => {
+// Traer todas las órdenes para cuenta corriente
+export const getCuentasCorrientes = async () => {
   return apiFetch(
-    "pagos?fields=id,fecha,monto,cliente.id,cliente.nombre,orden.id,estado" +
-    "&filter[estado][_eq]=confirmado"
+    "cuenta_corriente" +
+      "?fields=id,saldo,total_ordenes,total_pagos,cliente.id,cliente.nombre" +
+      "&filter[activa][_eq]=true"
   );
 };
+
+export const getCuentaCorrienteByCliente = async (clienteId) => {
+  return apiFetch(
+    `cuenta_corriente?filter[cliente][_eq]=${clienteId}&limit=1`
+  );
+};
+
+
+//Pagos por cliente
+export const getPagosCuentaCorriente = async (clienteId) => {
+  return apiFetch(
+    `pagos?fields=id,fecha,monto,orden.comprobante&filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado`
+  );
+};
+
+
+export const impactarPagoEnCuentaCorriente = async (clienteId, monto) => {
+  const ccRes = await getCuentaCorrienteByCliente(clienteId);
+  const cc = ccRes.data[0];
+
+  if (!cc) {
+    throw new Error("El cliente no tiene cuenta corriente");
+  }
+
+  return actualizarCuentaCorriente(cc.id, {
+    total_pagos: Number(cc.total_pagos) + Number(monto),
+    saldo: Number(cc.saldo) - Number(monto),
+    saldo_actualizado: Number(cc.saldo_actualizado) - Number(monto),
+  });
+};
+
 
 export const getClienteById = async (id) => {
   return apiFetch(`clientes/${id}?fields=id,saldo_cc`);
