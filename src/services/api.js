@@ -119,13 +119,12 @@ export const getCuentaCorriente = async () => {
 
 
 // --------------------
-// PAGOS
-// --------------------
 export const crearPago = async (pago) => {
   return apiFetch("pagos", {
     method: "POST",
     body: JSON.stringify({
-      orden: pago.orden,                // ID de la orden
+      orden: pago.orden,        // ✅ UUID de orden
+      cliente: pago.cliente,    // ✅ UUID de cliente (si llega bien)
       metodo_pago: pago.metodo_pago,
       monto: Number(pago.monto),
       fecha: pago.fecha || new Date().toISOString(),
@@ -134,7 +133,6 @@ export const crearPago = async (pago) => {
       banco: pago.banco || null,
       numero_cheque: pago.numero_cheque || null,
       fecha_cobro: pago.fecha_cobro || null,
-    
     }),
   });
 };
