@@ -149,6 +149,13 @@ export const impactarPagoEnCuentaCorriente = async (clienteId, monto) => {
   });
 };
 
+export const actualizarCuentaCorriente = async (id, data) => {
+  return apiFetch(`cuenta_corriente/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+};
+
 
 export const getClienteById = async (id) => {
   return apiFetch(`clientes/${id}?fields=id,saldo_cc`);
