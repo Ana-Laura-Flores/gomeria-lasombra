@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { getOrdenesCuentaCorriente } from "../services/api";
+import { getOrdenesCuentaCorriente, getPagosCuentaCorriente } from "../services/api";
 import CuentaCorrienteTable from "../components/CuentaCorrienteTable";
 import CuentaCorrienteModal from "../components/CuentaCorrienteModal";
 import Filters from "../components/Filters";
