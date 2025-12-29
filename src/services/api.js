@@ -113,11 +113,10 @@ export const getOrdenesCuentaCorriente = async (clienteId) => {
 // Traer todas las órdenes para cuenta corriente
 export const getCuentasCorrientes = async () => {
   return apiFetch(
-    "cuenta_corriente" +
-      "?fields=id,saldo,total_ordenes,total_pagos,cliente.id,cliente.nombre" +
-      "&filter[activa][_eq]=true"
+    "cuenta_corriente?fields=id,saldo,total_ordenes,total_pagos,saldo_actualizado,cliente&filter[activa][_eq]=true"
   );
 };
+
 
 export const getCuentaCorrienteByCliente = async (clienteId) => {
   return apiFetch(
@@ -129,9 +128,10 @@ export const getCuentaCorrienteByCliente = async (clienteId) => {
 //Pagos por cliente
 export const getPagosCuentaCorriente = async (clienteId) => {
   return apiFetch(
-    `pagos?fields=id,fecha,monto,orden.comprobante&filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado`
+    `pagos?fields=id,fecha,monto,orden,estado&filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado`
   );
 };
+
 
 
 export const impactarPagoEnCuentaCorriente = async (clienteId, monto) => {
