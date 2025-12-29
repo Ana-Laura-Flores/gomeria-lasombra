@@ -38,11 +38,14 @@ const [pagos, setPagos] = useState([]);
 
 
   // ================= AGRUPAR POR CLIENTE =================
- const clientesCC = useMemo(() => {
+ // ================= AGRUPAR POR CLIENTE =================
+const clientesCC = useMemo(() => {
   const acc = {};
 
   // ÓRDENES
   ordenes.forEach((o) => {
+    if (!o.cliente) return; // ✅ BIEN
+
     if (
       (fechaDesde && new Date(o.fecha) < new Date(fechaDesde)) ||
       (fechaHasta && new Date(o.fecha) > new Date(fechaHasta))
@@ -70,6 +73,8 @@ const [pagos, setPagos] = useState([]);
 
   // PAGOS
   pagos.forEach((p) => {
+    if (!p.cliente) return; // ✅ TAMBIÉN ACÁ
+
     const id = p.cliente.id;
 
     if (!acc[id]) {
@@ -95,6 +100,7 @@ const [pagos, setPagos] = useState([]);
 
   return Object.values(acc);
 }, [ordenes, pagos, fechaDesde, fechaHasta]);
+
 
 
   // ================= FILTROS =================
