@@ -5,7 +5,7 @@ import CuentaCorrienteTable from "../components/CuentaCorrienteTable";
 import CuentaCorrienteModal from "../components/CuentaCorrienteModal";
 import Filters from "../components/Filters";
 
-export default function CuentaCorrientePage() {
+export default function CuentaCorriente() {
     const [ordenes, setOrdenes] = useState([]);
     const [pagos, setPagos] = useState([]);
 
