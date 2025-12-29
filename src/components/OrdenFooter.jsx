@@ -37,104 +37,106 @@ export default function OrdenFooter({
         return data.data.id;
     };
 
-    const guardarOrden = async () => {
-        if (items.length === 0) return;
+  const guardarOrden = async () => {
+    if (items.length === 0) return;
 
-        try {
-            setLoading(true);
+    try {
+        setLoading(true);
 
-            let clienteId = cliente;
+        let clienteId = cliente;
 
-            // 🔹 SI ES CLIENTE NUEVO
-            if (modoClienteNuevo) {
-                if (!clienteNuevoNombre) return;
-                clienteId = await crearClienteNuevo();
-            }
+        // 🔹 SI ES CLIENTE NUEVO
+        if (modoClienteNuevo) {
+            if (!clienteNuevoNombre) return;
+            clienteId = await crearClienteNuevo();
+        }
 
-            const numeroComprobante = await generarNumeroComprobante();
+        const numeroComprobante = await generarNumeroComprobante();
 
-            // 1️⃣ Crear ORDEN
-            
-            const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
-                method: "POST",
-                headers: authHeaders(),
-                body: JSON.stringify({
-                    fecha,
-                    cliente: clienteId,
-                    comprobante: numeroComprobante,
-                    patente,
-                    condicion_cobro: condicionCobro,
-                    estado:
-                        condicionCobro === "contado" ? "pagado" : "pendiente",
-                    total,
-                    total_pagado: condicionCobro === "contado" ? total : 0,
-                    saldo: condicionCobro === "contado" ? 0 : total,
-                }),
-            });
-
-            const ordenData = await ordenRes.json();
-            const ordenId = ordenData.data.id;
-            // 2️⃣ IMPACTAR CUENTA CORRIENTE SI CORRESPONDE
-if (condicionCobro === "cuenta_corriente") {
-    const ccRes = await getCuentaCorrienteByCliente(clienteId);
-    let cc = ccRes.data[0];
-
-    if (!cc) {
-        const res = await fetch(`${API_URL}/items/cuenta_corriente`, {
+        // 1️⃣ Crear ORDEN
+        const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
             method: "POST",
             headers: authHeaders(),
             body: JSON.stringify({
+                fecha,
                 cliente: clienteId,
-                total_ordenes: 0,
-                total_pagos: 0,
-                saldo: 0,
-                saldo_actualizado: 0,
-                activa: true,
+                comprobante: numeroComprobante,
+                patente,
+                condicion_cobro: condicionCobro,
+                estado: condicionCobro === "contado" ? "pagado" : "pendiente",
+                total,
+                total_pagado: condicionCobro === "contado" ? total : 0,
+                saldo: condicionCobro === "contado" ? 0 : total,
             }),
         });
 
-        const data = await res.json();
-        cc = data.data;
-    }
+        const ordenData = await ordenRes.json();
+        const ordenId = ordenData.data.id;
 
-    await actualizarCuentaCorriente(cc.id, {
-        total_ordenes: Number(cc.total_ordenes) + Number(total),
-        saldo: Number(cc.saldo) + Number(total),
-        saldo_actualizado: Number(cc.saldo) + Number(total),
-    });
-}
+        // 2️⃣ Crear CUENTA CORRIENTE si corresponde
+        if (condicionCobro === "cuenta_corriente") {
+            let ccRes = await getCuentaCorrienteByCliente(clienteId);
+            let cc = ccRes.data[0];
 
-
-            // 2️⃣ Crear ITEMS
-            for (const item of items) {
-                await fetch(`${API_URL}/items/items_orden`, {
+            if (!cc) {
+                const ccCreacionRes = await fetch(`${API_URL}/items/cuenta_corriente`, {
                     method: "POST",
                     headers: authHeaders(),
                     body: JSON.stringify({
-                        orden: ordenId,
-                        tarifa: item.tarifaId,
-                        cantidad: item.cantidad,
-                        precio_unitario: item.precio_unitario,
-                        subtotal: item.subtotal,
+                        cliente: clienteId,
+                        total_ordenes: 0,
+                        total_pagos: 0,
+                        saldo: 0,
+                        saldo_actualizado: 0,
+                        activa: true,
                     }),
                 });
-            }
-            // 3️⃣ Crear PAGO si es contado
-            if (condicionCobro === "contado" && metodoPago) {
-                await crearPago({
-                    orden: ordenId,
-                    metodo_pago: metodoPago,
-                    monto: total,
-                });
+
+                const ccCreacionData = await ccCreacionRes.json();
+                cc = ccCreacionData.data;
             }
 
-            onSuccess(ordenId); // abre modal + reset
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
+            // Actualizar saldo de la cuenta corriente con la nueva orden
+            await actualizarCuentaCorriente(cc.id, {
+                total_ordenes: Number(cc.total_ordenes) + Number(total),
+                saldo: Number(cc.saldo) + Number(total),
+                saldo_actualizado: Number(cc.saldo_actualizado) + Number(total),
+            });
         }
-    };
+
+        // 3️⃣ Crear ITEMS
+        for (const item of items) {
+            await fetch(`${API_URL}/items/items_orden`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({
+                    orden: ordenId,
+                    tarifa: item.tarifaId,
+                    cantidad: item.cantidad,
+                    precio_unitario: item.precio_unitario,
+                    subtotal: item.subtotal,
+                }),
+            });
+        }
+
+        // 4️⃣ Crear PAGO si es contado
+        if (condicionCobro === "contado" && metodoPago) {
+            await crearPago({
+                orden: ordenId,
+                metodo_pago: metodoPago,
+                monto: total,
+            });
+        }
+
+        onSuccess(ordenId); // abre modal + reset
+    } catch (error) {
+        console.error(error);
+        alert("Error al guardar la orden");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     return (
         <div className="mt-6 flex justify-between items-center border-t border-gray-700 pt-4">

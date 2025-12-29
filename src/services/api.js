@@ -146,23 +146,44 @@ export const getPagosCuentaCorriente = async (clienteId) => {
   );
 };
 
+export const crearCuentaCorriente = async ({ cliente, saldo_inicial = 0 }) => {
+  const res = await fetch(`${API_URL}/items/cuenta_corriente`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      cliente,
+      saldo: saldo_inicial,
+      total_pagos: 0,
+      total_ordenes: 0,
+      saldo_actualizado: saldo_inicial,
+      activa: true
+    }),
+  });
 
+  if (!res.ok) throw new Error("No se pudo crear la cuenta corriente");
+
+  const data = await res.json();
+  return data.data; // devuelve todo el objeto creado
+};
+ 
 
 
 export const impactarPagoEnCuentaCorriente = async (clienteId, monto) => {
-  const ccRes = await getCuentaCorrienteByCliente(clienteId);
-  const cc = ccRes.data[0];
+  let ccRes = await getCuentaCorrienteByCliente(clienteId);
+  let cc = ccRes.data[0];
 
   if (!cc) {
-    throw new Error("El cliente no tiene cuenta corriente");
+    // crear cuenta automáticamente si no existe
+    cc = await crearCuentaCorriente({ cliente: clienteId });
   }
 
   return actualizarCuentaCorriente(cc.id, {
-    total_pagos: Number(cc.total_pagos) + Number(monto),
-    saldo: Number(cc.saldo) - Number(monto),
-    saldo_actualizado: Number(cc.saldo_actualizado) - Number(monto),
+    total_pagos: Number(cc.total_pagos || 0) + Number(monto),
+    saldo: Number(cc.saldo || 0) - Number(monto),
+    saldo_actualizado: Number(cc.saldo_actualizado || 0) - Number(monto),
   });
 };
+
 
 export const actualizarCuentaCorriente = async (id, data) => {
   return apiFetch(`cuenta_corriente/${id}`, {
