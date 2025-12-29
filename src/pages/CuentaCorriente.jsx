@@ -30,7 +30,9 @@ export default function CuentaCorrientePage() {
                 );
 
                 const pagosConfirmados = resPagos.data.filter(
-                    (p) => p.estado === "confirmado"
+                    (p) =>
+                        p.estado === "confirmado" &&
+                        p.orden?.condicion_cobro === "cuenta_corriente"
                 );
 
                 setOrdenes(ordenesCC);
