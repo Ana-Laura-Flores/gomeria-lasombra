@@ -109,12 +109,13 @@ export default function Pagos() {
                 {/* FORM */}
                 {saldo > 0 && (
   <PagosForm
-    cliente={cliente}
-    onPagoRegistrado={async () => {
-  setShowModal(true);
-  await fetchData();
-}}
-  />
+  cliente={orden.cliente}
+  onPagoRegistrado={async () => {
+    setShowModal(true);
+    await fetchData();
+  }}
+/>
+
 )}
 
                 {/* TABLA */}
