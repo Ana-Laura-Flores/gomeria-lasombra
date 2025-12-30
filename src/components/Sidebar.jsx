@@ -32,6 +32,13 @@ export default function Sidebar() {
                 {(user?.role === ROLES.ADMIN ||
                     user?.role === ROLES.EMPLEADO) && (
                     <>
+                    <Link
+                    to="/ordenes"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+
+                    >
+                      Ordenes
+                    </Link>
                         <Link
                             to="/ordenes/nueva"
                             className="block px-4 py-2 rounded hover:bg-gray-700"
