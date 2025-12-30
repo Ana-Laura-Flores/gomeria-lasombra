@@ -27,18 +27,16 @@ const getRangoMes = (mes) => {
 };
 
 const normalizarMetodo = (m) => {
-  if (Array.isArray(m)) {
-    return m[0]?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
-  }
-  return m?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
+    if (Array.isArray(m)) {
+        return m[0]?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
+    }
+    return m?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
 };
 
 const formatMetodoPago = (m) => {
-  if (!m) return "Sin método";
+    if (!m) return "Sin método";
 
-  return m
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (l) => l.toUpperCase());
+    return m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 /* =====================
@@ -95,10 +93,35 @@ export default function Dashboard() {
 
     const totalCobrado = pagos.reduce((a, p) => a + Number(p.monto || 0), 0);
 
-    const saldoPendiente = ordenes.reduce(
-        (a, o) => a + Number(o.saldo || 0),
-        0
-    );
+    // ⚠️ Saldo pendiente por cobrar
+    const saldoPendiente = ordenes.reduce((acc, o) => {
+        // 1️⃣ Pagos de contado asociados a esta orden
+        const pagosOrden = pagos.filter(
+            (p) => p.orden === o.id && p.estado === "confirmado"
+        );
+        const totalPagosOrden = pagosOrden.reduce(
+            (sum, p) => sum + Number(p.monto || 0),
+            0
+        );
+
+        // 2️⃣ Pagos de cuenta corriente del cliente relacionados a esta orden
+        // Si los pagos de cta cte no tienen orden, los sumamos solo si son del mismo cliente
+        const pagosCtaCte = pagos
+            .filter(
+                (p) =>
+                    !p.orden &&
+                    p.cliente === o.cliente &&
+                    p.estado === "confirmado"
+            )
+            // ⚠️ Si querés, podés filtrar aquí solo pagos aplicables a esta orden
+            .reduce((sum, p) => sum + Number(p.monto || 0), 0);
+
+        // 3️⃣ Total pagado
+        const totalPagos = totalPagosOrden + pagosCtaCte;
+
+        // 4️⃣ Saldo restante de la orden
+        return acc + Math.max(0, Number(o.total || 0) - totalPagos);
+    }, 0);
 
     const ordenesConDeuda = ordenes.filter((o) => Number(o.saldo) > 0).length;
 
@@ -120,12 +143,11 @@ export default function Dashboard() {
             acc[metodo] = (acc[metodo] || 0) + Number(p.monto);
             return acc;
         }, {});
-   const gastosPorMetodo = gastos.reduce((acc, g) => {
-  const metodo = normalizarMetodo(g.metodo_pago);
-  acc[metodo] = (acc[metodo] || 0) + Number(g.monto || 0);
-  return acc;
-}, {});
-
+    const gastosPorMetodo = gastos.reduce((acc, g) => {
+        const metodo = normalizarMetodo(g.metodo_pago);
+        acc[metodo] = (acc[metodo] || 0) + Number(g.monto || 0);
+        return acc;
+    }, {});
 
     /* =====================
      RENDER
