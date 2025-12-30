@@ -10,8 +10,7 @@ import { useMetodoPago } from "../../hooks/useMetodoPago";
 const calcularEstadoOrden = (total, totalPagadoAnterior, nuevoMonto) => {
   const totalPagado = Number(totalPagadoAnterior || 0) + Number(nuevoMonto || 0);
   const saldo = Math.max(Number(total) - totalPagado, 0);
-  const clienteId = typeof cliente === "object" ? cliente.id : cliente;
-
+  
 
   let estado = "pendiente";
   if (totalPagado > 0 && saldo > 0) estado = "parcial";
@@ -22,7 +21,7 @@ const calcularEstadoOrden = (total, totalPagadoAnterior, nuevoMonto) => {
 
 export default function PagoForm({ ordenes, cliente, onPagoRegistrado }) {
   const metodos = useMetodoPago();
-
+  const clienteId = typeof cliente === "object" ? cliente.id : cliente;
   const [pagos, setPagos] = useState([]);
   const [pagoActual, setPagoActual] = useState({
     metodo: "",
