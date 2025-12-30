@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { getOrdenTrabajoById, getPagosCliente } from "../services/api";
+import { getOrdenTrabajoById, getPagosCuentaCorriente } from "../services/api";
 import { useCalcularSaldoOrden } from "../hooks/useCalcularSaldoOrden";
 
 import logo from "../assets/logo.jpg";
@@ -24,31 +24,32 @@ export default function OrdenDetalle() {
 
   // Cargar orden y pagos del cliente
   useEffect(() => {
-    const fetchDatos = async () => {
-      try {
-        setLoading(true);
+  const fetchDatos = async () => {
+    try {
+      setLoading(true);
 
-        // Traer orden
-        const resOrden = await getOrdenTrabajoById(id);
-        const ordenData = resOrden.data || null;
-        setOrden(ordenData);
+      // Traer orden
+      const resOrden = await getOrdenTrabajoById(id);
+      const ordenData = resOrden.data || null;
+      setOrden(ordenData);
 
-        // Traer pagos del cliente si existe
-        if (ordenData?.cliente?.id) {
-          const resPagos = await getPagosCliente(ordenData.cliente.id);
-          setPagosCliente(resPagos.data || []);
-        }
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-        setOrden(null);
-        setPagosCliente([]);
-      } finally {
-        setLoading(false);
+      // Traer pagos del cliente si existe
+      if (ordenData?.cliente?.id) {
+        const resPagos = await getPagosCuentaCorriente(ordenData.cliente.id);
+        setPagosCliente(resPagos.data || []);
       }
-    };
+    } catch (error) {
+      console.error("Error cargando datos:", error);
+      setOrden(null);
+      setPagosCliente([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchDatos();
-  }, [id]);
+  fetchDatos();
+}, [id]);
+
 
   // Calcular saldo, total pagado y estado usando el hook
   const { totalPagado, saldo, estado, pagosAplicados } = useCalcularSaldoOrden(
