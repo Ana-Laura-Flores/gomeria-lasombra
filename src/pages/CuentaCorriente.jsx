@@ -4,6 +4,7 @@ import { getOrdenesTrabajo, getPagosPorMes } from "../services/api";
 import CuentaCorrienteTable from "../components/CuentaCorrienteTable";
 import CuentaCorrienteModal from "../components/CuentaCorrienteModal";
 import Filters from "../components/Filters";
+import { useLocation } from "react-router-dom";
 
 export default function CuentaCorriente() {
     const [ordenes, setOrdenes] = useState([]);
@@ -15,8 +16,11 @@ export default function CuentaCorriente() {
     const [searchNombre, setSearchNombre] = useState("");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
+    const location = useLocation();
+
 
     const fetchData = async () => {
+      setLoading(true);
   try {
     const [resOrdenes, resPagos] = await Promise.all([
       getOrdenesTrabajo(),
@@ -42,7 +46,8 @@ export default function CuentaCorriente() {
 
 useEffect(() => {
   fetchData();
-}, []);
+}, [location.state?.refresh]);
+
 
 
     // ================= AGRUPAR POR CLIENTE =================

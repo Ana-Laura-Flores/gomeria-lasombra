@@ -30,8 +30,6 @@ export default function NuevaOrden() {
   const [showModal, setShowModal] = useState(false);
   const [ordenIdCreada, setOrdenCreadaId] = useState(null);
 
-
-
   // data hooks
   const { clientes, loading: loadingClientes } = useClientes();
   const { tipos: tiposVehiculo, loading: loadingTipos } = useTiposVehiculo();
