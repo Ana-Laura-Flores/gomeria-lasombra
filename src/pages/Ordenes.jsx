@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import { getOrdenesTrabajo, getPagosPorMes } from "../services/api";
+import { getOrdenesTrabajo, getPagos } from "../services/api";
 
 export default function Ordenes() {
   const [ordenes, setOrdenes] = useState([]);
@@ -10,12 +10,12 @@ export default function Ordenes() {
   const location = useLocation();
   const [search, setSearch] = useState("");
 
-  const fetchDatos = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [ordenesRes, pagosRes] = await Promise.all([
         getOrdenesTrabajo(),
-        getPagosPorMes(), // trae todos los pagos
+        getPagos(), // endpoint que devuelve todos los pagos
       ]);
 
       const ordenesData = Array.isArray(ordenesRes.data)
@@ -30,8 +30,42 @@ export default function Ordenes() {
         ? pagosRes.data.data
         : [];
 
-      setOrdenes(ordenesData);
       setPagos(pagosData);
+
+      // Recalculamos total_pagado y saldo por orden
+      const ordenesConPagos = ordenesData.map((orden) => {
+        const totalOrden = Number(orden.total || 0);
+
+        // 1️⃣ Pagos asociados directamente a la orden
+        const pagosOrden = pagosData.filter(
+          (p) => p.orden === orden.id && p.estado === "confirmado"
+        );
+        const totalPagosOrden = pagosOrden.reduce(
+          (sum, p) => sum + Number(p.monto || 0),
+          0
+        );
+
+        // 2️⃣ Pagos de cta cte del cliente (sin orden)
+        const pagosCtaCte = pagosData
+          .filter(
+            (p) =>
+              !p.orden &&
+              p.cliente === orden.cliente &&
+              p.estado === "confirmado"
+          )
+          .reduce((sum, p) => sum + Number(p.monto || 0), 0);
+
+        const total_pagado = totalPagosOrden + pagosCtaCte;
+        const saldo = Math.max(0, totalOrden - total_pagado);
+
+        return {
+          ...orden,
+          total_pagado,
+          saldo,
+        };
+      });
+
+      setOrdenes(ordenesConPagos);
     } catch (err) {
       console.error("Error cargando datos:", err);
     } finally {
@@ -40,8 +74,8 @@ export default function Ordenes() {
   }, []);
 
   useEffect(() => {
-    fetchDatos();
-  }, [location.state, fetchDatos]);
+    fetchData();
+  }, [location.state, fetchData]);
 
   if (loading) {
     return (
@@ -50,13 +84,6 @@ export default function Ordenes() {
       </MainLayout>
     );
   }
-
-  const formatMoney = (value) =>
-    new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 2,
-    }).format(Number(value) || 0);
 
   const getEstadoVisual = (orden) => {
     const total = Number(orden.total) || 0;
@@ -71,27 +98,14 @@ export default function Ordenes() {
     return { label: "Debe", className: "bg-red-700" };
   };
 
-  // Recalculamos total_pagado y saldo en el front
-  const ordenesConPagos = ordenes.map((o) => {
-    const pagosOrden = pagos.filter(
-      (p) =>
-        p.estado === "confirmado" &&
-        (p.orden === o.id || (!p.orden && p.cliente === o.cliente))
-    );
+  const formatMoney = (value) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 2,
+    }).format(Number(value) || 0);
 
-    const total_pagado = pagosOrden.reduce(
-      (sum, p) => sum + Number(p.monto || 0),
-      0
-    );
-
-    return {
-      ...o,
-      total_pagado,
-      saldo: Math.max(0, Number(o.total || 0) - total_pagado),
-    };
-  });
-
-  const ordenesFiltradas = ordenesConPagos.filter((orden) => {
+  const ordenesFiltradas = ordenes.filter((orden) => {
     const texto = search.toLowerCase();
     return (
       orden.comprobante?.toString().includes(texto) ||
@@ -105,7 +119,6 @@ export default function Ordenes() {
   return (
     <MainLayout>
       <h1 className="text-2xl font-bold mb-6">Órdenes</h1>
-
       <div className="mb-4">
         <input
           type="text"
@@ -147,9 +160,7 @@ export default function Ordenes() {
                   : "Cliente -"}
               </p>
 
-              <p className="text-sm text-gray-400">
-                Patente: {orden.patente || "-"}
-              </p>
+              <p className="text-sm text-gray-400">Patente: {orden.patente || "-"}</p>
 
               <div className="grid grid-cols-2 gap-2 text-sm mt-3">
                 <div>
