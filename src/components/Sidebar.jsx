@@ -3,48 +3,59 @@ import { useAuth } from "../context/AuthContext";
 import { ROLES } from "../constants/roles";
 
 export default function Sidebar() {
-  const { user } = useAuth();
+    const { user } = useAuth();
 
-  return (
-    <aside className="hidden md:flex w-64 bg-gray-800 text-gray-100 min-h-screen flex-col">
-      <div className="p-6 text-xl font-bold border-b border-gray-700">
-        Gomería La Sombra
-      </div>
+    return (
+        <aside className="hidden md:flex w-64 bg-gray-800 text-gray-100 min-h-screen flex-col">
+            <div className="p-6 text-xl font-bold border-b border-gray-700">
+                Gomería La Sombra
+            </div>
 
-      <nav className="flex-1 p-4 space-y-2">
-        {user?.role === ROLES.ADMIN && (
-          <>
-            <Link to="/dashboard" className="block px-4 py-2 rounded hover:bg-gray-700">
-              Dashboard
-            </Link>
-            <Link to="/gastos" className="block px-4 py-2 rounded hover:bg-gray-700">
-              Gastos
-            </Link>
-          </>
-        )}
+            <nav className="flex-1 p-4 space-y-2">
+                {user?.role === ROLES.ADMIN && (
+                    <>
+                        <Link
+                            to="/dashboard"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Dashboard
+                        </Link>
+                        <Link
+                            to="/gastos"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Gastos
+                        </Link>
+                    </>
+                )}
 
-        {(user?.role === ROLES.ADMIN || user?.role === ROLES.EMPLEADO) && (
-          <>
-            <Link to="/ordenes" className="block px-4 py-2 rounded hover:bg-gray-700">
-              Órdenes
-            </Link>
-            <Link to="/ordenes/nueva" className="block px-4 py-2 rounded hover:bg-gray-700">
-              Nueva Orden
-            </Link>
-            <Link to="/cuenta-corriente" className="block px-4 py-2 rounded hover:bg-gray-700">
-            Cuentas Corrientes
-            </Link>
-          </>
-        )}
-        {( user?.role === ROLES.EMPLEADO) && (
-          <>
-         {/* 👇 NUEVO GASTO PARA AMBOS */}
-      <Link to="/gastos/nuevo" className="block px-4 py-2 rounded hover:bg-gray-700">
-        Nuevo gasto
-      </Link>
-      </>
-        )}
-      </nav>
-    </aside>
-  );
+                {(user?.role === ROLES.ADMIN ||
+                    user?.role === ROLES.EMPLEADO) && (
+                    <>
+                        <Link
+                            to="/ordenes/nueva"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Nueva Orden
+                        </Link>
+                        <Link
+                            to="/gastos/nuevo"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Nuevo gasto
+                        </Link>
+                        <Link
+                            to="/cuenta-corriente"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Cuentas Corrientes
+                        </Link>
+                    </>
+                )}
+                {user?.role === ROLES.EMPLEADO && (
+                    <>{/* 👇 NUEVO GASTO PARA AMBOS */}</>
+                )}
+            </nav>
+        </aside>
+    );
 }

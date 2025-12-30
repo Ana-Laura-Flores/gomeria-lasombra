@@ -15,13 +15,15 @@ export default function NuevoGasto() {
   const [prefijados, setPrefijados] = useState([]);
 
   const [form, setForm] = useState({
-    fecha: new Date().toISOString().slice(0, 10),
-    concepto: "",
-    monto: "",
-    tipo: "",
-    categoria: "",
-    observaciones: "",
-  });
+  fecha: new Date().toISOString().slice(0, 10),
+  concepto: "",
+  monto: "",
+  tipo: "",
+  categoria: "",
+  metodo_pago: "",
+  observaciones: "",
+});
+
 
   const [usarPrefijado, setUsarPrefijado] = useState(false);
   const [prefijadoId, setPrefijadoId] = useState("");
@@ -164,6 +166,18 @@ export default function NuevoGasto() {
             <option value="fijo">Fijo</option>
             <option value="variable">Variable</option>
           </select>
+<select
+  name="metodo_pago"
+  value={form.metodo_pago}
+  onChange={handleChange}
+  className="w-full p-2 rounded bg-gray-800"
+  required
+>
+  <option value="">Método de pago</option>
+  <option value="efectivo">Efectivo</option>
+  <option value="transferencia_bancaria">Transferencia</option>
+  <option value="mercado_pago">Mercado Pago</option>
+</select>
 
           <textarea
             name="observaciones"

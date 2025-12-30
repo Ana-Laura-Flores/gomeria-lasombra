@@ -43,19 +43,20 @@ export default function BottomNav() {
             ➕
             <span>Nueva</span>
           </Link>
-        </>
-      )}
-
-      {/* SOLO EMPLEADO */}
-      {user?.role === ROLES.EMPLEADO && (
-        <Link
+           <Link
           to="/gastos/nuevo"
           className={`flex flex-col items-center text-sm ${isActive("/gastos/nuevo")}`}
         >
           💸
           <span>Nuevo gasto</span>
         </Link>
+        </>
       )}
+
+      {/* SOLO EMPLEADO
+      {user?.role === ROLES.EMPLEADO && (
+       
+      )} */}
 
       {/* SOLO ADMIN */}
       {user?.role === ROLES.ADMIN && (
