@@ -44,13 +44,24 @@ export default function CuentaCorrienteModal({ cliente, onClose }) {
         
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h2 className="text-lg font-bold">
-            Cuenta corriente · {cliente.nombre}
-          </h2>
-          <button onClick={onClose} className="text-xl font-bold">
-            ✕
-          </button>
-        </div>
+  <h2 className="text-lg font-bold">
+    Cuenta corriente · {cliente.nombre}
+  </h2>
+
+  <div className="flex gap-2">
+    <button
+      onClick={() => setShowPago(true)}
+      className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm"
+    >
+      Registrar pago
+    </button>
+
+    <button onClick={onClose} className="text-xl font-bold">
+      ✕
+    </button>
+  </div>
+</div>
+
 
         {/* RESUMEN */}
         <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
