@@ -283,6 +283,8 @@ export const getGastosPorMes = async (desde, hasta) => {
   );
 };
 
+export const getCuentaCorriente = async () =>
+  apiFetch("cuenta_corriente?filter[activa][_eq]=true&fields=id,saldo,saldo_actualizado,total_ordenes,total_pagos,cliente.id,cliente.nombre");
 
 
 
