@@ -2,13 +2,16 @@ import { useState, useEffect } from "react";
 import {
   crearPago,
   impactarPagoEnCuentaCorriente,
-  getCuentaCorrienteByCliente
+  getCuentaCorrienteByCliente,
 } from "../../services/api";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
 
 export default function PagoForm({ cliente, onPagoRegistrado }) {
   const metodos = useMetodoPago();
+
+  // puede venir objeto o id
   const clienteId = typeof cliente === "object" ? cliente.id : cliente;
+
   const [cuentaCorriente, setCuentaCorriente] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,23 +24,37 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     fecha_cobro: "",
   });
 
+  // =========================
+  // Cargar cuenta corriente
+  // =========================
   useEffect(() => {
     if (!clienteId) return;
 
     const cargarCC = async () => {
-      const res = await getCuentaCorrienteByCliente(clienteId);
-      setCuentaCorriente(res.data?.[0] || null);
+      try {
+        const res = await getCuentaCorrienteByCliente(clienteId);
+        setCuentaCorriente(res.data?.[0] || null);
+      } catch (err) {
+        console.error("Error cargando cuenta corriente", err);
+      }
     };
 
     cargarCC();
   }, [clienteId]);
 
-  const totalPagos = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
+  const totalPagos = pagos.reduce(
+    (acc, p) => acc + Number(p.monto || 0),
+    0
+  );
 
+  // =========================
+  // Agregar pago a la lista
+  // =========================
   const agregarPago = () => {
     if (!pagoActual.metodo || !pagoActual.monto) return;
 
-    setPagos([...pagos, pagoActual]);
+    setPagos((prev) => [...prev, pagoActual]);
+
     setPagoActual({
       metodo: "",
       monto: "",
@@ -48,52 +65,60 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
   };
 
   const eliminarPago = (index) => {
-    setPagos(pagos.filter((_, i) => i !== index));
+    setPagos((prev) => prev.filter((_, i) => i !== index));
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  // =========================
+  // Guardar pagos
+  // =========================
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (pagos.length === 0) {
-    alert("No hay pagos cargados");
-    return;
-  }
-
-  if (!cuentaCorriente) {
-    alert("El cliente no tiene cuenta corriente");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    for (const pago of pagos) {
-      await crearPago({
-        cliente: clienteId,
-        metodo_pago: pago.metodo,
-        monto: Number(pago.monto),
-        banco: pago.banco || null,
-        numero_cheque: pago.numero_cheque || null,
-        fecha_cobro: pago.fecha_cobro || null,
-        cuenta_corriente: cuentaCorriente.id,
-      });
+    if (pagos.length === 0) {
+      alert("No hay pagos cargados");
+      return;
     }
 
-    await impactarPagoEnCuentaCorriente(
-      cuentaCorriente.id,
-      Number(totalPagos)
-    );
+    if (!cuentaCorriente) {
+      alert("El cliente no tiene cuenta corriente");
+      return;
+    }
 
-    setPagos([]);
-    onPagoRegistrado?.();
-  } catch (err) {
-    console.error(err);
-    alert("Error al registrar el pago");
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
 
+    try {
+      // 1️⃣ Crear pagos
+      for (const pago of pagos) {
+        await crearPago({
+          cliente: clienteId,
+          metodo_pago: pago.metodo,
+          monto: Number(pago.monto),
+          banco: pago.banco || null,
+          numero_cheque: pago.numero_cheque || null,
+          fecha_cobro: pago.fecha_cobro || null,
+          cuenta_corriente: cuentaCorriente.id, // 👈 vínculo correcto
+        });
+      }
+
+      // 2️⃣ Impactar saldo de la cuenta corriente (POR CLIENTE)
+      await impactarPagoEnCuentaCorriente(
+        clienteId, // 👈 CLAVE: es clienteId, NO cuentaCorriente.id
+        Number(totalPagos)
+      );
+
+      setPagos([]);
+      onPagoRegistrado?.();
+    } catch (err) {
+      console.error(err);
+      alert("Error al registrar el pago");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================
+  // Render
+  // =========================
   return (
     <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded space-y-4">
       <h2 className="text-lg font-semibold">Registrar pago</h2>
@@ -193,7 +218,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
       <button
         disabled={loading}
-        className="bg-green-600 w-full py-2 rounded"
+        className="bg-green-600 w-full py-2 rounded disabled:opacity-50"
       >
         {loading ? "Guardando..." : "Confirmar pagos"}
       </button>
