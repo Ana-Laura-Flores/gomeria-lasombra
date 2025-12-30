@@ -78,7 +78,7 @@ export default function Ordenes() {
       <div className="mb-4">
   <input
     type="text"
-    placeholder="Buscar por cliente, patente, comprobante o estado..."
+    placeholder="Buscar por cliente, patente, comprobante..."
     value={search}
     onChange={(e) => setSearch(e.target.value)}
     className="w-full md:max-w-md p-2 rounded bg-gray-800 border border-gray-700"
@@ -109,11 +109,11 @@ export default function Ordenes() {
                     : "-"}
                 </span>
 
-                <span
+                {/* <span
                   className={`px-2 py-1 rounded text-xs text-white ${estado.className}`}
                 >
                   {estado.label}
-                </span>
+                </span> */}
               </div>
 
               <p className="font-semibold">
@@ -132,7 +132,7 @@ export default function Ordenes() {
                   <p>{formatMoney(orden.total)}</p>
                 </div>
 
-                <div>
+                {/* <div>
                   <span className="text-gray-400">Pagado</span>
                   <p>{formatMoney(orden.total_pagado)}</p>
                 </div>
@@ -149,7 +149,7 @@ export default function Ordenes() {
                       ? orden.pagos.map((p) => p.metodo_pago).join(", ")
                       : "—"}
                   </p>
-                </div>
+                </div> */}
               </div>
 
               <Link
@@ -174,9 +174,9 @@ export default function Ordenes() {
               <th className="p-2">Patente</th>
               <th className="p-2">Método pago</th>
               <th className="p-2">Total</th>
-              <th className="p-2">Pagado</th>
+              {/* <th className="p-2">Pagado</th>
               <th className="p-2">Saldo</th>
-              <th className="p-2">Estado</th>
+              <th className="p-2">Estado</th> */}
               <th className="p-2">Acciones</th>
             </tr>
           </thead>
@@ -205,7 +205,7 @@ export default function Ordenes() {
                       : "—"}
                   </td>
                   <td className="p-2">{formatMoney(orden.total)}</td>
-                  <td className="p-2">
+                  {/* <td className="p-2">
                     {formatMoney(orden.total_pagado)}
                   </td>
                   <td className="p-2">{formatMoney(orden.saldo)}</td>
@@ -215,7 +215,7 @@ export default function Ordenes() {
                     >
                       {estado.label}
                     </span>
-                  </td>
+                  </td> */}
                   <td className="p-2">
                     <Link
                       to={`/ordenes/${orden.id}`}
