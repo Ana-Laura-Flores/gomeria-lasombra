@@ -118,18 +118,27 @@ export default function CuentaCorriente() {
 
   // ================= ESTADO OPTIMISTA: AGREGAR PAGO =================
   const handlePagoRegistrado = async (nuevoPago) => {
-    // 1️⃣ Actualización optimista
-    setPagos(prev => [...prev, nuevoPago]);
+  // 1️⃣ Actualización optimista de pagos
+  setPagos(prev => [...prev, nuevoPago]);
+
+  // 2️⃣ Solo actualizar órdenes si el pago tiene orden asociada
+  if (nuevoPago.orden) {
     setOrdenes(prev =>
       prev.map(o =>
-        o.id === nuevoPago.orden ? { ...o, saldo: o.saldo - nuevoPago.monto } : o
+        o.id === nuevoPago.orden
+          ? { ...o, saldo: (o.saldo || o.total) - nuevoPago.monto }
+          : o
       )
     );
+  }
 
-    // 2️⃣ Refetch para confirmar
-    await fetchData();
-    setDetalleCliente(null); // opcional
-  };
+  // 3️⃣ Refetch para confirmar y mantener datos consistentes
+  await fetchData();
+
+  // 4️⃣ Cerrar modal si estaba abierto
+  setDetalleCliente(null);
+};
+
 
   if (loading) {
     return (
