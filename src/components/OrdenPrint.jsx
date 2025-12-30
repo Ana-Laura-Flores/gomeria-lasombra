@@ -111,8 +111,8 @@ export default function OrdenPrint({ orden }) {
                 <div>
                     Total: <strong>{formatMoney(orden.total)}</strong>
                 </div>
-                <div>Pagado: {formatMoney(orden.total_pagado)}</div>
-                <div>Saldo: {formatMoney(orden.saldo)}</div>
+                {/* <div>Pagado: {formatMoney(orden.total_pagado)}</div>
+                <div>Saldo: {formatMoney(orden.saldo)}</div> */}
             </div>
         </div>
     );

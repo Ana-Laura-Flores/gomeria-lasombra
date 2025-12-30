@@ -8,8 +8,14 @@ export default function ItemsSection({
   loading,
   onAgregarItem,
 }) {
+  // Agregar el campo tipo_item a cada ítem si no existe
+  const itemsConTipo = itemsDisponibles.map((item) => ({
+    ...item,
+    tipo_item: item.tipo_item || (item.servicio ? "Servicio" : "Producto"),
+  }));
+
   return (
-    <>
+    <div className="mb-6">
       <button
         onClick={onAgregarItem}
         disabled={!tipoVehiculo}
@@ -24,9 +30,10 @@ export default function ItemsSection({
         <ItemsTable
           itemsOrden={itemsOrden}
           setItemsOrden={setItemsOrden}
-          itemsDisponibles={itemsDisponibles}
+          itemsDisponibles={itemsConTipo}
+          mostrarTipo // <-- nueva prop para indicar que se muestre el tipo
         />
       )}
-    </>
+    </div>
   );
 }

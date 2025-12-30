@@ -1,4 +1,4 @@
-import React from "react";
+
 
 export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles }) {
   // Actualizar item (cantidad, precio, subtotal)
@@ -16,8 +16,8 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
   };
 
   // Seleccionar item de los disponibles
-  const seleccionarItem = (id, tarifaId) => {
-    const itemSeleccionado = itemsDisponibles.find(i => i.id === Number(tarifaId));
+  const seleccionarItem = (id, itemId) => {
+    const itemSeleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
     if (!itemSeleccionado) return;
 
     setItemsOrden(
@@ -26,9 +26,10 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
           ? {
               ...i,
               tarifaId: itemSeleccionado.id,
-              servicio: itemSeleccionado.servicio,
-              precio_unitario: itemSeleccionado.precio,
-              subtotal: itemSeleccionado.precio * i.cantidad,
+              nombre: itemSeleccionado.servicio || itemSeleccionado.nombre,
+              tipo_item: itemSeleccionado.servicio ? "Servicio" : "Producto",
+              precio_unitario: itemSeleccionado.precio || itemSeleccionado.precio_unitario,
+              subtotal: (itemSeleccionado.precio || itemSeleccionado.precio_unitario) * i.cantidad,
             }
           : i
       )
@@ -39,7 +40,8 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
     <table className="w-full text-left border-collapse mb-6">
       <thead>
         <tr className="border-b border-gray-700">
-          <th className="p-2">Servicio</th>
+          <th className="p-2">Ítem</th>
+          <th className="p-2">Tipo</th>
           <th className="p-2">Cantidad</th>
           <th className="p-2">Precio</th>
           <th className="p-2">Subtotal</th>
@@ -57,11 +59,12 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
                 <option value="">Seleccionar</option>
                 {itemsDisponibles.map(i => (
                   <option key={i.id} value={i.id}>
-                    {i.servicio} - ${i.precio}
+                    {i.servicio || i.nombre} - ${i.precio || i.precio_unitario}
                   </option>
                 ))}
               </select>
             </td>
+            <td className="p-2">{item.tipo_item || "-"}</td>
             <td className="p-2">
               <input
                 type="number"
