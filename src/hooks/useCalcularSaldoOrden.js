@@ -1,58 +1,39 @@
-export function useCalcularSaldoOrden(ordenes = [], pagosCliente = []) {
-  if (!ordenes || ordenes.length === 0) return [];
+export function useCalcularSaldoOrden(orden, pagosCliente = []) {
+  if (!orden) return { totalPagado: 0, saldo: 0, estado: "Debe", pagosAplicados: [] };
 
-  // Ordenamos las órdenes por fecha
-  const ordenesOrdenadas = [...ordenes].sort(
-    (a, b) => new Date(a.fecha) - new Date(b.fecha)
+  const totalOrden = Number(orden.total || 0);
+
+  // Pagos asociados directamente a esta orden
+  const pagosDirectos = (orden.pagos || []).reduce(
+    (sum, p) => sum + Number(p.monto || 0),
+    0
   );
 
-  // Pagos de cuenta corriente disponibles (sin orden asignada)
-  const pagosCtaCte = pagosCliente
+  let saldoRestante = totalOrden - pagosDirectos;
+  const pagosAplicados = [];
+
+  // Pagos de cuenta corriente que no tienen orden (disponibles)
+  const pagosCtaCte = (pagosCliente || [])
     .filter((p) => !p.orden && p.estado === "confirmado")
     .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
-  let pagosDisponibles = pagosCtaCte.map((p) => ({ ...p })); // clonamos para manipular
+  for (let pago of pagosCtaCte) {
+    if (saldoRestante <= 0) break;
+    const montoPago = Number(pago.monto || 0);
 
-  const resultado = ordenesOrdenadas.map((orden) => {
-    const totalOrden = Number(orden.total || 0);
+    // Aplicar solo hasta cubrir el saldo restante
+    const aplicable = Math.min(montoPago, saldoRestante);
 
-    // Pagos asociados directamente a la orden
-    const pagosContado = (orden.pagos || []).reduce(
-      (sum, p) => sum + Number(p.monto || 0),
-      0
-    );
-
-    let saldoRestante = totalOrden - pagosContado;
-    const pagosAplicados = [];
-
-    // Aplicar pagos de cuenta corriente
-    for (let i = 0; i < pagosDisponibles.length; i++) {
-      if (saldoRestante <= 0) break;
-
-      const pago = pagosDisponibles[i];
-      const aplicable = Math.min(Number(pago.monto || 0), saldoRestante);
-
+    if (aplicable > 0) {
       pagosAplicados.push({ ...pago, aplicado: aplicable });
       saldoRestante -= aplicable;
-      pagosDisponibles[i].monto -= aplicable; // descontamos lo aplicado del pago disponible
     }
+  }
 
-    const totalPagado = totalOrden - saldoRestante;
-    const estado =
-      saldoRestante === 0
-        ? "Pagado"
-        : totalPagado > 0
-        ? "Parcial"
-        : "Debe";
+  const totalPagado = totalOrden - saldoRestante;
+  const saldo = saldoRestante;
+  const estado =
+    saldo === 0 ? "Pagado" : saldo < totalOrden ? "Parcial" : "Debe";
 
-    return {
-      ...orden,
-      totalPagado,
-      saldo: saldoRestante,
-      estado,
-      pagosAplicados,
-    };
-  });
-
-  return resultado;
+  return { totalPagado, saldo, estado, pagosAplicados };
 }
