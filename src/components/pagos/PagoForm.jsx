@@ -10,6 +10,8 @@ import { useMetodoPago } from "../../hooks/useMetodoPago";
 const calcularEstadoOrden = (total, totalPagadoAnterior, nuevoMonto) => {
   const totalPagado = Number(totalPagadoAnterior || 0) + Number(nuevoMonto || 0);
   const saldo = Math.max(Number(total) - totalPagado, 0);
+  const clienteId = typeof cliente === "object" ? cliente.id : cliente;
+
 
   let estado = "pendiente";
   if (totalPagado > 0 && saldo > 0) estado = "parcial";
@@ -61,7 +63,7 @@ export default function PagoForm({ ordenes, cliente, onPagoRegistrado }) {
 
     try {
       // Obtener la cuenta corriente del cliente
-      const ccRes = await getCuentaCorrienteByCliente(cliente.id);
+      const ccRes = await getCuentaCorrienteByCliente(clienteId);
       const cuentaCorriente = ccRes.data[0];
 
       if (!cuentaCorriente && ordenes.some(o => o.condicion_cobro === "cuenta_corriente")) {
@@ -71,7 +73,7 @@ export default function PagoForm({ ordenes, cliente, onPagoRegistrado }) {
       // Crear pagos
       for (const pago of pagos) {
         await crearPago({
-          cliente: cliente.id,
+          cliente: clienteId,
           metodo_pago: pago.metodo,
           monto: pago.monto,
           banco: pago.banco || null,
