@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { getOrdenesTrabajo, getPagosPorMes } from "../services/api";
+import { getCuentaCorriente } from "../services/api"; // <-- nueva API
 import CuentaCorrienteTable from "../components/CuentaCorrienteTable";
 import CuentaCorrienteModal from "../components/CuentaCorrienteModal";
 import Filters from "../components/Filters";
 
 export default function CuentaCorriente() {
-  const [ordenes, setOrdenes] = useState([]);
-  const [pagos, setPagos] = useState([]);
+  const [cuentas, setCuentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [detalleCliente, setDetalleCliente] = useState(null);
   const [filtroDeuda, setFiltroDeuda] = useState(false);
@@ -15,24 +14,14 @@ export default function CuentaCorriente() {
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
 
-  // ================= FETCH OPTIMIZADO =================
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resOrdenes, resPagos] = await Promise.all([
-        getOrdenesTrabajo({
-          condicion_cobro: "cuenta_corriente",
-          fields: "id,total,fecha,cliente.id,cliente.nombre,saldo",
-        }),
-        getPagosPorMes("1900-01-01", "2100-01-01", {
-          estado: "confirmado",
-          fields:
-            "id,monto,fecha,cliente.id,cliente.nombre,metodo_pago,cheque_numero,cheque_banco,cheque_vencimiento,orden",
-        }),
-      ]);
-
-      setOrdenes(resOrdenes.data || []);
-      setPagos(resPagos.data || []);
+      const res = await getCuentaCorriente({
+        fields: "id,saldo,cliente.id,cliente.nombre,total_ordenes,total_pagos",
+        actives: true, // solo cuentas activas
+      });
+      setCuentas(res.data || []);
     } catch (error) {
       console.error("Error cargando cuenta corriente:", error);
       alert("Error cargando cuenta corriente. Revisa tu sesión o permisos.");
@@ -45,100 +34,27 @@ export default function CuentaCorriente() {
     fetchData();
   }, []);
 
-  // ================= AGRUPAR SOLO CLIENTES CON CUENTA CORRIENTE =================
-  const clientesCC = useMemo(() => {
-    const acc = {};
-
-    // ÓRDENES CUENTA CORRIENTE
-    ordenes.forEach((o) => {
-      if (!o.cliente) return;
-
-      if (
-        (fechaDesde && new Date(o.fecha) < new Date(fechaDesde)) ||
-        (fechaHasta && new Date(o.fecha) > new Date(fechaHasta))
-      ) {
-        return;
-      }
-
-      const id = o.cliente.id;
-      if (!acc[id]) {
-        acc[id] = {
-          id,
-          nombre: o.cliente.nombre,
-          total: 0,
-          pagado: 0,
-          saldo: 0,
-          ordenes: [],
-          pagos: [],
-        };
-      }
-
-      acc[id].total += Number(o.total || 0);
-      acc[id].ordenes.push(o);
-    });
-
-    // PAGOS APLICADOS SOLO A ÓRDENES DE CUENTA CORRIENTE
-    pagos.forEach((p) => {
-      if (!p.cliente || !p.orden) return;
-
-      // Solo sumar si la orden existe y es cuenta corriente
-      const ordenCC = ordenes.find(
-        (o) => o.id === p.orden && o.condicion_cobro === "cuenta_corriente"
-      );
-      if (!ordenCC) return;
-
-      const id = p.cliente.id;
-      if (!acc[id]) {
-        acc[id] = {
-          id,
-          nombre: p.cliente.nombre,
-          total: 0,
-          pagado: 0,
-          saldo: 0,
-          ordenes: [],
-          pagos: [],
-        };
-      }
-
-      acc[id].pagado += Number(p.monto || 0);
-      acc[id].pagos.push(p);
-    });
-
-    // Saldo final
-    Object.values(acc).forEach((c) => {
-      c.saldo = c.total - c.pagado;
-    });
-
-    return Object.values(acc);
-  }, [ordenes, pagos, fechaDesde, fechaHasta]);
-
   // ================= FILTROS =================
-  const clientesFiltrados = useMemo(() => {
-    let res = filtroDeuda
-      ? clientesCC.filter((c) => c.saldo > 0)
-      : clientesCC;
+  const cuentasFiltradas = useMemo(() => {
+    let res = filtroDeuda ? cuentas.filter(c => c.saldo > 0) : cuentas;
 
     if (searchNombre) {
-      res = res.filter((c) =>
-        c.nombre.toLowerCase().includes(searchNombre.toLowerCase())
+      res = res.filter(c =>
+        c.cliente?.nombre?.toLowerCase().includes(searchNombre.toLowerCase())
       );
     }
 
-    return res.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
-  }, [clientesCC, filtroDeuda, searchNombre]);
+    if (fechaDesde || fechaHasta) {
+      res = res.filter(c => {
+        const fecha = new Date(c.date_created); // o la fecha que corresponda
+        if (fechaDesde && fecha < new Date(fechaDesde)) return false;
+        if (fechaHasta && fecha > new Date(fechaHasta)) return false;
+        return true;
+      });
+    }
 
-  // ================= ESTADO OPTIMISTA: AGREGAR PAGO =================
-  const handlePagoRegistrado = async (nuevoPago) => {
-    setPagos((prev) => [...prev, nuevoPago]);
-    setOrdenes((prev) =>
-      prev.map((o) =>
-        o.id === nuevoPago.orden ? { ...o, saldo: o.saldo - nuevoPago.monto } : o
-      )
-    );
-
-    await fetchData();
-    setDetalleCliente(null);
-  };
+    return res.sort((a, b) => (a.cliente?.nombre || "").localeCompare(b.cliente?.nombre || ""));
+  }, [cuentas, filtroDeuda, searchNombre, fechaDesde, fechaHasta]);
 
   if (loading) {
     return (
@@ -163,42 +79,34 @@ export default function CuentaCorriente() {
         setFechaHasta={setFechaHasta}
       />
 
+      {/* MOBILE */}
       <div className="space-y-4 md:hidden">
-        {clientesFiltrados.length === 0 && (
-          <p className="text-center text-gray-400">
-            No hay clientes con cuenta corriente
-          </p>
+        {cuentasFiltradas.length === 0 && (
+          <p className="text-center text-gray-400">No hay clientes con cuenta corriente</p>
         )}
 
-        {clientesFiltrados.map((cliente) => (
-          <div key={cliente.id} className="bg-gray-800 rounded-lg p-4 shadow">
-            <p className="font-semibold text-lg mb-1">{cliente.nombre}</p>
-
+        {cuentasFiltradas.map(c => (
+          <div key={c.id} className="bg-gray-800 rounded-lg p-4 shadow">
+            <p className="font-semibold text-lg mb-1">{c.cliente?.nombre}</p>
             <div className="grid grid-cols-2 gap-2 text-sm mt-3">
               <div>
                 <span className="text-gray-400">Total</span>
-                <p>${cliente.total.toFixed(2)}</p>
+                <p>${(c.total_ordenes || 0).toFixed(2)}</p>
               </div>
-
               <div>
                 <span className="text-gray-400">Pagado</span>
-                <p>${cliente.pagado.toFixed(2)}</p>
+                <p>${(c.total_pagos || 0).toFixed(2)}</p>
               </div>
-
               <div className="col-span-2">
                 <span className="text-gray-400">Saldo</span>
-                <p
-                  className={`font-semibold ${
-                    cliente.saldo > 0 ? "text-red-400" : "text-green-400"
-                  }`}
-                >
-                  ${cliente.saldo.toFixed(2)}
+                <p className={`font-semibold ${c.saldo > 0 ? "text-red-400" : "text-green-400"}`}>
+                  ${c.saldo?.toFixed(2) || 0}
                 </p>
               </div>
             </div>
 
             <button
-              onClick={() => setDetalleCliente(cliente)}
+              onClick={() => setDetalleCliente(c)}
               className="mt-4 w-full bg-blue-600 py-2 rounded font-semibold"
             >
               Ver detalle
@@ -207,9 +115,18 @@ export default function CuentaCorriente() {
         ))}
       </div>
 
+      {/* DESKTOP */}
       <div className="hidden md:block">
         <CuentaCorrienteTable
-          clientes={clientesFiltrados}
+          clientes={cuentasFiltradas.map(c => ({
+            id: c.id,
+            nombre: c.cliente?.nombre,
+            total: c.total_ordenes,
+            pagado: c.total_pagos,
+            saldo: c.saldo,
+            ordenes: c.ordenes || [],
+            pagos: c.pagos || [],
+          }))}
           onVerDetalle={setDetalleCliente}
         />
       </div>
@@ -218,7 +135,7 @@ export default function CuentaCorriente() {
         <CuentaCorrienteModal
           cliente={detalleCliente}
           onClose={() => setDetalleCliente(null)}
-          onPagoRegistrado={handlePagoRegistrado}
+          onPagoRegistrado={fetchData} // refresca la lista
         />
       )}
     </MainLayout>
