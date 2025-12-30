@@ -109,7 +109,7 @@ export default function Pagos() {
                 {/* FORM */}
                 {saldo > 0 && (
   <PagosForm
-    orden={orden}
+    cliente={cliente}
     onPagoRegistrado={async () => {
   setShowModal(true);
   await fetchData();

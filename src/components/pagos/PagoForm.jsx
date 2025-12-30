@@ -6,9 +6,9 @@ import {
 } from "../../services/api";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
 
-export default function PagoForm({ clienteId, onPagoRegistrado }) {
+export default function PagoForm({ cliente, onPagoRegistrado }) {
   const metodos = useMetodoPago();
-
+  const clienteId = typeof cliente === "object" ? cliente.id : cliente;
   const [cuentaCorriente, setCuentaCorriente] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -51,41 +51,48 @@ export default function PagoForm({ clienteId, onPagoRegistrado }) {
     setPagos(pagos.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!cuentaCorriente || pagos.length === 0) return;
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    setLoading(true);
+  if (pagos.length === 0) {
+    alert("No hay pagos cargados");
+    return;
+  }
 
-    try {
-      // 1️⃣ Crear pagos
-      for (const pago of pagos) {
-        await crearPago({
-          cliente: clienteId,
-          metodo_pago: pago.metodo,
-          monto: pago.monto,
-          banco: pago.banco || null,
-          numero_cheque: pago.numero_cheque || null,
-          fecha_cobro: pago.fecha_cobro || null,
-          cuenta_corriente: cuentaCorriente.id,
-        });
-      }
+  if (!cuentaCorriente) {
+    alert("El cliente no tiene cuenta corriente");
+    return;
+  }
 
-      // 2️⃣ Impactar cuenta corriente (RESTA)
-      await impactarPagoEnCuentaCorriente(
-        cuentaCorriente.id,
-        totalPagos
-      );
+  setLoading(true);
 
-      setPagos([]);
-      onPagoRegistrado?.();
-    } catch (err) {
-      console.error(err);
-      alert("Error al registrar el pago");
-    } finally {
-      setLoading(false);
+  try {
+    for (const pago of pagos) {
+      await crearPago({
+        cliente: clienteId,
+        metodo_pago: pago.metodo,
+        monto: Number(pago.monto),
+        banco: pago.banco || null,
+        numero_cheque: pago.numero_cheque || null,
+        fecha_cobro: pago.fecha_cobro || null,
+        cuenta_corriente: cuentaCorriente.id,
+      });
     }
-  };
+
+    await impactarPagoEnCuentaCorriente(
+      cuentaCorriente.id,
+      Number(totalPagos)
+    );
+
+    setPagos([]);
+    onPagoRegistrado?.();
+  } catch (err) {
+    console.error(err);
+    alert("Error al registrar el pago");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded space-y-4">
