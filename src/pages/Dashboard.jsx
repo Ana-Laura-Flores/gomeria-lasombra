@@ -95,32 +95,7 @@ export default function Dashboard() {
 
     const totalCobrado = pagos.reduce((a, p) => a + Number(p.monto || 0), 0);
 
-    // ⚠️ Saldo pendiente por cobrar
-const saldoPendiente = ordenes.reduce((acc, o) => {
-  // 1️⃣ Pagos de contado asociados a esta orden
-  const pagosOrden = pagos.filter(
-    (p) => p.orden === o.id && p.estado === "confirmado"
-  );
-  const totalPagosOrden = pagosOrden.reduce(
-    (sum, p) => sum + Number(p.monto || 0),
-    0
-  );
-
-  // 2️⃣ Pagos de cuenta corriente del cliente relacionados a esta orden
-  // Si los pagos de cta cte no tienen orden, los sumamos solo si son del mismo cliente
-  const pagosCtaCte = pagos
-    .filter(
-      (p) => !p.orden && p.cliente === o.cliente && p.estado === "confirmado"
-    )
-    // ⚠️ Si querés, podés filtrar aquí solo pagos aplicables a esta orden
-    .reduce((sum, p) => sum + Number(p.monto || 0), 0);
-
-  // 3️⃣ Total pagado
-  const totalPagos = totalPagosOrden + pagosCtaCte;
-
-  // 4️⃣ Saldo restante de la orden
-  return acc + Math.max(0, Number(o.total || 0) - totalPagos);
-}, 0);
+    const saldoPendiente = totalFacturado - totalCobrado;
 
 
     const ordenesConDeuda = ordenes.filter((o) => Number(o.saldo) > 0).length;
