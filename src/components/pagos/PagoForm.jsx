@@ -9,7 +9,7 @@ import { useMetodoPago } from "../../hooks/useMetodoPago";
 export default function PagoForm({ cliente, onPagoRegistrado }) {
   const metodos = useMetodoPago();
 
-  // puede venir objeto o id
+  // Puede venir objeto o id
   const clienteId = typeof cliente === "object" ? cliente.id : cliente;
 
   const [cuentaCorriente, setCuentaCorriente] = useState(null);
@@ -42,10 +42,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     cargarCC();
   }, [clienteId]);
 
-  const totalPagos = pagos.reduce(
-    (acc, p) => acc + Number(p.monto || 0),
-    0
-  );
+  const totalPagosNum = pagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
 
   // =========================
   // Agregar pago a la lista
@@ -85,27 +82,36 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     }
 
     setLoading(true);
-
     try {
       // 1️⃣ Crear pagos
       for (const pago of pagos) {
         await crearPago({
           cliente: clienteId,
           metodo_pago: pago.metodo,
-          monto: Number(pago.monto),
+          monto: parseFloat(pago.monto),
           banco: pago.banco || null,
           numero_cheque: pago.numero_cheque || null,
           fecha_cobro: pago.fecha_cobro || null,
-          cuenta_corriente: cuentaCorriente.id, // 👈 vínculo correcto
+          cuenta_corriente: cuentaCorriente.id,
         });
       }
 
-      // 2️⃣ Impactar saldo de la cuenta corriente (POR CLIENTE)
-      await impactarPagoEnCuentaCorriente(
-        clienteId, // 👈 CLAVE: es clienteId, NO cuentaCorriente.id
-        Number(totalPagos)
-      );
+      // 2️⃣ Impactar saldo de la cuenta corriente
+      await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
 
+      // 3️⃣ Actualización optimista en UI
+      setCuentaCorriente((prev) => prev ? {
+        ...prev,
+        saldo: prev.saldo - totalPagosNum,
+        total_pagos: prev.total_pagos + totalPagosNum,
+        saldo_actualizado: prev.saldo_actualizado - totalPagosNum,
+      } : null);
+
+      // 4️⃣ Recargar cuenta corriente desde backend
+      const res = await getCuentaCorrienteByCliente(clienteId);
+      setCuentaCorriente(res.data?.[0] || null);
+
+      // 5️⃣ Limpiar pagos y callback
       setPagos([]);
       onPagoRegistrado?.();
     } catch (err) {
@@ -211,12 +217,13 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
             </div>
           ))}
           <p className="text-right font-semibold">
-            Total: ${totalPagos}
+            Total: ${totalPagosNum}
           </p>
         </div>
       )}
 
       <button
+        type="submit"
         disabled={loading}
         className="bg-green-600 w-full py-2 rounded disabled:opacity-50"
       >
