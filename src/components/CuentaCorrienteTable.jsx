@@ -2,6 +2,12 @@ const formatMoney = (value) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(Number(value) || 0);
 
 export default function CuentaCorrienteTable({ clientes, onVerDetalle }) {
+  if (!clientes || clientes.length === 0) {
+    return (
+      <p className="text-center text-gray-400">No hay clientes con cuenta corriente</p>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-gray-800 text-gray-100 border border-gray-700 rounded-lg">
@@ -12,7 +18,7 @@ export default function CuentaCorrienteTable({ clientes, onVerDetalle }) {
             <th className="p-2 text-right">Pagado</th>
             <th className="p-2 text-right">Saldo pendiente</th>
             <th className="p-2">Detalle</th>
-           </tr>
+          </tr>
         </thead>
         <tbody>
           {clientes.map(c => (
@@ -26,9 +32,9 @@ export default function CuentaCorrienteTable({ clientes, onVerDetalle }) {
                   className="bg-blue-600 px-3 py-1 rounded hover:bg-blue-500"
                   onClick={() => onVerDetalle(c)}
                 >
-                  Ver Detalles                </button>
+                  Ver Detalles
+                </button>
               </td>
-              
             </tr>
           ))}
         </tbody>
