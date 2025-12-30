@@ -279,9 +279,10 @@ export const getGastosPrefijados = async () =>
 
 export const getGastosPorMes = async (desde, hasta) => {
   return apiFetch(
-    `gastos?fields=id,monto,fecha&filter[fecha][_between]=${desde},${hasta}`
+    `gastos?fields=id,monto,fecha,metodo_pago&filter[fecha][_between][]=${desde}T00:00:00&filter[fecha][_between][]=${hasta}T23:59:59`
   );
 };
+
 
 
 
