@@ -18,11 +18,12 @@ export default function NuevoGasto() {
   fecha: new Date().toISOString().slice(0, 10),
   concepto: "",
   monto: "",
-  tipo: "",
+  TIPO: "variable",
   categoria: "",
-  metodo_pago: "",
+  metodo_pago: [], // 🔴 IMPORTANTE
   observaciones: "",
 });
+
 
 
   const [usarPrefijado, setUsarPrefijado] = useState(false);
@@ -65,23 +66,25 @@ export default function NuevoGasto() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setGuardando(true);
+  e.preventDefault();
+  setGuardando(true);
 
-    try {
-      await crearGasto({
-        ...form,
-        monto: Number(form.monto),
-      });
+  try {
+    await crearGasto({
+      ...form,
+      monto: Number(form.monto),
+      fecha: `${form.fecha}T00:00:00`,
+    });
 
-      setModalOpen(true);
-    } catch (error) {
-      console.error(error);
-      alert("Error al guardar gasto");
-    } finally {
-      setGuardando(false);
-    }
-  };
+    setModalOpen(true);
+  } catch (error) {
+    console.error(error);
+    alert("Error al guardar gasto");
+  } finally {
+    setGuardando(false);
+  }
+};
+
 
   return (
     <MainLayout>
@@ -168,16 +171,22 @@ export default function NuevoGasto() {
           </select>
 <select
   name="metodo_pago"
-  value={form.metodo_pago}
-  onChange={handleChange}
+  value={form.metodo_pago[0] || ""}
+  onChange={(e) =>
+    setForm({
+      ...form,
+      metodo_pago: [e.target.value],
+    })
+  }
   className="w-full p-2 rounded bg-gray-800"
   required
 >
   <option value="">Método de pago</option>
   <option value="efectivo">Efectivo</option>
-  <option value="transferencia_bancaria">Transferencia</option>
-  <option value="mercado_pago">Mercado Pago</option>
+  <option value="transferencia">Transferencia</option>
+  <option value="tarjeta">Tarjeta</option>
 </select>
+
 
           <textarea
             name="observaciones"

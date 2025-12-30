@@ -45,7 +45,7 @@ export default function Sidebar() {
                             Nuevo gasto
                         </Link>
                         <Link
-                            to="/cuenta-corriente"
+                            to="/cuenta_corriente"
                             className="block px-4 py-2 rounded hover:bg-gray-700"
                         >
                             Cuentas Corrientes
