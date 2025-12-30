@@ -67,9 +67,10 @@ export const getClientes = async () => {
 
 export const getOrdenesTrabajo = async () => {
   return apiFetch(
-    "ordenes_trabajo?fields=*, cliente.id,cliente.nombre,pagos.*,items_orden.*"
+    "ordenes_trabajo?fields=*,cliente.*,pagos.*,items_orden.*"
   );
 };
+
 
 export const getOrdenTrabajoById = async (id) => {
   return apiFetch(
@@ -138,7 +139,7 @@ export const getPagosCuentaCorriente = async (clienteId) => {
   if (!clienteId) return { data: [] };
 
   return apiFetch(
-    `pagos?fields=id,fecha,monto,orden,estado&filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado`
+    `pagos?filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado&fields=*,cliente.*,orden.*`
   );
 };
 
@@ -240,9 +241,10 @@ export const actualizarOrden = async (id, data) => {
 
 export const getPagosPorMes = async (desde, hasta) => {
   return apiFetch(
-    `pagos?filter[fecha][_between]=${desde},${hasta}`
+    `pagos?filter[fecha][_between]=${desde},${hasta}&fields=*,cliente.*,orden.*`
   );
 };
+
 
 // services/api.js
 export const getMetodosPagoField = async () => {

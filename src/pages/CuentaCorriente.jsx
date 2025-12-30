@@ -121,7 +121,9 @@ useEffect(() => {
             );
         }
 
-        return res.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        return res.sort((a, b) =>
+  (a.nombre || "").localeCompare(b.nombre || "")
+);
     }, [clientesCC, filtroDeuda, searchNombre]);
 
     if (loading) {
