@@ -43,7 +43,8 @@ export default function OrdenFooter({
     try {
         setLoading(true);
 
-        let clienteId = cliente;
+        let clienteId =
+  typeof cliente === "object" ? cliente.id : cliente;
 
         // 🔹 SI ES CLIENTE NUEVO
         if (modoClienteNuevo) {

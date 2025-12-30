@@ -63,7 +63,7 @@ export default function CuentaCorriente() {
                 return;
             }
 
-            const id = o.clienteId;
+            const id = o.cliente.id;
 
             if (!acc[id]) {
                 acc[id] = {
@@ -85,7 +85,7 @@ export default function CuentaCorriente() {
         pagos.forEach((p) => {
             if (!p.cliente) return; // ✅ TAMBIÉN ACÁ
 
-            const id = p.clienteId;
+            const id = p.cliente.id;
 
             if (!acc[id]) {
                 acc[id] = {
@@ -162,7 +162,7 @@ export default function CuentaCorriente() {
 
                 {clientesFiltrados.map((cliente) => (
                     <div
-                        key={clienteId}
+                        key={cliente.id}
                         className="bg-gray-800 rounded-lg p-4 shadow"
                     >
                         <p className="font-semibold text-lg mb-1">
