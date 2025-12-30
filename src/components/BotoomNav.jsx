@@ -44,8 +44,8 @@ export default function BottomNav() {
             <span>Nueva</span>
           </Link>
           <Link
-          to="/cuenta_corriente"
-          className={`flex flex-col items-center text-sm ${isActive("/cuenta_corriente")}`}
+          to="/cuenta-corriente"
+          className={`flex flex-col items-center text-sm ${isActive("/cuenta-corriente")}`}
           >
             📒
 <span>Cuenta</span>

@@ -183,8 +183,8 @@ export default function NuevoGasto() {
 >
   <option value="">Método de pago</option>
   <option value="efectivo">Efectivo</option>
-  <option value="transferencia">Transferencia</option>
-  <option value="tarjeta">Tarjeta</option>
+  <option value="transferencia_bancaria">Transferencia</option>
+  <option value="mercado_pago">Mercado Pago</option>
 </select>
 
 

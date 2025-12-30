@@ -26,11 +26,12 @@ const getRangoMes = (mes) => {
     return { desde, hasta };
 };
 
-const normalizarMetodo = (m) =>
-    m?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
-
-const formatMetodoPago = (m) =>
-    m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+const normalizarMetodo = (m) => {
+  if (Array.isArray(m)) {
+    return m[0]?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
+  }
+  return m?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
+};
 
 /* =====================
    DASHBOARD
@@ -111,11 +112,12 @@ export default function Dashboard() {
             acc[metodo] = (acc[metodo] || 0) + Number(p.monto);
             return acc;
         }, {});
-    const gastosPorMetodo = gastos.reduce((acc, g) => {
-        const metodo = normalizarMetodo(g.metodo_pago);
-        acc[metodo] = (acc[metodo] || 0) + Number(g.monto || 0);
-        return acc;
-    }, {});
+   const gastosPorMetodo = gastos.reduce((acc, g) => {
+  const metodo = normalizarMetodo(g.metodo_pago);
+  acc[metodo] = (acc[metodo] || 0) + Number(g.monto || 0);
+  return acc;
+}, {});
+
 
     /* =====================
      RENDER
