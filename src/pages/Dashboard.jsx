@@ -33,6 +33,14 @@ const normalizarMetodo = (m) => {
   return m?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
 };
 
+const formatMetodoPago = (m) => {
+  if (!m) return "Sin método";
+
+  return m
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (l) => l.toUpperCase());
+};
+
 /* =====================
    DASHBOARD
 ===================== */
