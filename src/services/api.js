@@ -105,14 +105,13 @@ export const getDashboardOrdenes = async (desde, hasta) => {
 
 
 export const getOrdenesCuentaCorriente = async (clienteId) => {
-  if (!clienteId) {
-    return { data: [] };
-  }
+  if (!clienteId) return { data: [] };
 
   return apiFetch(
     `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente`
   );
 };
+
 
 
 // Traer todas las órdenes para cuenta corriente
@@ -124,9 +123,7 @@ export const getCuentasCorrientes = async () => {
 
 
 export const getCuentaCorrienteByCliente = async (clienteId) => {
-  if (!clienteId) {
-    return { data: [] };
-  }
+  if (!clienteId) return { data: [] };
 
   return apiFetch(
     `cuenta_corriente?filter[cliente][_eq]=${clienteId}&limit=1`
@@ -135,16 +132,16 @@ export const getCuentaCorrienteByCliente = async (clienteId) => {
 
 
 
+
 //Pagos por cliente
 export const getPagosCuentaCorriente = async (clienteId) => {
-  if (!clienteId) {
-    return { data: [] };
-  }
+  if (!clienteId) return { data: [] };
 
   return apiFetch(
     `pagos?fields=id,fecha,monto,orden,estado&filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado`
   );
 };
+
 
 export const crearCuentaCorriente = async ({ cliente, saldo_inicial = 0 }) => {
   const res = await fetch(`${API_URL}/items/cuenta_corriente`, {
@@ -211,8 +208,8 @@ export const crearPago = async (pago) => {
   return apiFetch("pagos", {
     method: "POST",
     body: JSON.stringify({
-      orden: pago.orden,        // ✅ UUID de orden
-      cliente: pago.cliente,    // ✅ UUID de cliente (si llega bien)
+      orden: pago.orden,       // ID
+      cliente: pago.cliente,   // ID
       metodo_pago: pago.metodo_pago,
       monto: Number(pago.monto),
       fecha: pago.fecha || new Date().toISOString(),
@@ -225,12 +222,14 @@ export const crearPago = async (pago) => {
   });
 };
 
+
 // Traer pagos de una orden
 export const getPagosByOrden = async (ordenId) => {
   return apiFetch(
     `pagos?filter[orden][_eq]=${ordenId}&fields=*,orden.id`
   );
 };
+
 
 export const actualizarOrden = async (id, data) => {
   return apiFetch(`ordenes_trabajo/${id}`, {
