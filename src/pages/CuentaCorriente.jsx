@@ -18,10 +18,20 @@ export default function CuentaCorriente() {
     setLoading(true);
     try {
       const res = await getCuentaCorriente({
-        fields: "id,saldo,cliente.id,cliente.nombre,total_ordenes,total_pagos",
+        fields: "id,saldo,saldo_actualizado,total_ordenes,total_pagos,cliente.id,cliente.nombre",
         actives: true, // solo cuentas activas
       });
-      setCuentas(res.data || []);
+
+      // 🔧 Normalizamos los valores numéricos
+      const cuentasNormalizadas = (res.data || []).map(c => ({
+        ...c,
+        saldo: Number(c.saldo || 0),
+        saldo_actualizado: Number(c.saldo_actualizado || 0),
+        total_ordenes: Number(c.total_ordenes || 0),
+        total_pagos: Number(c.total_pagos || 0),
+      }));
+
+      setCuentas(cuentasNormalizadas);
     } catch (error) {
       console.error("Error cargando cuenta corriente:", error);
       alert("Error cargando cuenta corriente. Revisa tu sesión o permisos.");
@@ -46,14 +56,16 @@ export default function CuentaCorriente() {
 
     if (fechaDesde || fechaHasta) {
       res = res.filter(c => {
-        const fecha = new Date(c.date_created); // o la fecha que corresponda
+        const fecha = new Date(c.date_created); // asegúrate que este campo exista en la colección
         if (fechaDesde && fecha < new Date(fechaDesde)) return false;
         if (fechaHasta && fecha > new Date(fechaHasta)) return false;
         return true;
       });
     }
 
-    return res.sort((a, b) => (a.cliente?.nombre || "").localeCompare(b.cliente?.nombre || ""));
+    return res.sort((a, b) =>
+      (a.cliente?.nombre || "").localeCompare(b.cliente?.nombre || "")
+    );
   }, [cuentas, filtroDeuda, searchNombre, fechaDesde, fechaHasta]);
 
   if (loading) {
@@ -91,16 +103,20 @@ export default function CuentaCorriente() {
             <div className="grid grid-cols-2 gap-2 text-sm mt-3">
               <div>
                 <span className="text-gray-400">Total</span>
-                <p>${(c.total_ordenes || 0).toFixed(2)}</p>
+                <p>${c.total_ordenes.toFixed(2)}</p>
               </div>
               <div>
                 <span className="text-gray-400">Pagado</span>
-                <p>${(c.total_pagos || 0).toFixed(2)}</p>
+                <p>${c.total_pagos.toFixed(2)}</p>
               </div>
               <div className="col-span-2">
                 <span className="text-gray-400">Saldo</span>
-                <p className={`font-semibold ${c.saldo > 0 ? "text-red-400" : "text-green-400"}`}>
-                  ${c.saldo?.toFixed(2) || 0}
+                <p
+                  className={`font-semibold ${
+                    c.saldo > 0 ? "text-red-400" : "text-green-400"
+                  }`}
+                >
+                  ${c.saldo.toFixed(2)}
                 </p>
               </div>
             </div>
