@@ -19,10 +19,16 @@ export default function CuentaCorriente() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // ✅ Filtrado en la API y campos necesarios
       const [resOrdenes, resPagos] = await Promise.all([
-        getOrdenesTrabajo({ condicion_cobro: "cuenta_corriente", fields: "id,total,fecha,cliente.id,cliente.nombre,saldo" }),
-        getPagosPorMes("1900-01-01", "2100-01-01", { estado: "confirmado", fields: "id,monto,fecha,cliente.id,cliente.nombre,metodo_pago,cheque_numero,cheque_banco,cheque_vencimiento,orden" }),
+        getOrdenesTrabajo({
+          condicion_cobro: "cuenta_corriente",
+          fields: "id,total,fecha,cliente.id,cliente.nombre,saldo",
+        }),
+        getPagosPorMes("1900-01-01", "2100-01-01", {
+          estado: "confirmado",
+          fields:
+            "id,monto,fecha,cliente.id,cliente.nombre,metodo_pago,cheque_numero,cheque_banco,cheque_vencimiento,orden",
+        }),
       ]);
 
       setOrdenes(resOrdenes.data || []);
@@ -35,21 +41,22 @@ export default function CuentaCorriente() {
     }
   };
 
-  // ================= FETCH AL MONTAR =================
   useEffect(() => {
     fetchData();
   }, []);
 
-  // ================= AGRUPAR POR CLIENTE =================
+  // ================= AGRUPAR SOLO CLIENTES CON CUENTA CORRIENTE =================
   const clientesCC = useMemo(() => {
     const acc = {};
 
-    // ÓRDENES
+    // ÓRDENES CUENTA CORRIENTE
     ordenes.forEach((o) => {
       if (!o.cliente) return;
 
-      if ((fechaDesde && new Date(o.fecha) < new Date(fechaDesde)) ||
-          (fechaHasta && new Date(o.fecha) > new Date(fechaHasta))) {
+      if (
+        (fechaDesde && new Date(o.fecha) < new Date(fechaDesde)) ||
+        (fechaHasta && new Date(o.fecha) > new Date(fechaHasta))
+      ) {
         return;
       }
 
@@ -66,13 +73,19 @@ export default function CuentaCorriente() {
         };
       }
 
-      acc[id].total += Number(o.total);
+      acc[id].total += Number(o.total || 0);
       acc[id].ordenes.push(o);
     });
 
-    // PAGOS
+    // PAGOS APLICADOS SOLO A ÓRDENES DE CUENTA CORRIENTE
     pagos.forEach((p) => {
-      if (!p.cliente) return;
+      if (!p.cliente || !p.orden) return;
+
+      // Solo sumar si la orden existe y es cuenta corriente
+      const ordenCC = ordenes.find(
+        (o) => o.id === p.orden && o.condicion_cobro === "cuenta_corriente"
+      );
+      if (!ordenCC) return;
 
       const id = p.cliente.id;
       if (!acc[id]) {
@@ -87,11 +100,11 @@ export default function CuentaCorriente() {
         };
       }
 
-      acc[id].pagado += Number(p.monto);
+      acc[id].pagado += Number(p.monto || 0);
       acc[id].pagos.push(p);
     });
 
-    // SALDO FINAL
+    // Saldo final
     Object.values(acc).forEach((c) => {
       c.saldo = c.total - c.pagado;
     });
@@ -111,34 +124,21 @@ export default function CuentaCorriente() {
       );
     }
 
-    return res.sort((a, b) =>
-      (a.nombre || "").localeCompare(b.nombre || "")
-    );
+    return res.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
   }, [clientesCC, filtroDeuda, searchNombre]);
 
   // ================= ESTADO OPTIMISTA: AGREGAR PAGO =================
   const handlePagoRegistrado = async (nuevoPago) => {
-  // 1️⃣ Actualización optimista de pagos
-  setPagos(prev => [...prev, nuevoPago]);
-
-  // 2️⃣ Solo actualizar órdenes si el pago tiene orden asociada
-  if (nuevoPago.orden) {
-    setOrdenes(prev =>
-      prev.map(o =>
-        o.id === nuevoPago.orden
-          ? { ...o, saldo: (o.saldo || o.total) - nuevoPago.monto }
-          : o
+    setPagos((prev) => [...prev, nuevoPago]);
+    setOrdenes((prev) =>
+      prev.map((o) =>
+        o.id === nuevoPago.orden ? { ...o, saldo: o.saldo - nuevoPago.monto } : o
       )
     );
-  }
 
-  // 3️⃣ Refetch para confirmar y mantener datos consistentes
-  await fetchData();
-
-  // 4️⃣ Cerrar modal si estaba abierto
-  setDetalleCliente(null);
-};
-
+    await fetchData();
+    setDetalleCliente(null);
+  };
 
   if (loading) {
     return (
@@ -152,7 +152,6 @@ export default function CuentaCorriente() {
     <MainLayout>
       <h1 className="text-2xl font-bold mb-4">Cuenta Corriente de Clientes</h1>
 
-      {/* ================= FILTROS ================= */}
       <Filters
         filtroDeuda={filtroDeuda}
         setFiltroDeuda={setFiltroDeuda}
@@ -164,7 +163,6 @@ export default function CuentaCorriente() {
         setFechaHasta={setFechaHasta}
       />
 
-      {/* ================= MOBILE: CARDS ================= */}
       <div className="space-y-4 md:hidden">
         {clientesFiltrados.length === 0 && (
           <p className="text-center text-gray-400">
@@ -173,10 +171,7 @@ export default function CuentaCorriente() {
         )}
 
         {clientesFiltrados.map((cliente) => (
-          <div
-            key={cliente.id}
-            className="bg-gray-800 rounded-lg p-4 shadow"
-          >
+          <div key={cliente.id} className="bg-gray-800 rounded-lg p-4 shadow">
             <p className="font-semibold text-lg mb-1">{cliente.nombre}</p>
 
             <div className="grid grid-cols-2 gap-2 text-sm mt-3">
@@ -212,7 +207,6 @@ export default function CuentaCorriente() {
         ))}
       </div>
 
-      {/* ================= DESKTOP: TABLA ================= */}
       <div className="hidden md:block">
         <CuentaCorrienteTable
           clientes={clientesFiltrados}
@@ -220,7 +214,6 @@ export default function CuentaCorriente() {
         />
       </div>
 
-      {/* ================= MODAL ================= */}
       {detalleCliente && (
         <CuentaCorrienteModal
           cliente={detalleCliente}
