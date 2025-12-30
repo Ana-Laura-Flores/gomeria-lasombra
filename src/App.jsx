@@ -50,7 +50,7 @@ export default function App() {
           <Route
             path="/cuenta-corriente"
             element={
-              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}>
                 <CuentaCorriente />
               </ProtectedRoute>
             }

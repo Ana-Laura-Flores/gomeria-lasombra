@@ -52,9 +52,7 @@ export default function Sidebar() {
                         </Link>
                     </>
                 )}
-                {user?.role === ROLES.EMPLEADO && (
-                    <>{/* 👇 NUEVO GASTO PARA AMBOS */}</>
-                )}
+              
             </nav>
         </aside>
     );
