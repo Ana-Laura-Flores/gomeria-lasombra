@@ -139,17 +139,13 @@ export default function Pagos() {
   title="Pago registrado"
   onClose={() => {
     setShowModal(false);
-    navigate("/ordenes");
   }}
 >
   <div className="flex justify-between items-start">
     <p>El pago se registró correctamente ✅</p>
 
     <button
-      onClick={() => {
-        setShowModal(false);
-        navigate("/ordenes");
-      }}
+      onClick={() => setShowModal(false)}
       className="ml-4 text-xl font-bold text-gray-400 hover:text-white"
       aria-label="Cerrar"
     >
@@ -157,7 +153,6 @@ export default function Pagos() {
     </button>
   </div>
 </Modal>
-
 
         </MainLayout>
     );
