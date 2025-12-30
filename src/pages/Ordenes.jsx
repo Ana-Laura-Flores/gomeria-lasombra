@@ -1,81 +1,35 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import { getOrdenesTrabajo, getPagos } from "../services/api";
+import { getOrdenesTrabajo } from "../services/api";
 
 export default function Ordenes() {
   const [ordenes, setOrdenes] = useState([]);
-  const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const [search, setSearch] = useState("");
 
-  const fetchData = useCallback(async () => {
+
+  const fetchOrdenes = useCallback(async () => {
     setLoading(true);
     try {
-      const [ordenesRes, pagosRes] = await Promise.all([
-        getOrdenesTrabajo(),
-        getPagos(), // endpoint que devuelve todos los pagos
-      ]);
-
-      const ordenesData = Array.isArray(ordenesRes.data)
-        ? ordenesRes.data
-        : Array.isArray(ordenesRes.data?.data)
-        ? ordenesRes.data.data
+      const res = await getOrdenesTrabajo();
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+        ? res.data.data
         : [];
-
-      const pagosData = Array.isArray(pagosRes.data)
-        ? pagosRes.data
-        : Array.isArray(pagosRes.data?.data)
-        ? pagosRes.data.data
-        : [];
-
-      setPagos(pagosData);
-
-      // Recalculamos total_pagado y saldo por orden
-      const ordenesConPagos = ordenesData.map((orden) => {
-        const totalOrden = Number(orden.total || 0);
-
-        // 1️⃣ Pagos asociados directamente a la orden
-        const pagosOrden = pagosData.filter(
-          (p) => p.orden === orden.id && p.estado === "confirmado"
-        );
-        const totalPagosOrden = pagosOrden.reduce(
-          (sum, p) => sum + Number(p.monto || 0),
-          0
-        );
-
-        // 2️⃣ Pagos de cta cte del cliente (sin orden)
-        const pagosCtaCte = pagosData
-          .filter(
-            (p) =>
-              !p.orden &&
-              p.cliente === orden.cliente &&
-              p.estado === "confirmado"
-          )
-          .reduce((sum, p) => sum + Number(p.monto || 0), 0);
-
-        const total_pagado = totalPagosOrden + pagosCtaCte;
-        const saldo = Math.max(0, totalOrden - total_pagado);
-
-        return {
-          ...orden,
-          total_pagado,
-          saldo,
-        };
-      });
-
-      setOrdenes(ordenesConPagos);
+      setOrdenes(data);
     } catch (err) {
-      console.error("Error cargando datos:", err);
+      console.error("Error cargando órdenes:", err);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [location.state, fetchData]);
+    fetchOrdenes();
+  }, [location.state, fetchOrdenes]);
 
   if (loading) {
     return (
@@ -84,6 +38,7 @@ export default function Ordenes() {
       </MainLayout>
     );
   }
+
 
   const getEstadoVisual = (orden) => {
     const total = Number(orden.total) || 0;
@@ -105,41 +60,48 @@ export default function Ordenes() {
       minimumFractionDigits: 2,
     }).format(Number(value) || 0);
 
-  const ordenesFiltradas = ordenes.filter((orden) => {
-    const texto = search.toLowerCase();
-    return (
-      orden.comprobante?.toString().includes(texto) ||
-      orden.patente?.toLowerCase().includes(texto) ||
-      orden.cliente?.nombre?.toLowerCase().includes(texto) ||
-      orden.cliente?.apellido?.toLowerCase().includes(texto) ||
-      getEstadoVisual(orden).label.toLowerCase().includes(texto)
-    );
-  });
+    const ordenesFiltradas = ordenes.filter((orden) => {
+  const texto = search.toLowerCase();
+
+  return (
+    orden.comprobante?.toString().includes(texto) ||
+    orden.patente?.toLowerCase().includes(texto) ||
+    orden.cliente?.nombre?.toLowerCase().includes(texto) ||
+    orden.cliente?.apellido?.toLowerCase().includes(texto) ||
+    getEstadoVisual(orden).label.toLowerCase().includes(texto)
+  );
+});
 
   return (
     <MainLayout>
       <h1 className="text-2xl font-bold mb-6">Órdenes</h1>
       <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Buscar por cliente, patente, comprobante o estado..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:max-w-md p-2 rounded bg-gray-800 border border-gray-700"
-        />
-      </div>
+  <input
+    type="text"
+    placeholder="Buscar por cliente, patente, comprobante o estado..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="w-full md:max-w-md p-2 rounded bg-gray-800 border border-gray-700"
+  />
+</div>
+
 
       {/* ================= MOBILE: CARDS ================= */}
       <div className="space-y-4 md:hidden">
-        {ordenesFiltradas.length === 0 && (
-          <p className="text-center text-gray-400">No hay órdenes cargadas</p>
+        {ordenes.length === 0 && (
+          <p className="text-center text-gray-400">
+            No hay órdenes cargadas
+          </p>
         )}
 
         {ordenesFiltradas.map((orden) => {
           const estado = getEstadoVisual(orden);
 
           return (
-            <div key={orden.id} className="bg-gray-800 rounded-lg p-4 shadow">
+            <div
+              key={orden.id}
+              className="bg-gray-800 rounded-lg p-4 shadow"
+            >
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-400">
                   {orden.fecha
@@ -160,7 +122,9 @@ export default function Ordenes() {
                   : "Cliente -"}
               </p>
 
-              <p className="text-sm text-gray-400">Patente: {orden.patente || "-"}</p>
+              <p className="text-sm text-gray-400">
+                Patente: {orden.patente || "-"}
+              </p>
 
               <div className="grid grid-cols-2 gap-2 text-sm mt-3">
                 <div>
@@ -241,7 +205,9 @@ export default function Ordenes() {
                       : "—"}
                   </td>
                   <td className="p-2">{formatMoney(orden.total)}</td>
-                  <td className="p-2">{formatMoney(orden.total_pagado)}</td>
+                  <td className="p-2">
+                    {formatMoney(orden.total_pagado)}
+                  </td>
                   <td className="p-2">{formatMoney(orden.saldo)}</td>
                   <td className="p-2">
                     <span
