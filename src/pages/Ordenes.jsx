@@ -1,35 +1,47 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import { getOrdenesTrabajo } from "../services/api";
+import { getOrdenesTrabajo, getPagosPorMes } from "../services/api";
 
 export default function Ordenes() {
   const [ordenes, setOrdenes] = useState([]);
+  const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const [search, setSearch] = useState("");
 
-
-  const fetchOrdenes = useCallback(async () => {
+  const fetchDatos = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getOrdenesTrabajo();
-      const data = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data?.data)
-        ? res.data.data
+      const [ordenesRes, pagosRes] = await Promise.all([
+        getOrdenesTrabajo(),
+        getPagosPorMes(), // trae todos los pagos
+      ]);
+
+      const ordenesData = Array.isArray(ordenesRes.data)
+        ? ordenesRes.data
+        : Array.isArray(ordenesRes.data?.data)
+        ? ordenesRes.data.data
         : [];
-      setOrdenes(data);
+
+      const pagosData = Array.isArray(pagosRes.data)
+        ? pagosRes.data
+        : Array.isArray(pagosRes.data?.data)
+        ? pagosRes.data.data
+        : [];
+
+      setOrdenes(ordenesData);
+      setPagos(pagosData);
     } catch (err) {
-      console.error("Error cargando órdenes:", err);
+      console.error("Error cargando datos:", err);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchOrdenes();
-  }, [location.state, fetchOrdenes]);
+    fetchDatos();
+  }, [location.state, fetchDatos]);
 
   if (loading) {
     return (
@@ -39,6 +51,12 @@ export default function Ordenes() {
     );
   }
 
+  const formatMoney = (value) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 2,
+    }).format(Number(value) || 0);
 
   const getEstadoVisual = (orden) => {
     const total = Number(orden.total) || 0;
@@ -53,55 +71,62 @@ export default function Ordenes() {
     return { label: "Debe", className: "bg-red-700" };
   };
 
-  const formatMoney = (value) =>
-    new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-      minimumFractionDigits: 2,
-    }).format(Number(value) || 0);
+  // Recalculamos total_pagado y saldo en el front
+  const ordenesConPagos = ordenes.map((o) => {
+    const pagosOrden = pagos.filter(
+      (p) =>
+        p.estado === "confirmado" &&
+        (p.orden === o.id || (!p.orden && p.cliente === o.cliente))
+    );
 
-    const ordenesFiltradas = ordenes.filter((orden) => {
-  const texto = search.toLowerCase();
+    const total_pagado = pagosOrden.reduce(
+      (sum, p) => sum + Number(p.monto || 0),
+      0
+    );
 
-  return (
-    orden.comprobante?.toString().includes(texto) ||
-    orden.patente?.toLowerCase().includes(texto) ||
-    orden.cliente?.nombre?.toLowerCase().includes(texto) ||
-    orden.cliente?.apellido?.toLowerCase().includes(texto) ||
-    getEstadoVisual(orden).label.toLowerCase().includes(texto)
-  );
-});
+    return {
+      ...o,
+      total_pagado,
+      saldo: Math.max(0, Number(o.total || 0) - total_pagado),
+    };
+  });
+
+  const ordenesFiltradas = ordenesConPagos.filter((orden) => {
+    const texto = search.toLowerCase();
+    return (
+      orden.comprobante?.toString().includes(texto) ||
+      orden.patente?.toLowerCase().includes(texto) ||
+      orden.cliente?.nombre?.toLowerCase().includes(texto) ||
+      orden.cliente?.apellido?.toLowerCase().includes(texto) ||
+      getEstadoVisual(orden).label.toLowerCase().includes(texto)
+    );
+  });
 
   return (
     <MainLayout>
       <h1 className="text-2xl font-bold mb-6">Órdenes</h1>
-      <div className="mb-4">
-  <input
-    type="text"
-    placeholder="Buscar por cliente, patente, comprobante o estado..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    className="w-full md:max-w-md p-2 rounded bg-gray-800 border border-gray-700"
-  />
-</div>
 
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Buscar por cliente, patente, comprobante o estado..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full md:max-w-md p-2 rounded bg-gray-800 border border-gray-700"
+        />
+      </div>
 
       {/* ================= MOBILE: CARDS ================= */}
       <div className="space-y-4 md:hidden">
-        {ordenes.length === 0 && (
-          <p className="text-center text-gray-400">
-            No hay órdenes cargadas
-          </p>
+        {ordenesFiltradas.length === 0 && (
+          <p className="text-center text-gray-400">No hay órdenes cargadas</p>
         )}
 
         {ordenesFiltradas.map((orden) => {
           const estado = getEstadoVisual(orden);
 
           return (
-            <div
-              key={orden.id}
-              className="bg-gray-800 rounded-lg p-4 shadow"
-            >
+            <div key={orden.id} className="bg-gray-800 rounded-lg p-4 shadow">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-400">
                   {orden.fecha
@@ -205,9 +230,7 @@ export default function Ordenes() {
                       : "—"}
                   </td>
                   <td className="p-2">{formatMoney(orden.total)}</td>
-                  <td className="p-2">
-                    {formatMoney(orden.total_pagado)}
-                  </td>
+                  <td className="p-2">{formatMoney(orden.total_pagado)}</td>
                   <td className="p-2">{formatMoney(orden.saldo)}</td>
                   <td className="p-2">
                     <span
