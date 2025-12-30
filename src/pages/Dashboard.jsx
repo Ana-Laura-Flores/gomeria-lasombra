@@ -35,7 +35,6 @@ const normalizarMetodo = (m) => {
 
 const formatMetodoPago = (m) => {
     if (!m) return "Sin método";
-
     return m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
@@ -80,22 +79,21 @@ export default function Dashboard() {
     if (loading) return <MainLayout>Cargando…</MainLayout>;
 
     /* =====================
-     CÁLCULOS
-  ===================== */
+       CÁLCULOS
+    ===================== */
 
-    // ÓRDENES
+    // Total de órdenes
     const totalOrdenes = ordenes.length;
 
-    const totalFacturado = ordenes.reduce(
-        (a, o) => a + Number(o.total || 0),
-        0
-    );
+    // Total facturado
+    const totalFacturado = ordenes.reduce((a, o) => a + Number(o.total || 0), 0);
 
+    // Total cobrados (todos los pagos)
     const totalCobrado = pagos.reduce((a, p) => a + Number(p.monto || 0), 0);
 
-    // ⚠️ Saldo pendiente por cobrar
-    const saldoPendiente = ordenes.reduce((acc, o) => {
-        // 1️⃣ Pagos de contado asociados a esta orden
+    // Función para calcular saldo restante de una orden usando todos los pagos
+    const saldoPorOrden = (o) => {
+        // Pagos de contado asociados a la orden
         const pagosOrden = pagos.filter(
             (p) => p.orden === o.id && p.estado === "confirmado"
         );
@@ -104,38 +102,34 @@ export default function Dashboard() {
             0
         );
 
-        // 2️⃣ Pagos de cuenta corriente del cliente relacionados a esta orden
-        // Si los pagos de cta cte no tienen orden, los sumamos solo si son del mismo cliente
+        // Pagos de cuenta corriente (sin orden) del mismo cliente
         const pagosCtaCte = pagos
             .filter(
-                (p) =>
-                    !p.orden &&
-                    p.cliente === o.cliente &&
-                    p.estado === "confirmado"
+                (p) => !p.orden && p.cliente === o.cliente && p.estado === "confirmado"
             )
-            // ⚠️ Si querés, podés filtrar aquí solo pagos aplicables a esta orden
             .reduce((sum, p) => sum + Number(p.monto || 0), 0);
 
-        // 3️⃣ Total pagado
-        const totalPagos = totalPagosOrden + pagosCtaCte;
+        return Math.max(0, Number(o.total || 0) - (totalPagosOrden + pagosCtaCte));
+    };
 
-        // 4️⃣ Saldo restante de la orden
-        return acc + Math.max(0, Number(o.total || 0) - totalPagos);
-    }, 0);
+    // Saldo pendiente por cobrar (sumando todas las órdenes)
+    const saldoPendiente = ordenes.reduce((acc, o) => acc + saldoPorOrden(o), 0);
 
-    const ordenesConDeuda = ordenes.filter((o) => Number(o.saldo) > 0).length;
+    // Órdenes con deuda
+    const ordenesConDeuda = ordenes.filter((o) => saldoPorOrden(o) > 0).length;
 
+    // Órdenes pagadas
     const ordenesPagadas = ordenes.filter(
-        (o) => Number(o.saldo) === 0 && Number(o.total) > 0
+        (o) => saldoPorOrden(o) === 0 && Number(o.total) > 0
     ).length;
 
-    // GASTOS
+    // Total gastos
     const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
 
-    // RESULTADO
+    // Resultado neto
     const resultadoMes = totalCobrado - totalGastos;
 
-    // PAGOS POR MÉTODO (✅ CORREGIDO)
+    // Pagos por método
     const pagosPorMetodo = pagos
         .filter((p) => Number(p.monto) > 0)
         .reduce((acc, p) => {
@@ -143,6 +137,8 @@ export default function Dashboard() {
             acc[metodo] = (acc[metodo] || 0) + Number(p.monto);
             return acc;
         }, {});
+
+    // Gastos por método
     const gastosPorMetodo = gastos.reduce((acc, g) => {
         const metodo = normalizarMetodo(g.metodo_pago);
         acc[metodo] = (acc[metodo] || 0) + Number(g.monto || 0);
@@ -150,8 +146,8 @@ export default function Dashboard() {
     }, {});
 
     /* =====================
-     RENDER
-  ===================== */
+       RENDER
+    ===================== */
 
     return (
         <MainLayout>
@@ -169,25 +165,13 @@ export default function Dashboard() {
                 <Card title="Total de órdenes" value={totalOrdenes} />
                 <Card title="Órdenes con deuda" value={ordenesConDeuda} />
                 <Card title="Órdenes pagadas" value={ordenesPagadas} />
-                <Card
-                    title="Total facturado"
-                    value={formatMoney(totalFacturado)}
-                />
-                <Card
-                    title="Ingresos cobrados"
-                    value={formatMoney(totalCobrado)}
-                />
-                <Card
-                    title="Saldo pendiente por cobrar"
-                    value={formatMoney(saldoPendiente)}
-                />
+                <Card title="Total facturado" value={formatMoney(totalFacturado)} />
+                <Card title="Ingresos cobrados" value={formatMoney(totalCobrado)} />
+                <Card title="Saldo pendiente por cobrar" value={formatMoney(saldoPendiente)} />
             </div>
 
             {/* INGRESOS POR MÉTODO */}
-            <h2 className="text-xl font-bold mt-10 mb-4">
-                Ingresos por método de pago
-            </h2>
-
+            <h2 className="text-xl font-bold mt-10 mb-4">Ingresos por método de pago</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
                     <Card
@@ -201,15 +185,11 @@ export default function Dashboard() {
             {/* GASTOS / RESULTADO */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
                 <Card title="Gastos del mes" value={formatMoney(totalGastos)} />
-                <Card
-                    title="Resultado del mes"
-                    value={formatMoney(resultadoMes)}
-                />
+                <Card title="Resultado del mes" value={formatMoney(resultadoMes)} />
             </div>
-            <h2 className="text-xl font-bold mt-10 mb-4">
-                Gastos por método de pago
-            </h2>
 
+            {/* GASTOS POR MÉTODO */}
+            <h2 className="text-xl font-bold mt-10 mb-4">Gastos por método de pago</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {Object.entries(gastosPorMetodo).map(([metodo, total]) => (
                     <Card
