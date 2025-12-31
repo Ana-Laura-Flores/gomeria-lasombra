@@ -1,9 +1,8 @@
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 export default function useNuevaOrden() {
-  const [fecha, setFecha] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
 
   const [cliente, setCliente] = useState("");
   const [modoClienteNuevo, setModoClienteNuevo] = useState(false);
@@ -19,13 +18,15 @@ export default function useNuevaOrden() {
 
   const [ordenCreadaId, setOrdenCreadaId] = useState(null);
 
+  // Agregar ítem vacío con filaId único
   const agregarItem = () => {
-    setItemsOrden((prev) => [
+    setItemsOrden(prev => [
       ...prev,
       {
-        id: Date.now(),
-        tarifaId: "",
-        servicio: "",
+        filaId: uuidv4(), // <--- ID único por fila
+        itemId: "",       // referencia al producto/servicio seleccionado
+        nombre: "",       // nombre del item
+        tipo_item: "",    // "Servicio" o "Producto"
         cantidad: 1,
         precio_unitario: 0,
         subtotal: 0,
@@ -51,7 +52,6 @@ export default function useNuevaOrden() {
     setCondicionCobro(value);
     setMetodoPago(value === "contado" ? "efectivo" : "");
   };
-  
 
   return {
     // state
@@ -65,7 +65,7 @@ export default function useNuevaOrden() {
     condicionCobro,
     metodoPago,
     total,
-    ordenCreadaId,  
+    ordenCreadaId,
 
     // setters
     setFecha,

@@ -2,10 +2,10 @@ import React from "react";
 
 export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles }) {
   // Actualizar item (cantidad, precio, subtotal)
-  const actualizarItem = (id, campo, valor) => {
+  const actualizarItem = (filaId, campo, valor) => {
     setItemsOrden(
       itemsOrden.map(item => {
-        if (item.id === id) {
+        if (item.filaId === filaId) {
           const actualizado = { ...item, [campo]: valor };
           actualizado.subtotal = actualizado.cantidad * actualizado.precio_unitario;
           return actualizado;
@@ -16,22 +16,22 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
   };
 
   // Seleccionar item de los disponibles
-  const seleccionarItem = (id, itemId) => {
+  const seleccionarItem = (filaId, itemId) => {
     const itemSeleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
     if (!itemSeleccionado) return;
 
     setItemsOrden(
-      itemsOrden.map(i =>
-        i.id === id
+      itemsOrden.map(item =>
+        item.filaId === filaId
           ? {
-              ...i,
-              itemId: itemSeleccionado.id, // ID único para select
+              ...item,
+              itemId: itemSeleccionado.id, // referencia al item de catálogo
               nombre: itemSeleccionado.servicio || itemSeleccionado.nombre,
               tipo_item: itemSeleccionado.servicio ? "Servicio" : "Producto",
               precio_unitario: itemSeleccionado.precio || itemSeleccionado.precio_unitario,
-              subtotal: (itemSeleccionado.precio || itemSeleccionado.precio_unitario) * i.cantidad,
+              subtotal: (itemSeleccionado.precio || itemSeleccionado.precio_unitario) * item.cantidad,
             }
-          : i
+          : item
       )
     );
   };
@@ -49,12 +49,12 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
       </thead>
       <tbody>
         {itemsOrden.map(item => (
-          <tr key={item.id} className="border-b border-gray-800">
+          <tr key={item.filaId} className="border-b border-gray-800">
             <td className="p-2">
               <select
                 className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
                 value={item.itemId || ""}
-                onChange={e => seleccionarItem(item.id, e.target.value)}
+                onChange={e => seleccionarItem(item.filaId, e.target.value)}
               >
                 <option value="">Seleccionar</option>
                 {itemsDisponibles.map(i => (
@@ -71,7 +71,7 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
                 className="w-20 p-1 bg-gray-800 border border-gray-700 rounded"
                 value={item.cantidad}
                 onChange={e =>
-                  actualizarItem(item.id, "cantidad", Number(e.target.value))
+                  actualizarItem(item.filaId, "cantidad", Number(e.target.value))
                 }
               />
             </td>
