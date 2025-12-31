@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import apiFetch from "../services/apiFetch";
+import apiFetch from "../services/api";
+
 
 export default function useProductos(tipoVehiculo) {
   const [productos, setProductos] = useState([]);
