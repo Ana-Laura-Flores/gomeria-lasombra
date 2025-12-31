@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles }) {
+export default function ItemsTable({ itemsOrden, setItemsOrden, itemsParaSelect }) {
   // Actualizar item (cantidad, precio, subtotal)
   const actualizarItem = (filaId, campo, valor) => {
     setItemsOrden(
@@ -17,7 +17,9 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
 
   // Seleccionar item de los disponibles
   const seleccionarItem = (filaId, itemId) => {
-    const itemSeleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
+    const itemSeleccionado = itemsParaSelect({ itemId: Number(itemId) }).find(
+      i => i.id === Number(itemId)
+    );
     if (!itemSeleccionado) return;
 
     setItemsOrden(
@@ -25,7 +27,7 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
         item.filaId === filaId
           ? {
               ...item,
-              itemId: itemSeleccionado.id, // referencia al item de catálogo
+              itemId: itemSeleccionado.id,
               nombre: itemSeleccionado.servicio || itemSeleccionado.nombre,
               tipo_item: itemSeleccionado.servicio ? "Servicio" : "Producto",
               precio_unitario: itemSeleccionado.precio || itemSeleccionado.precio_unitario,
@@ -57,7 +59,7 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
                 onChange={e => seleccionarItem(item.filaId, e.target.value)}
               >
                 <option value="">Seleccionar</option>
-                {itemsDisponibles.map(i => (
+                {itemsParaSelect(item).map(i => (
                   <option key={i.id} value={i.id}>
                     {i.servicio || i.nombre} - ${i.precio || i.precio_unitario}
                   </option>
