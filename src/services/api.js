@@ -73,12 +73,21 @@ export const getOrdenesTrabajo = async () => {
 };
 
 
-
 export const getOrdenTrabajoById = async (id) => {
   return apiFetch(
-    `ordenes_trabajo/${id}?fields=*, cliente.id,cliente.nombre,pagos.*,items_orden.*,items_orden.tarifa.servicio.nombre`
+    `ordenes_trabajo/${id}?fields=
+      *,
+      cliente.id,
+      cliente.nombre,
+      pagos.*,
+      items_orden.*,
+      items_orden.tipo_item,
+      items_orden.tarifa.*,
+      items_orden.producto.*
+    `
   );
 };
+
 
 // --------------------
 // Último comprobante
