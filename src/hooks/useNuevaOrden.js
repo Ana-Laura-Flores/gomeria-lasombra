@@ -3,30 +3,23 @@ import { v4 as uuidv4 } from "uuid";
 
 export default function useNuevaOrden() {
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
-
   const [cliente, setCliente] = useState("");
   const [modoClienteNuevo, setModoClienteNuevo] = useState(false);
   const [clienteNuevoNombre, setClienteNuevoNombre] = useState("");
-
   const [patente, setPatente] = useState("");
   const [tipoVehiculo, setTipoVehiculo] = useState("");
-
   const [itemsOrden, setItemsOrden] = useState([]);
-
   const [condicionCobro, setCondicionCobro] = useState("contado");
   const [metodoPago, setMetodoPago] = useState("efectivo");
 
-  const [ordenCreadaId, setOrdenCreadaId] = useState(null);
-
-  // Agregar ítem vacío con filaId único
   const agregarItem = () => {
     setItemsOrden(prev => [
       ...prev,
       {
-        filaId: uuidv4(),  // ID único por fila
-        itemId: "",        // referencia al producto/servicio seleccionado
-        nombre: "",        // nombre del item (guardamos para detalle)
-        tipo_item: "",     // "Servicio" o "Producto"
+        filaId: uuidv4(),
+        itemId: "",
+        nombre: "",
+        tipo_item: "",
         cantidad: 1,
         precio_unitario: 0,
         subtotal: 0,
@@ -54,7 +47,6 @@ export default function useNuevaOrden() {
   };
 
   return {
-    // state
     fecha,
     cliente,
     modoClienteNuevo,
@@ -65,9 +57,7 @@ export default function useNuevaOrden() {
     condicionCobro,
     metodoPago,
     total,
-    ordenCreadaId,
 
-    // setters
     setFecha,
     setCliente,
     setModoClienteNuevo,
@@ -76,9 +66,7 @@ export default function useNuevaOrden() {
     setTipoVehiculo,
     setItemsOrden,
     setMetodoPago,
-    setOrdenCreadaId,
 
-    // actions
     agregarItem,
     resetForm,
     handleCondicionCobroChange,

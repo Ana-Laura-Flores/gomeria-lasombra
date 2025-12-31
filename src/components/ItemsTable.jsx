@@ -1,8 +1,6 @@
 import React from "react";
 
 export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles }) {
-
-  // Actualizar item (cantidad, precio, subtotal)
   const actualizarItem = (filaId, campo, valor) => {
     setItemsOrden(
       itemsOrden.map(item => {
@@ -16,9 +14,8 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
     );
   };
 
-  // Seleccionar item de los disponibles
   const seleccionarItem = (filaId, itemId) => {
-    const itemSeleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
+    const itemSeleccionado = itemsDisponibles.find(i => Number(i.id) === Number(itemId));
     if (!itemSeleccionado) return;
 
     setItemsOrden(
@@ -26,11 +23,11 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
         item.filaId === filaId
           ? {
               ...item,
-              itemId: itemSeleccionado.id, // referencia al catálogo
-              nombre: itemSeleccionado.servicio || itemSeleccionado.nombre, // <-- guardamos nombre
+              itemId: itemSeleccionado.id,
+              nombre: itemSeleccionado.nombre || itemSeleccionado.servicio?.nombre,
               tipo_item: itemSeleccionado.servicio ? "Servicio" : "Producto",
               precio_unitario: itemSeleccionado.precio || itemSeleccionado.precio_unitario,
-              subtotal: (itemSeleccionado.precio || itemSeleccionado.precio_unitario) * item.cantidad,
+              subtotal: item.cantidad * (itemSeleccionado.precio || itemSeleccionado.precio_unitario),
             }
           : item
       )
@@ -60,7 +57,7 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
                 <option value="">Seleccionar</option>
                 {itemsDisponibles.map(i => (
                   <option key={i.id} value={i.id}>
-                    {i.servicio || i.nombre} - ${i.precio || i.precio_unitario}
+                    {i.nombre || i.servicio?.nombre} - ${i.precio || i.precio_unitario}
                   </option>
                 ))}
               </select>

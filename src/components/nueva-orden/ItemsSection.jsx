@@ -18,20 +18,6 @@ export default function ItemsSection({
       (tipoSeleccionado === "Producto" && item.nombre)
   );
 
-  // Función para pasar al ItemsTable: agrega el item ya seleccionado aunque no esté en el filtro
-  const itemsParaSelect = (fila) => {
-    const yaSeleccionado = itemsDisponibles.find(i => i.id === fila.itemId);
-    if (yaSeleccionado) {
-      // evitamos duplicados con Set
-      const combined = [...itemsFiltrados, yaSeleccionado];
-      const unique = combined.filter(
-        (v, i, a) => a.findIndex(item => item.id === v.id) === i
-      );
-      return unique;
-    }
-    return itemsFiltrados;
-  };
-
   return (
     <div className="mb-6">
       <div className="flex gap-4 mb-2">
@@ -62,8 +48,7 @@ export default function ItemsSection({
         <ItemsTable
           itemsOrden={itemsOrden}
           setItemsOrden={setItemsOrden}
-          itemsDisponibles={itemsDisponibles}
-          itemsParaSelect={itemsParaSelect} // <-- pasamos la función
+          itemsDisponibles={itemsFiltrados}
         />
       )}
     </div>
