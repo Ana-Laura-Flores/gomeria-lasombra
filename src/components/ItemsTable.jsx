@@ -19,14 +19,14 @@ export default function ItemsTable({
         );
     };
 
-   const cambiarTipoItem = (id, tipo) => {
+  const cambiarTipoItem = (id, tipo) => {
   setItemsOrden(
     itemsOrden.map((item) =>
       item.id === id
         ? {
             ...item,
             tipo_item: tipo,
-            servicio_id: null,
+            tarifa_id: null,
             producto_id: null,
             precio_unitario: 0,
             subtotal: 0,
@@ -39,10 +39,8 @@ export default function ItemsTable({
 
     // Seleccionar item de los disponibles
     const seleccionarServicio = (id, tarifaId) => {
-        const servicio = itemsDisponibles.find(
-            (i) => i.id === Number(tarifaId)
-        );
-        if (!servicio) return;
+        const tarifa = itemsDisponibles.find((i) => i.id === Number(tarifaId));
+        if (!tarifa) return;
 
         setItemsOrden(
             itemsOrden.map((i) =>
@@ -50,11 +48,10 @@ export default function ItemsTable({
                     ? {
                           ...i,
                           tipo_item: "servicio",
-                          servicio_id: servicio.id,
+                          tarifa_id: tarifa.id,
                           producto_id: null,
-                          nombre: servicio.servicio,
-                          precio_unitario: servicio.precio,
-                          subtotal: servicio.precio * i.cantidad,
+                          precio_unitario: tarifa.precio,
+                          subtotal: tarifa.precio * i.cantidad,
                       }
                     : i
             )
@@ -112,7 +109,7 @@ export default function ItemsTable({
                             {item.tipo_item === "servicio" ? (
                                 <select
                                     className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
-                                    value={item.servicio_id || ""}
+                                    value={item.tarifa_id || ""}
                                     onChange={(e) =>
                                         seleccionarServicio(
                                             item.id,
@@ -125,7 +122,7 @@ export default function ItemsTable({
                                     </option>
                                     {itemsDisponibles.map((s) => (
                                         <option key={s.id} value={s.id}>
-                                            {s.servicio} - ${s.precio}
+                                            {s.servicio?.nombre} - ${s.precio}
                                         </option>
                                     ))}
                                 </select>

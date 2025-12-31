@@ -98,12 +98,9 @@ export default function OrdenPrint({ orden }) {
                     {orden.items_orden?.map((item) => (
                         <tr key={item.id}>
                             <td>
-                           <td>
-  {item.tipo_item === "servicio"
-    ? item.tarifa?.servicio?.nombre || "-"
-    : item.producto?.nombre || "-"}
-</td>
-
+                                {item.tipo_item === "servicio"
+                                    ? item.tarifa?.servicio?.nombre || "-"
+                                    : item.producto?.nombre || "-"}
                             </td>
                             <td style={{ textAlign: "right" }}>
                                 {item.cantidad}
