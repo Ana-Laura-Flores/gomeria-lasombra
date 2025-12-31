@@ -1,14 +1,23 @@
-import ItemsTable from "../ItemsTable";
+// ItemsSection.jsx
+import ItemsTable from "./ItemsTable";
+import { useItems } from "../../hooks/useItems";
+import useProductos from "../../hooks/useProductos";
 
 export default function ItemsSection({
   tipoVehiculo,
   itemsOrden,
   setItemsOrden,
-  itemsDisponibles,
-  productosDisponibles,
-  loading,
+  loading: loadingGlobal,
   onAgregarItem,
 }) {
+  // Hook para traer servicios/tarifas
+  const { items: itemsDisponibles, loading: loadingItems } = useItems(tipoVehiculo);
+
+  // Hook para traer productos
+  const { productos, loading: loadingProductos } = useProductos(tipoVehiculo);
+
+  const loading = loadingGlobal || loadingItems || loadingProductos;
+
   return (
     <>
       <button
@@ -25,8 +34,8 @@ export default function ItemsSection({
         <ItemsTable
           itemsOrden={itemsOrden}
           setItemsOrden={setItemsOrden}
-          itemsDisponibles={itemsDisponibles}
-          productosDisponibles={productosDisponibles}
+          itemsDisponibles={itemsDisponibles} // servicios
+          productosDisponibles={productos}   // productos
         />
       )}
     </>
