@@ -67,9 +67,15 @@ export const getClientes = async () => {
 
 export const getOrdenesTrabajo = async () => {
   return apiFetch(
-    "ordenes_trabajo?fields=*,cliente.*,pagos.*,items_orden.*"
+    "ordenes_trabajo?sort=-date_created&limit=100&fields=*,cliente.*,pagos.*,items_orden.*",
+    {
+      headers: {
+        "Cache-Control": "no-cache",
+      },
+    }
   );
 };
+
 
 
 export const getOrdenTrabajoById = async (id) => {
@@ -109,7 +115,13 @@ export const getOrdenesCuentaCorriente = async (clienteId) => {
   if (!clienteId) return { data: [] };
 
   return apiFetch(
-    `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente`
+    `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente`,
+      {
+      headers: {
+        "Cache-Control": "no-cache",
+      },
+    }
+    
   );
 };
 
