@@ -151,11 +151,9 @@ export default function OrdenDetalle() {
                                     className="border-b border-gray-800 print:border-gray-200"
                                 >
                                     <td className="p-2">
-                                        {item.tipo_item === "servicio"
-                                            ? item.tarifa?.servicio?.nombre ||
-                                              "-"
-                                            : item.producto?.nombre || "-"}
-                                    </td>
+  {item.nombre || "-"}
+</td>
+
 
                                     <td className="p-2 text-right">
                                         {item.cantidad}
