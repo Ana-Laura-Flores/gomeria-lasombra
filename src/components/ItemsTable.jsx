@@ -38,46 +38,51 @@ export default function ItemsTable({
 
 
     // Seleccionar item de los disponibles
-    const seleccionarServicio = (id, tarifaId) => {
-        const tarifa = itemsDisponibles.find((i) => i.id === Number(tarifaId));
-        if (!tarifa) return;
+   const seleccionarServicio = (id, tarifaId) => {
+    const tarifa = itemsDisponibles.find((i) => i.id === Number(tarifaId));
+    if (!tarifa) return;
 
-        setItemsOrden(
-            itemsOrden.map((i) =>
-                i.id === id
-                    ? {
-                          ...i,
-                          tipo_item: "servicio",
-                          tarifa_id: tarifa.id,
-                          producto_id: null,
-                          precio_unitario: tarifa.precio,
-                          subtotal: tarifa.precio * i.cantidad,
-                      }
-                    : i
-            )
-        );
-    };
+    setItemsOrden(
+        itemsOrden.map((i) =>
+            i.id === id
+                ? {
+                      ...i,
+                      tipo_item: "servicio",
+                      tarifa: tarifa.id,       // ⚡ coincide con Directus
+                      producto: null,
+                      nombre: tarifa.nombre,   // ⚡ nombre del servicio
+                      precio_unitario: tarifa.precio,
+                      subtotal: tarifa.precio * i.cantidad,
+                  }
+                : i
+        )
+    );
+};
+
 
     //selector prodductos
-    const seleccionarProducto = (id, productoId) => {
-        const prod = productosDisponibles.find(
-            (p) => p.id === Number(productoId)
-        );
-        if (!prod) return;
+   const seleccionarProducto = (id, productoId) => {
+    const prod = productosDisponibles.find((p) => p.id === Number(productoId));
+    if (!prod) return;
 
-        setItemsOrden(
-            itemsOrden.map((i) =>
-                i.id === id
-                    ? {
-                          ...i,
-                          producto_id: prod.id,
-                          precio_unitario: Number(prod.precio_unitario),
-                          subtotal: Number(prod.precio_unitario) * i.cantidad,
-                      }
-                    : i
-            )
-        );
-    };
+    setItemsOrden(
+        itemsOrden.map((i) =>
+            i.id === id
+                ? {
+                      ...i,
+                      tipo_item: "producto",
+                      producto: prod.id,      // ⚡ coincide con Directus
+                      tarifa: null,
+                      nombre: prod.nombre,    // ⚡ nombre del producto
+                      precio_unitario: Number(prod.precio_unitario),
+                      subtotal: Number(prod.precio_unitario) * i.cantidad,
+                  }
+                : i
+        )
+    );
+};
+
+
 
     return (
         <table className="w-full text-left border-collapse mb-6">
