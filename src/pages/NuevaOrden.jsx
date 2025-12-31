@@ -14,11 +14,6 @@ import useItems from "../hooks/useItems";
 import { useMetodoPago } from "../hooks/useMetodoPago";
 import useProductos from "../hooks/useProductos";
 
-// 👇 DEBUG
-console.log("CLIENTES:", clientes);
-console.log("TIPOS VEHICULO:", tiposVehiculo);
-console.log("SERVICIOS:", itemsDisponibles);
-console.log("PRODUCTOS:", productos);
 
 // secciones
 import DatosPrincipales from "../components/nueva-orden/DatosPrincipales";
