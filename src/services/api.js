@@ -261,10 +261,14 @@ export const actualizarOrden = async (id, data) => {
 };
 
 export const getPagosPorMes = async (desde, hasta) => {
+  const desdeISO = desde.includes("T") ? desde : `${desde}T00:00:00`;
+  const hastaISO = hasta.includes("T") ? hasta : `${hasta}T23:59:59`;
+
   return apiFetch(
-    `pagos?filter[fecha][_between][]=${desde}T00:00:00&filter[fecha][_between][]=${hasta}T23:59:59&fields=*,cliente.*,orden.*`
+    `pagos?filter[fecha][_between][]=${desdeISO}&filter[fecha][_between][]=${hastaISO}&fields=*,cliente.*,orden.*`
   );
 };
+
 
 
 
