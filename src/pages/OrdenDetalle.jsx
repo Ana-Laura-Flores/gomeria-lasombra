@@ -152,8 +152,9 @@ export default function OrdenDetalle() {
                                 >
                                     <td className="p-2">
                                         {item.tipo_item === "servicio"
-                                            ? item.tarifa?.servicio?.nombre
-                                            : item.producto?.nombre}
+                                            ? item.tarifa?.servicio?.nombre ||
+                                              "-"
+                                            : item.producto?.nombre || "-"}
                                     </td>
 
                                     <td className="p-2 text-right">
