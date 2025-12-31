@@ -106,32 +106,23 @@ export default function OrdenFooter({
         }
 
         // 3️⃣ Crear ITEMS
-    for (const item of items) {
-  let nombreItem = "";
+  let nombreItem = item.nombre; // ya está asignado en el estado
 
-  if (item.tipo_item === "servicio") {
-    // ⚡ nombre del servicio
-    nombreItem = item.nombre || item.tarifaNombre || "";
-  } else if (item.tipo_item === "producto") {
-    // ⚡ nombre del producto
-    nombreItem = item.nombre || item.productoNombre || "";
-  }
+await fetch(`${API_URL}/items/items_orden`, {
+  method: "POST",
+  headers: authHeaders(),
+  body: JSON.stringify({
+    orden: ordenId,
+    tipo_item: item.tipo_item,
+    tarifa: item.tipo_item === "servicio" ? item.tarifa : null,
+    producto: item.tipo_item === "producto" ? item.producto : null,
+    cantidad: item.cantidad,
+    precio_unitario: item.precio_unitario,
+    subtotal: item.subtotal,
+    nombre: nombreItem,
+  }),
+});
 
-  await fetch(`${API_URL}/items/items_orden`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({
-      orden: ordenId,
-      tipo_item: item.tipo_item,
-      tarifa: item.tipo_item === "servicio" ? item.tarifa : null, // debe coincidir con el campo Many-to-One
-      producto: item.tipo_item === "producto" ? item.producto : null,
-      cantidad: item.cantidad,
-      precio_unitario: item.precio_unitario,
-      subtotal: item.subtotal,
-      nombre: nombreItem,
-    }),
-  });
-}
 
 
 

@@ -19,68 +19,70 @@ export default function ItemsTable({
         );
     };
 
-    const cambiarTipoItem = (id, tipo) => {
-        setItemsOrden(
-            itemsOrden.map((item) =>
-                item.id === id
-                    ? {
-                          ...item,
-                          tipo_item: tipo,
-                          tarifa_id: null,
-                          producto_id: null,
-                          precio_unitario: 0,
-                          subtotal: 0,
-                      }
-                    : item
-            )
-        );
-    };
+   const cambiarTipoItem = (id, tipo) => {
+  setItemsOrden(
+    itemsOrden.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            tipo_item: tipo,
+            servicio_id: null,
+            producto_id: null,
+            precio_unitario: 0,
+            subtotal: 0,
+          }
+        : item
+    )
+  );
+};
+
 
     // Seleccionar item de los disponibles
-    const seleccionarServicio = (id, tarifaId) => {
-        const tarifa = itemsDisponibles.find((i) => i.id === Number(tarifaId));
-        if (!tarifa) return;
+  const seleccionarServicio = (id, tarifaId) => {
+  const tarifa = itemsDisponibles.find((i) => i.id === Number(tarifaId));
+  if (!tarifa) return;
 
-        setItemsOrden(
-            itemsOrden.map((i) =>
-                i.id === id
-                    ? {
-                          ...i,
-                          tipo_item: "servicio",
-                          tarifa: tarifa.id, // ⚡ coincide con Directus
-                          producto: null,
-                          nombre: tarifa.nombre, // ⚡ nombre del servicio
-                          precio_unitario: tarifa.precio,
-                          subtotal: tarifa.precio * i.cantidad,
-                      }
-                    : i
-            )
-        );
-    };
+  setItemsOrden(
+    itemsOrden.map((i) =>
+      i.id === id
+        ? {
+            ...i,
+            tipo_item: "servicio",
+            tarifa: tarifa.id,        // ⚡ id correcto
+            producto: null,
+            nombre: tarifa.nombre,    // ⚡ guardar el nombre
+            precio_unitario: tarifa.precio,
+            subtotal: tarifa.precio * i.cantidad,
+          }
+        : i
+    )
+  );
+};
+
+
 
     //selector prodductos
-    const seleccionarProducto = (id, productoId) => {
-        const prod = productosDisponibles.find(
-            (p) => p.id === Number(productoId)
-        );
-        if (!prod) return;
+  const seleccionarProducto = (id, productoId) => {
+  const prod = productosDisponibles.find((p) => p.id === Number(productoId));
+  if (!prod) return;
 
-        setItemsOrden(
-            itemsOrden.map((i) =>
-                i.id === id
-                    ? {
-                          ...i,
-                          tipo_item: "producto",
-                          producto: prod.id, // ⚡ coincide con Directus
-                          tarifa: null,
-                          nombre: prod.nombre, // ⚡ nombre del producto
-                          precio_unitario: Number(prod.precio_unitario),
-                          subtotal: Number(prod.precio_unitario) * i.cantidad,
-                      }
-                    : i
-            )
-        );
-    };
+  setItemsOrden(
+    itemsOrden.map((i) =>
+      i.id === id
+        ? {
+            ...i,
+            tipo_item: "producto",
+            producto: prod.id,      // ⚡ id correcto
+            tarifa: null,
+            nombre: prod.nombre,    // ⚡ guardar el nombre
+            precio_unitario: Number(prod.precio_unitario),
+            subtotal: Number(prod.precio_unitario) * i.cantidad,
+          }
+        : i
+    )
+  );
+};
+
 
     return (
         <table className="w-full text-left border-collapse mb-6">
@@ -110,45 +112,37 @@ export default function ItemsTable({
 
                             {/* Select dinámico */}
                             {item.tipo_item === "servicio" ? (
-                                <select
-                                    className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
-                                    value={item.tarifa || ""} // ⚡ usar 'tarifa' que es lo que guardas
-                                    onChange={(e) =>
-                                        seleccionarServicio(
-                                            item.id,
-                                            e.target.value
-                                        )
-                                    }
-                                >
-                                    <option value="">
-                                        Seleccionar servicio
-                                    </option>
-                                    {itemsDisponibles.map((s) => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.nombre} - ${s.precio}
-                                        </option>
-                                    ))}
-                                </select>
+                              <select
+  className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
+  value={item.tarifa || ""} // ⚡ usar tarifa, no tarifa_id
+  onChange={(e) =>
+    seleccionarServicio(item.id, e.target.value)
+  }
+>
+  <option value="">Seleccionar servicio</option>
+  {itemsDisponibles.map((s) => (
+    <option key={s.id} value={s.id}>
+      {s.servicio} - ${s.precio}
+    </option>
+  ))}
+</select>
+
                             ) : (
-                                <select
-                                    className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
-                                    value={item.producto || ""} // ⚡ usar 'producto' que es lo que guardas
-                                    onChange={(e) =>
-                                        seleccionarProducto(
-                                            item.id,
-                                            e.target.value
-                                        )
-                                    }
-                                >
-                                    <option value="">
-                                        Seleccionar producto
-                                    </option>
-                                    {productosDisponibles.map((p) => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.nombre} - ${p.precio_unitario}
-                                        </option>
-                                    ))}
-                                </select>
+                              <select
+  className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
+  value={item.producto || ""} // ⚡ usar producto, no producto_id
+  onChange={(e) =>
+    seleccionarProducto(item.id, e.target.value)
+  }
+>
+  <option value="">Seleccionar producto</option>
+  {productosDisponibles.map((p) => (
+    <option key={p.id} value={p.id}>
+      {p.nombre} - ${p.precio_unitario}
+    </option>
+  ))}
+</select>
+
                             )}
                         </td>
 
