@@ -1,6 +1,7 @@
 import React from "react";
 
-export default function ItemsTable({ itemsOrden, setItemsOrden, itemsParaSelect }) {
+export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles }) {
+
   // Actualizar item (cantidad, precio, subtotal)
   const actualizarItem = (filaId, campo, valor) => {
     setItemsOrden(
@@ -17,9 +18,7 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsParaSelect 
 
   // Seleccionar item de los disponibles
   const seleccionarItem = (filaId, itemId) => {
-    const itemSeleccionado = itemsParaSelect({ itemId: Number(itemId) }).find(
-      i => i.id === Number(itemId)
-    );
+    const itemSeleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
     if (!itemSeleccionado) return;
 
     setItemsOrden(
@@ -27,8 +26,8 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsParaSelect 
         item.filaId === filaId
           ? {
               ...item,
-              itemId: itemSeleccionado.id,
-              nombre: itemSeleccionado.servicio || itemSeleccionado.nombre,
+              itemId: itemSeleccionado.id, // referencia al catálogo
+              nombre: itemSeleccionado.servicio || itemSeleccionado.nombre, // <-- guardamos nombre
               tipo_item: itemSeleccionado.servicio ? "Servicio" : "Producto",
               precio_unitario: itemSeleccionado.precio || itemSeleccionado.precio_unitario,
               subtotal: (itemSeleccionado.precio || itemSeleccionado.precio_unitario) * item.cantidad,
@@ -59,7 +58,7 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsParaSelect 
                 onChange={e => seleccionarItem(item.filaId, e.target.value)}
               >
                 <option value="">Seleccionar</option>
-                {itemsParaSelect(item).map(i => (
+                {itemsDisponibles.map(i => (
                   <option key={i.id} value={i.id}>
                     {i.servicio || i.nombre} - ${i.precio || i.precio_unitario}
                   </option>

@@ -23,10 +23,10 @@ export default function useNuevaOrden() {
     setItemsOrden(prev => [
       ...prev,
       {
-        filaId: uuidv4(), // <--- ID único por fila
-        itemId: "",       // referencia al producto/servicio seleccionado
-        nombre: "",       // nombre del item
-        tipo_item: "",    // "Servicio" o "Producto"
+        filaId: uuidv4(),  // ID único por fila
+        itemId: "",        // referencia al producto/servicio seleccionado
+        nombre: "",        // nombre del item (guardamos para detalle)
+        tipo_item: "",     // "Servicio" o "Producto"
         cantidad: 1,
         precio_unitario: 0,
         subtotal: 0,
