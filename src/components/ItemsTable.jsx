@@ -1,4 +1,4 @@
-
+import React from "react";
 
 export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles }) {
   // Actualizar item (cantidad, precio, subtotal)
@@ -17,25 +17,24 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
 
   // Seleccionar item de los disponibles
   const seleccionarItem = (id, itemId) => {
-  const seleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
-  if (!seleccionado) return;
+    const itemSeleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
+    if (!itemSeleccionado) return;
 
-  setItemsOrden(
-    itemsOrden.map(i =>
-      i.id === id
-        ? {
-            ...i,
-            itemId: seleccionado.id,
-            nombre: seleccionado.servicio || seleccionado.nombre,
-            tipo_item: seleccionado.servicio ? "Servicio" : "Producto",
-            precio_unitario: seleccionado.precio || seleccionado.precio_unitario,
-            subtotal: (seleccionado.precio || seleccionado.precio_unitario) * i.cantidad,
-          }
-        : i
-    )
-  );
-};
-
+    setItemsOrden(
+      itemsOrden.map(i =>
+        i.id === id
+          ? {
+              ...i,
+              itemId: itemSeleccionado.id, // ID único para select
+              nombre: itemSeleccionado.servicio || itemSeleccionado.nombre,
+              tipo_item: itemSeleccionado.servicio ? "Servicio" : "Producto",
+              precio_unitario: itemSeleccionado.precio || itemSeleccionado.precio_unitario,
+              subtotal: (itemSeleccionado.precio || itemSeleccionado.precio_unitario) * i.cantidad,
+            }
+          : i
+      )
+    );
+  };
 
   return (
     <table className="w-full text-left border-collapse mb-6">
@@ -51,21 +50,20 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
       <tbody>
         {itemsOrden.map(item => (
           <tr key={item.id} className="border-b border-gray-800">
-           <td className="p-2">
-  <select
-    className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
-    value={item.tarifaId || ""}
-    onChange={e => seleccionarItem(item.id, e.target.value)}
-  >
-    <option value="">Seleccionar</option>
-    {itemsDisponibles.map(i => (
-      <option key={i.id} value={i.id}>
-        {i.servicio || i.nombre} - ${i.precio || i.precio_unitario}
-      </option>
-    ))}
-  </select>
-</td>
-
+            <td className="p-2">
+              <select
+                className="w-full p-1 bg-gray-800 border border-gray-700 rounded"
+                value={item.itemId || ""}
+                onChange={e => seleccionarItem(item.id, e.target.value)}
+              >
+                <option value="">Seleccionar</option>
+                {itemsDisponibles.map(i => (
+                  <option key={i.id} value={i.id}>
+                    {i.servicio || i.nombre} - ${i.precio || i.precio_unitario}
+                  </option>
+                ))}
+              </select>
+            </td>
             <td className="p-2">{item.tipo_item || "-"}</td>
             <td className="p-2">
               <input
