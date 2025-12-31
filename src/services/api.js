@@ -202,6 +202,15 @@ export const actualizarCuentaCorriente = async (id, data) => {
   });
 };
 
+// --------------------
+// Productos
+// --------------------
+export const getProductos = async (tipoVehiculo) => {
+  return apiFetch(
+    `productos?filter[tipo_vehiculo][_eq]=${tipoVehiculo}&filter[estado][_eq]=activo`
+  );
+};
+
 
 export const getClienteById = async (id) => {
   return apiFetch(`clientes/${id}?fields=id,saldo_cc`);

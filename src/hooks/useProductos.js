@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import apiFetch from "../services/api";
-
+import { getProductos } from "../services/api";
 
 export default function useProductos(tipoVehiculo) {
   const [productos, setProductos] = useState([]);
@@ -11,9 +10,7 @@ export default function useProductos(tipoVehiculo) {
 
     setLoading(true);
 
-    apiFetch(
-      `productos?filter[tipo_vehiculo][_eq]=${tipoVehiculo}&filter[estado][_eq]=activo`
-    )
+    getProductos(tipoVehiculo)
       .then((res) => setProductos(res.data || []))
       .finally(() => setLoading(false));
   }, [tipoVehiculo]);
