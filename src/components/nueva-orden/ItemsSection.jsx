@@ -26,6 +26,7 @@ export default function ItemsSection({
           itemsOrden={itemsOrden}
           setItemsOrden={setItemsOrden}
           itemsDisponibles={itemsDisponibles}
+          productosDisponibles={productosDisponibles}
         />
       )}
     </>

@@ -1,9 +1,10 @@
-import React from "react";
+
 
 export default function ItemsTable({
     itemsOrden,
     setItemsOrden,
     itemsDisponibles,
+    productosDisponibles,
 }) {
     // Actualizar item (cantidad, precio, subtotal)
     const actualizarItem = (id, campo, valor) => {
