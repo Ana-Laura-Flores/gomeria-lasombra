@@ -14,6 +14,12 @@ import useItems from "../hooks/useItems";
 import { useMetodoPago } from "../hooks/useMetodoPago";
 import useProductos from "../hooks/useProductos";
 
+// 👇 DEBUG
+console.log("CLIENTES:", clientes);
+console.log("TIPOS VEHICULO:", tiposVehiculo);
+console.log("SERVICIOS:", itemsDisponibles);
+console.log("PRODUCTOS:", productos);
+
 // secciones
 import DatosPrincipales from "../components/nueva-orden/DatosPrincipales";
 import ClienteSection from "../components/nueva-orden/ClienteSection";
@@ -46,7 +52,7 @@ export default function NuevaOrden() {
 
     return (
         <MainLayout>
-          console.log(productos)
+          
             <h1 className="text-2xl font-bold mb-6">Nueva Orden</h1>
 
             {/* Datos principales */}
