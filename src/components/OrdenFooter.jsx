@@ -106,19 +106,22 @@ export default function OrdenFooter({
         }
 
         // 3️⃣ Crear ITEMS
-        for (const item of items) {
-            await fetch(`${API_URL}/items/items_orden`, {
-                method: "POST",
-                headers: authHeaders(),
-                body: JSON.stringify({
-                    orden: ordenId,
-                    tarifa: item.tarifaId,
-                    cantidad: item.cantidad,
-                    precio_unitario: item.precio_unitario,
-                    subtotal: item.subtotal,
-                }),
-            });
-        }
+       for (const item of items) {
+  await fetch(`${API_URL}/items/items_orden`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      orden: ordenId,
+      tipo_item: item.tipo_item,
+      tarifa: item.tipo_item === "servicio" ? item.tarifaId : null,
+      producto: item.tipo_item === "producto" ? item.producto_id : null,
+      cantidad: item.cantidad,
+      precio_unitario: item.precio_unitario,
+      subtotal: item.subtotal,
+    }),
+  });
+}
+
 
         // 4️⃣ Crear PAGO si es contado
         if (condicionCobro === "contado" && metodoPago) {

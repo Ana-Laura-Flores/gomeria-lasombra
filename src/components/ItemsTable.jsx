@@ -11,9 +11,7 @@ export default function ItemsTable({
                 if (item.id === id) {
                     const actualizado = { ...item, [campo]: valor };
                     actualizado.subtotal =
-                        Number(actualizado.cantidad || 0) *
-                        Number(actualizado.precio_unitario || 0);
-
+                        actualizado.cantidad * actualizado.precio_unitario;
                     return actualizado;
                 }
                 return item;
@@ -21,22 +19,23 @@ export default function ItemsTable({
         );
     };
 
-    const cambiarTipoItem = (id, tipo) => {
-        setItemsOrden(
-            itemsOrden.map((item) =>
-                item.id === id
-                    ? {
-                          ...item,
-                          tipo_item: tipo,
-                          servicio_id: null,
-                          producto_id: null,
-                          precio_unitario: 0,
-                          subtotal: 0,
-                      }
-                    : item
-            )
-        );
-    };
+   const cambiarTipoItem = (id, tipo) => {
+  setItemsOrden(
+    itemsOrden.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            tipo_item: tipo,
+            servicio_id: null,
+            producto_id: null,
+            precio_unitario: 0,
+            subtotal: 0,
+          }
+        : item
+    )
+  );
+};
+
 
     // Seleccionar item de los disponibles
     const seleccionarServicio = (id, tarifaId) => {
