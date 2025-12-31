@@ -17,24 +17,25 @@ export default function ItemsTable({ itemsOrden, setItemsOrden, itemsDisponibles
 
   // Seleccionar item de los disponibles
   const seleccionarItem = (id, itemId) => {
-    const itemSeleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
-    if (!itemSeleccionado) return;
+  const seleccionado = itemsDisponibles.find(i => i.id === Number(itemId));
+  if (!seleccionado) return;
 
-    setItemsOrden(
-      itemsOrden.map(i =>
-        i.id === id
-          ? {
-              ...i,
-              tarifaId: itemSeleccionado.id,
-              nombre: itemSeleccionado.servicio || itemSeleccionado.nombre,
-              tipo_item: itemSeleccionado.servicio ? "Servicio" : "Producto",
-              precio_unitario: itemSeleccionado.precio || itemSeleccionado.precio_unitario,
-              subtotal: (itemSeleccionado.precio || itemSeleccionado.precio_unitario) * i.cantidad,
-            }
-          : i
-      )
-    );
-  };
+  setItemsOrden(
+    itemsOrden.map(i =>
+      i.id === id
+        ? {
+            ...i,
+            itemId: seleccionado.id,
+            nombre: seleccionado.servicio || seleccionado.nombre,
+            tipo_item: seleccionado.servicio ? "Servicio" : "Producto",
+            precio_unitario: seleccionado.precio || seleccionado.precio_unitario,
+            subtotal: (seleccionado.precio || seleccionado.precio_unitario) * i.cantidad,
+          }
+        : i
+    )
+  );
+};
+
 
   return (
     <table className="w-full text-left border-collapse mb-6">

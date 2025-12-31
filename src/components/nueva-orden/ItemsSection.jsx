@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ItemsTable from "../ItemsTable";
 
 export default function ItemsSection({
@@ -8,21 +9,38 @@ export default function ItemsSection({
   loading,
   onAgregarItem,
 }) {
-  // Agregar el campo tipo_item a cada ítem si no existe
-  const itemsConTipo = itemsDisponibles.map((item) => ({
-    ...item,
-    tipo_item: item.tipo_item || (item.servicio ? "Servicio" : "Producto"),
-  }));
+  const [tipoSeleccionado, setTipoSeleccionado] = useState("Servicio");
+
+  // Filtrar items según tipo seleccionado
+  const itemsFiltrados = itemsDisponibles.filter(
+    (item) =>
+      (tipoSeleccionado === "Servicio" && item.servicio) ||
+      (tipoSeleccionado === "Producto" && item.nombre)
+  );
 
   return (
     <div className="mb-6">
-      <button
-        onClick={onAgregarItem}
-        disabled={!tipoVehiculo}
-        className="px-4 py-2 mb-4 bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        + Agregar ítem
-      </button>
+      <div className="flex gap-4 mb-2">
+        <label>
+          Tipo:
+          <select
+            value={tipoSeleccionado}
+            onChange={(e) => setTipoSeleccionado(e.target.value)}
+            className="ml-2 p-1 bg-gray-800 border border-gray-700 rounded"
+          >
+            <option value="Servicio">Servicio</option>
+            <option value="Producto">Producto</option>
+          </select>
+        </label>
+
+        <button
+          onClick={onAgregarItem}
+          disabled={!tipoVehiculo}
+          className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          + Agregar ítem
+        </button>
+      </div>
 
       {loading ? (
         <p>Cargando items...</p>
@@ -30,8 +48,8 @@ export default function ItemsSection({
         <ItemsTable
           itemsOrden={itemsOrden}
           setItemsOrden={setItemsOrden}
-          itemsDisponibles={itemsConTipo}
-          mostrarTipo // <-- nueva prop para indicar que se muestre el tipo
+          itemsDisponibles={itemsFiltrados}
+          mostrarTipo
         />
       )}
     </div>
