@@ -5,6 +5,7 @@ export default function ItemsSection({
   itemsOrden,
   setItemsOrden,
   itemsDisponibles,
+  productosDisponibles,
   loading,
   onAgregarItem,
 }) {
