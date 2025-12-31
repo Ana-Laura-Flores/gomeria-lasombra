@@ -108,23 +108,22 @@ export default function OrdenFooter({
         // 3️⃣ Crear ITEMS
   // 3️⃣ Crear ITEMS
 for (const item of items) {
-  let nombreItem = item.nombre; // ya asignado en el estado
-
   await fetch(`${API_URL}/items/items_orden`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({
       orden: ordenId,
       tipo_item: item.tipo_item,
-      tarifa: item.tipo_item === "servicio" ? item.tarifa : null,
-      producto: item.tipo_item === "producto" ? item.producto : null,
+      tarifa: item.tipo_item === "servicio" ? item.tarifa : null,  // id correcto
+      producto: item.tipo_item === "producto" ? item.producto : null,  // id correcto
       cantidad: item.cantidad,
       precio_unitario: item.precio_unitario,
       subtotal: item.subtotal,
-      nombre: nombreItem,
+      nombre: item.nombre || "",  // usa el nombre que ya asignaste en el select
     }),
   });
 }
+
 
 
 
