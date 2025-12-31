@@ -13,8 +13,7 @@ export const authHeaders = () => ({
 // --------------------
 export const apiFetch = async (endpoint, options = {}) => {
   const res = await fetch(`${API_URL}/items/${endpoint}`, {
-    cache: "no-store", // 👈 ACÁ
-    ...options,
+   ...options,
     headers: {
       ...authHeaders(),
       ...(options.headers || {}),
@@ -67,12 +66,9 @@ export const getClientes = async () => {
 
 export const getOrdenesTrabajo = async () => {
   return apiFetch(
-    "ordenes_trabajo?sort=-date_created&limit=100&fields=*,cliente.*,pagos.*,items_orden.*",
-    {
-      headers: {
-        "Cache-Control": "no-cache",
-      },
-    }
+    "ordenes_trabajo?sort=-date_created&limit=100&fields=*,cliente.*,pagos.*,items_orden.*"
+    
+    
   );
 };
 
@@ -115,12 +111,8 @@ export const getOrdenesCuentaCorriente = async (clienteId) => {
   if (!clienteId) return { data: [] };
 
   return apiFetch(
-    `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente`,
-      {
-      headers: {
-        "Cache-Control": "no-cache",
-      },
-    }
+    `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente`
+      
     
   );
 };
