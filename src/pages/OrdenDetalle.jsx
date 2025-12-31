@@ -137,7 +137,7 @@ export default function OrdenDetalle() {
                 <table className="w-full border-collapse mb-6">
                     <thead>
                         <tr className="border-b border-gray-700 print:border-gray-300">
-                            <th className="p-2 text-left">Servicio</th>
+                            <th className="p-2 text-left">Item</th>
                             <th className="p-2 text-right">Cantidad</th>
                             <th className="p-2 text-right">Precio unit.</th>
                             <th className="p-2 text-right">Total</th>
@@ -152,7 +152,7 @@ export default function OrdenDetalle() {
                                 >
                                     <td className="p-2">
                                         {item.tipo_item === "servicio"
-                                            ? item.tarifa?.servicio
+                                            ? item.tarifa?.servicio?.nombre
                                             : item.producto?.nombre}
                                     </td>
 
