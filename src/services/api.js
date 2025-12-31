@@ -253,9 +253,10 @@ export const actualizarOrden = async (id, data) => {
 
 export const getPagosPorMes = async (desde, hasta) => {
   return apiFetch(
-    `pagos?filter[fecha][_between]=${desde},${hasta}&fields=*,cliente.*,orden.*`
+    `pagos?filter[fecha][_between][]=${desde}T00:00:00&filter[fecha][_between][]=${hasta}T23:59:59&fields=*,cliente.*,orden.*`
   );
 };
+
 
 
 // services/api.js
