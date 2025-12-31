@@ -19,18 +19,22 @@ export default function useNuevaOrden() {
 
   const [ordenCreadaId, setOrdenCreadaId] = useState(null);
 
-  const agregarItem = (item, tipo = "servicio") => {
-    const nuevoItem = {
-        tipo, // 👈 CLAVE
-        ref_id: item.id,
-        nombre: item.nombre,
-        precio: Number(item.precio_unitario || item.precio),
-        cantidad: 1,
-        subtotal: Number(item.precio_unitario || item.precio),
-    };
-
-    setItemsOrden((prev) => [...prev, nuevoItem]);
+const agregarItem = () => {
+  setItemsOrden((prev) => [
+    ...prev,
+    {
+      id: Date.now(),           // id local
+      tipo_item: "servicio",    // default
+      servicio_id: null,
+      producto_id: null,
+      nombre: "",
+      cantidad: 1,
+      precio_unitario: 0,
+      subtotal: 0,
+    },
+  ]);
 };
+
 
 
   const total = itemsOrden.reduce((acc, i) => acc + i.subtotal, 0);
