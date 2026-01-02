@@ -123,7 +123,7 @@ setCuentaCorriente(res.data?.[0] || null);
       // 3️⃣ Limpiar pagos y llamar callback
       setPagos([]);
       onPagoRegistrado?.();
-
+navigate(`/cuentas/${clienteId}`); // 👈 ir a la página dedicad
      
    
 

@@ -1,8 +1,8 @@
 import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    Navigate,
 } from "react-router-dom";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -17,108 +17,122 @@ import CuentaCorriente from "./pages/CuentaCorriente";
 import Pagos from "./pages/Pagos";
 import Gastos from "./pages/Gastos";
 import NuevoGasto from "./pages/NuevoGasto";
+import CuentaCorrienteClientePage from "./components/CuentaCorrienteClientePage";
 
 function ProtectedRoute({ children, allowedRoles }) {
-  const { isLoggedIn, user } = useAuth();
+    const { isLoggedIn, user } = useAuth();
 
-  if (!isLoggedIn) return <Navigate to="/login" />;
+    if (!isLoggedIn) return <Navigate to="/login" />;
 
-  if (allowedRoles && !allowedRoles.includes(user?.role)) {
-    return <Navigate to="/ordenes" />;
-  }
+    if (allowedRoles && !allowedRoles.includes(user?.role)) {
+        return <Navigate to="/ordenes" />;
+    }
 
-  return children;
+    return children;
 }
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+    return (
+        <AuthProvider>
+            <Router>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
 
-          {/* SOLO ADMIN */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+                    {/* SOLO ADMIN */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
 
-          <Route
-            path="/cuenta-corriente"
-            element={
-              <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}>
-                <CuentaCorriente />
-              </ProtectedRoute>
-            }
-          />
+                    <Route
+                        path="/cuenta-corriente"
+                        element={
+                            <ProtectedRoute
+                                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+                            >
+                                <CuentaCorriente />
+                            </ProtectedRoute>
+                        }
+                    />
 
-          {/* ADMIN + EMPLEADO */}
-          <Route
-            path="/ordenes"
-            element={
-              <ProtectedRoute
-                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
-              >
-                <Ordenes />
-              </ProtectedRoute>
-            }
-          />
+                    {/* ADMIN + EMPLEADO */}
+                    <Route
+                        path="/ordenes"
+                        element={
+                            <ProtectedRoute
+                                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+                            >
+                                <Ordenes />
+                            </ProtectedRoute>
+                        }
+                    />
 
-          <Route
-            path="/ordenes/nueva"
-            element={
-              <ProtectedRoute
-                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
-              >
-                <NuevaOrden />
-              </ProtectedRoute>
-            }
-          />
+                    <Route
+                        path="/ordenes/nueva"
+                        element={
+                            <ProtectedRoute
+                                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+                            >
+                                <NuevaOrden />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/cuentas/:clienteId"
+                        element={
+                            <ProtectedRoute
+                                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+                            >
+                                <CuentaCorrienteClientePage />
+                            </ProtectedRoute>
+                        }
+                    />
 
-          <Route
-            path="/ordenes/:id"
-            element={
-              <ProtectedRoute
-                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
-              >
-                <OrdenDetalle />
-              </ProtectedRoute>
-            }
-          />
-<Route
-  path="/pagos/nuevo"
-  element={
-    <ProtectedRoute>
-      <Pagos />
-    </ProtectedRoute>
-  }
-/>
-<Route path="/gastos" element={
-  <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-    <Gastos />
-  </ProtectedRoute>
-} />
+                    <Route
+                        path="/ordenes/:id"
+                        element={
+                            <ProtectedRoute
+                                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+                            >
+                                <OrdenDetalle />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/pagos/nuevo"
+                        element={
+                            <ProtectedRoute>
+                                <Pagos />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/gastos"
+                        element={
+                            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                                <Gastos />
+                            </ProtectedRoute>
+                        }
+                    />
 
-<Route
-  path="/gastos/nuevo"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}>
-      <NuevoGasto />
-    </ProtectedRoute>
-  }
-/>
+                    <Route
+                        path="/gastos/nuevo"
+                        element={
+                            <ProtectedRoute
+                                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+                            >
+                                <NuevoGasto />
+                            </ProtectedRoute>
+                        }
+                    />
 
-
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
-  );
+                    <Route path="*" element={<Navigate to="/login" />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
+    );
 }
-
-
-
