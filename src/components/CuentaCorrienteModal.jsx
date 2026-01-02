@@ -121,8 +121,8 @@ const handleSuccessAction = (accion) => {
           </div>
         )}
 
-    {showSuccess && (
-  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+  {showSuccess && (
+  <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
     <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
       <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
       <p>¿Qué querés hacer ahora?</p>
@@ -149,6 +149,7 @@ const handleSuccessAction = (accion) => {
     </div>
   </div>
 )}
+
 
 
       </div>
