@@ -18,17 +18,18 @@ export default function CuentaCorrienteModal({
 
 const handlePagoRegistrado = (pagosNuevos) => {
   setPagosExtra((prev) => [...prev, ...pagosNuevos]);
-  
-  // Cerrar modal de pago primero
-  setShowPago(false);
-
-  // Abrir modal de éxito en el siguiente render
-  setTimeout(() => {
-    setShowSuccess(true);
-  }, 0);
-
-  onPagoRegistrado?.(); // refresca datos padre
+  setShowPago(false); // cerrar modal de pago
+  setShowSuccess(true); // abrir modal de éxito
+  // no llamar al padre todavía
 };
+
+// Cuando el usuario cierre el modal de éxito:
+const handleCloseSuccess = () => {
+  setShowSuccess(false);
+  onPagoRegistrado?.(); // ahora refrescamos datos
+  onClose(); // cerramos modal principal si hace falta
+};
+
 
 
   // Cliente recalculado desde lista actualizada
@@ -149,19 +150,13 @@ const handlePagoRegistrado = (pagosNuevos) => {
       <p>¿Querés ver la cuenta corriente del cliente o volver a órdenes?</p>
       <div className="flex flex-col gap-2 mt-2">
         <button
-          onClick={() => {
-            setShowSuccess(false);
-            onClose(); // cerramos el modal principal si querés
-          }}
+          onClick={handleCloseSuccess}
           className="bg-blue-600 text-white py-2 rounded"
         >
           Ver cuenta corriente
         </button>
         <button
-          onClick={() => {
-            setShowSuccess(false);
-            onClose();
-          }}
+          onClick={handleCloseSuccess}
           className="bg-gray-600 text-white py-2 rounded"
         >
           Volver a órdenes
@@ -170,6 +165,7 @@ const handlePagoRegistrado = (pagosNuevos) => {
     </div>
   </div>
 )}
+
 
 
       </div>
