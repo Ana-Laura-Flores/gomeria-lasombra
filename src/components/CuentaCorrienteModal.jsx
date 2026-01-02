@@ -40,16 +40,25 @@ export default function CuentaCorrienteModal({
       haber: 0,
     }));
 
-    const pagos = [...cliente.pagos, ...pagosExtra].map((p) => ({
-      fecha: p.fecha || new Date().toISOString().split("T")[0],
-      tipo: p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO",
-      referencia: p.metodo_pago || "Pago",
-      debe: 0,
-      haber: Number(p.monto),
-      banco: p.banco || null,
-      numero_cheque: p.numero_cheque || null,
-      fecha_cobro: p.fecha_cobro || null,
-    }));
+   const pagos = [...cliente.pagos, ...pagosExtra].map((p) => {
+  // Fecha segura
+  const fecha = p.fecha || p.fecha_cobro || new Date().toISOString().split("T")[0];
+  
+  // Monto seguro
+  const monto = p.monto ? Number(p.monto) : 0;
+
+  return {
+    fecha,
+    tipo: p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO",
+    referencia: p.metodo_pago || "Pago",
+    debe: 0,
+    haber: monto,
+    banco: p.banco || null,
+    numero_cheque: p.numero_cheque || null,
+    fecha_cobro: p.fecha_cobro || null,
+  };
+});
+
 
     return [...ordenes, ...pagos].sort(
       (a, b) => new Date(a.fecha) - new Date(b.fecha)
