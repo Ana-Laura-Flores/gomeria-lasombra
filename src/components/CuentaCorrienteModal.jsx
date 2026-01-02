@@ -45,11 +45,13 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
   }, [cliente, pagosExtra]);
 
  const handlePagoRegistrado = (pagosNuevos) => {
+  console.log("Pagos nuevos:", pagosNuevos); // para debug 🔍
   setPagosExtra(prev => [...prev, ...pagosNuevos]); // agregamos pagos
   setShowPago(false); // cerramos modal de pago
-  setShowSuccess(true); // abrimos modal de éxito
+  setShowSuccess(true); // ahora sí abrimos modal de éxito
   onPagoRegistrado?.(); // refresca lista general
 };
+
 
 const handleSuccessAction = (accion) => {
   setShowSuccess(false);
