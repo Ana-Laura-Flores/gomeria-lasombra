@@ -85,7 +85,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     setPagos([]);
     
     // 🔥 PASAR PAGOS NUEVOS AL MODAL
-    onPagoRegistrado?.(pagos);
+    onPagoRegistrado?.(pagosGuardados);
 
   } catch (err) {
     console.error(err);
