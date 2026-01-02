@@ -1,20 +1,13 @@
 import { useState, useEffect } from "react";
-import {
-  crearPago,
-  impactarPagoEnCuentaCorriente,
-  getCuentaCorrienteByCliente,
-} from "../../services/api";
+import { crearPago, impactarPagoEnCuentaCorriente, getCuentaCorrienteByCliente } from "../../services/api";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
 
 export default function PagoForm({ cliente, onPagoRegistrado }) {
   const metodos = useMetodoPago();
-
-  // Puede venir objeto o id
   const clienteId = typeof cliente === "object" ? cliente.id : cliente;
 
   const [cuentaCorriente, setCuentaCorriente] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const [pagos, setPagos] = useState([]);
   const [pagoActual, setPagoActual] = useState({
     metodo: "",
@@ -24,9 +17,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     fecha_cobro: "",
   });
 
-  // =========================
-  // Cargar cuenta corriente
-  // =========================
+  // Cargar cuenta corriente al inicio
   useEffect(() => {
     if (!clienteId) return;
 
@@ -42,53 +33,26 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     cargarCC();
   }, [clienteId]);
 
-  const totalPagosNum = pagos.reduce(
-    (acc, p) => acc + parseFloat(p.monto || 0),
-    0
-  );
+  const totalPagosNum = pagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
 
-  // =========================
-  // Agregar pago a la lista
-  // =========================
   const agregarPago = () => {
     if (!pagoActual.metodo || !pagoActual.monto) return;
 
-    setPagos((prev) => [...prev, pagoActual]);
-
-    setPagoActual({
-      metodo: "",
-      monto: "",
-      banco: "",
-      numero_cheque: "",
-      fecha_cobro: "",
-    });
+    setPagos(prev => [...prev, pagoActual]);
+    setPagoActual({ metodo: "", monto: "", banco: "", numero_cheque: "", fecha_cobro: "" });
   };
 
-  const eliminarPago = (index) => {
-    setPagos((prev) => prev.filter((_, i) => i !== index));
-  };
+  const eliminarPago = index => setPagos(prev => prev.filter((_, i) => i !== index));
 
-  // =========================
-  // Guardar pagos
-  // =========================
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-
-    if (pagos.length === 0) {
-      alert("No hay pagos cargados");
-      return;
-    }
-
-    if (!cuentaCorriente) {
-      alert("El cliente no tiene cuenta corriente");
-      return;
-    }
+    if (!pagos.length) return alert("No hay pagos cargados");
+    if (!cuentaCorriente) return alert("El cliente no tiene cuenta corriente");
 
     setLoading(true);
     try {
       let totalPagosNumLocal = 0;
 
-      // 1️⃣ Crear pagos y actualizar UI optimistamente
       for (const pago of pagos) {
         const pagoCreado = await crearPago({
           cliente: clienteId,
@@ -102,32 +66,12 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         });
 
         totalPagosNumLocal += parseFloat(pagoCreado.monto);
-
-        // Actualización optimista del estado de cuenta corriente
-        setCuentaCorriente((prev) =>
-          prev
-            ? {
-                ...prev,
-                saldo: prev.saldo - pagoCreado.monto,
-                total_pagos: prev.total_pagos + pagoCreado.monto,
-                saldo_actualizado: prev.saldo_actualizado - pagoCreado.monto,
-              }
-            : prev
-        );
       }
 
-      // 2️⃣ Impactar saldo real en backend
       await impactarPagoEnCuentaCorriente(clienteId, totalPagosNumLocal);
 
-      // 3️⃣ Limpiar pagos y llamar callback
       setPagos([]);
-      onPagoRegistrado?.();
-
-      // 4️⃣ Refrescar desde backend después de medio segundo
-      setTimeout(async () => {
-        const res = await getCuentaCorrienteByCliente(clienteId);
-        setCuentaCorriente(res.data?.[0] || null);
-      }, 500);
+      onPagoRegistrado?.(); // 🔑 Modal se encarga de recargar cliente y cerrar modal
     } catch (err) {
       console.error(err);
       alert("Error al registrar el pago");
@@ -136,31 +80,24 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     }
   };
 
-  // =========================
-  // Render
-  // =========================
   return (
     <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded space-y-4">
       <h2 className="text-lg font-semibold">Registrar pago</h2>
 
       <select
         value={pagoActual.metodo}
-        onChange={(e) => setPagoActual({ ...pagoActual, metodo: e.target.value })}
+        onChange={e => setPagoActual({ ...pagoActual, metodo: e.target.value })}
         className="w-full p-2 bg-gray-700 rounded"
       >
         <option value="">Método de pago</option>
-        {metodos.map((m) => (
-          <option key={m.value} value={m.value}>
-            {m.text}
-          </option>
-        ))}
+        {metodos.map(m => <option key={m.value} value={m.value}>{m.text}</option>)}
       </select>
 
       <input
         type="number"
         placeholder="Monto"
         value={pagoActual.monto}
-        onChange={(e) => setPagoActual({ ...pagoActual, monto: e.target.value })}
+        onChange={e => setPagoActual({ ...pagoActual, monto: e.target.value })}
         className="w-full p-2 bg-gray-700 rounded"
       />
 
@@ -169,64 +106,41 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
           <input
             placeholder="Banco"
             value={pagoActual.banco}
-            onChange={(e) => setPagoActual({ ...pagoActual, banco: e.target.value })}
+            onChange={e => setPagoActual({ ...pagoActual, banco: e.target.value })}
             className="w-full p-2 bg-gray-700 rounded"
           />
           <input
             placeholder="Número de cheque"
             value={pagoActual.numero_cheque}
-            onChange={(e) =>
-              setPagoActual({ ...pagoActual, numero_cheque: e.target.value })
-            }
+            onChange={e => setPagoActual({ ...pagoActual, numero_cheque: e.target.value })}
             className="w-full p-2 bg-gray-700 rounded"
           />
           <input
             type="date"
             value={pagoActual.fecha_cobro}
-            onChange={(e) =>
-              setPagoActual({ ...pagoActual, fecha_cobro: e.target.value })
-            }
+            onChange={e => setPagoActual({ ...pagoActual, fecha_cobro: e.target.value })}
             className="w-full p-2 bg-gray-700 rounded"
           />
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={agregarPago}
-        className="bg-blue-600 w-full py-2 rounded"
-      >
+      <button type="button" onClick={agregarPago} className="bg-blue-600 w-full py-2 rounded">
         Agregar pago
       </button>
 
       {pagos.length > 0 && (
         <div className="space-y-2">
           {pagos.map((p, i) => (
-            <div
-              key={i}
-              className="bg-gray-700 p-2 rounded flex justify-between"
-            >
-              <span>
-                {p.metodo} – ${p.monto}
-              </span>
-              <button
-                type="button"
-                onClick={() => eliminarPago(i)}
-                className="text-red-400"
-              >
-                Quitar
-              </button>
+            <div key={i} className="bg-gray-700 p-2 rounded flex justify-between">
+              <span>{p.metodo} – ${p.monto}</span>
+              <button type="button" onClick={() => eliminarPago(i)} className="text-red-400">Quitar</button>
             </div>
           ))}
           <p className="text-right font-semibold">Total: ${totalPagosNum}</p>
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-green-600 w-full py-2 rounded disabled:opacity-50"
-      >
+      <button type="submit" disabled={loading} className="bg-green-600 w-full py-2 rounded disabled:opacity-50">
         {loading ? "Guardando..." : "Confirmar pagos"}
       </button>
     </form>

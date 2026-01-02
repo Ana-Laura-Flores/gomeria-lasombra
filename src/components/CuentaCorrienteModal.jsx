@@ -1,28 +1,38 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import PagoForm from "./pagos/PagoForm";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
+import { fetchClienteById } from "../services/api"; // Nueva función para traer cliente actualizado
 
-export default function CuentaCorrienteModal({
-  clienteId,
-  clientesCC,
-  onClose,
-  onPagoRegistrado,
-}) {
+export default function CuentaCorrienteModal({ clienteId, onClose }) {
   const [showPago, setShowPago] = useState(false);
+  const [clienteData, setClienteData] = useState(null);
 
-  // 🔑 Cliente SIEMPRE recalculado desde cuenta corriente
-  const cliente = useMemo(() => {
-    return clientesCC.find((c) => c.id === clienteId);
-  }, [clientesCC, clienteId]);
+  // =========================
+  // Cargar cliente al abrir modal o actualizar
+  // =========================
+  const cargarCliente = async () => {
+    try {
+      const res = await fetchClienteById(clienteId);
+      setClienteData(res);
+    } catch (err) {
+      console.error("Error cargando cliente", err);
+    }
+  };
 
-  if (!cliente) return null;
+  useEffect(() => {
+    cargarCliente();
+  }, [clienteId]);
 
-  // 🔑 Movimientos recalculados cuando cambia cliente
-  const movimientos = useMemo(() => {
-    const ordenes = cliente.ordenes.map((o) => ({
+  if (!clienteData) return null;
+
+  // =========================
+  // Movimientos
+  // =========================
+  const movimientos = [
+    ...clienteData.ordenes.map((o) => ({
       fecha: o.fecha,
       tipo: "ORDEN",
       referencia: (
@@ -35,9 +45,8 @@ export default function CuentaCorrienteModal({
       ),
       debe: Number(o.total),
       haber: 0,
-    }));
-
-    const pagos = cliente.pagos.map((p) => ({
+    })),
+    ...clienteData.pagos.map((p) => ({
       fecha: p.fecha,
       tipo: p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO",
       referencia: p.metodo_pago || "Pago",
@@ -46,20 +55,19 @@ export default function CuentaCorrienteModal({
       banco: p.banco || null,
       numero_cheque: p.numero_cheque || null,
       fecha_cobro: p.fecha_cobro || null,
-    }));
+    })),
+  ].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
-    return [...ordenes, ...pagos].sort(
-      (a, b) => new Date(a.fecha) - new Date(b.fecha)
-    );
-  }, [cliente]);
-
+  // =========================
+  // Render
+  // =========================
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <h2 className="text-lg font-bold">
-            Cuenta corriente · {cliente.nombre}
+            Cuenta corriente · {clienteData.nombre}
           </h2>
 
           <div className="flex gap-2">
@@ -71,20 +79,16 @@ export default function CuentaCorrienteModal({
             </button>
 
             <button
-  onClick={async () => {
-    await onPagoRegistrado(); // 🔄 vuelve a pedir datos
-    setTimeout(() => {
-      exportarPDFOrden({
-        elementId: "cc-pdf",
-        filename: `CuentaCorriente-${cliente.nombre}.pdf`,
-      });
-    }, 200);
-  }}
-  className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
->
-  Exportar PDF
-</button>
-
+              onClick={() => {
+                exportarPDFOrden({
+                  elementId: "cc-pdf",
+                  filename: `CuentaCorriente-${clienteData.nombre}.pdf`,
+                });
+              }}
+              className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+            >
+              Exportar PDF
+            </button>
 
             <button onClick={onClose} className="text-xl font-bold">
               ✕
@@ -94,9 +98,9 @@ export default function CuentaCorrienteModal({
 
         {/* RESUMEN */}
         <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
-          <Resumen label="Total" value={cliente.total} />
-          <Resumen label="Pagado" value={cliente.pagado} />
-          <Resumen label="Saldo" value={cliente.saldo} saldo />
+          <Resumen label="Total" value={clienteData.total} />
+          <Resumen label="Pagado" value={clienteData.pagado} />
+          <Resumen label="Saldo" value={clienteData.saldo} saldo />
         </div>
 
         {/* MOVIMIENTOS */}
@@ -107,10 +111,7 @@ export default function CuentaCorrienteModal({
         {/* PDF OCULTO */}
         <div className="hidden">
           <div id="cc-pdf">
-            <CuentaCorrientePDF
-              cliente={cliente}
-              movimientos={movimientos}
-            />
+            <CuentaCorrientePDF cliente={clienteData} movimientos={movimientos} />
           </div>
         </div>
 
@@ -119,10 +120,10 @@ export default function CuentaCorrienteModal({
           <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
             <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
               <PagoForm
-                cliente={cliente.id}
+                cliente={clienteData.id}
                 onPagoRegistrado={async () => {
-                  setShowPago(false);
-                  await onPagoRegistrado();
+                  await cargarCliente(); // 🔄 recarga cliente desde backend
+                  setShowPago(false); // cierra modal
                 }}
               />
 
@@ -147,8 +148,15 @@ function Resumen({ label, value, saldo }) {
   return (
     <div className="bg-gray-800 p-3 rounded text-center">
       <span className="text-gray-400 text-sm">{label}</span>
-      <p className={`text-lg font-bold ${saldo && value > 0 ? "text-red-400" : "text-green-400"}`}>
-        {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(Number(value) || 0)}
+      <p
+        className={`text-lg font-bold ${
+          saldo && value > 0 ? "text-red-400" : "text-green-400"
+        }`}
+      >
+        {new Intl.NumberFormat("es-AR", {
+          style: "currency",
+          currency: "ARS",
+        }).format(Number(value) || 0)}
       </p>
     </div>
   );

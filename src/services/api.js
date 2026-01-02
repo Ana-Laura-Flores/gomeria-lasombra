@@ -120,6 +120,12 @@ export const getUltimoComprobante = async () => {
 //     : 1;
 // };
 
+export const fetchClienteById = async (id) => {
+  return apiFetch(
+    `clientes/${id}?fields=id,nombre,saldo,total,pagado,saldo,ordenes_trabajo.*,pagos.*`
+  );
+};
+
 export const getDashboardOrdenes = async (desde, hasta) => {
   return apiFetch(
     `ordenes_trabajo?fields=id,total,total_pagado,saldo,fecha&filter[fecha][_between]=${desde},${hasta}`
