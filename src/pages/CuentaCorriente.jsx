@@ -23,12 +23,16 @@ export default function CuentaCorriente() {
 
 
     const fetchData = async () => {
-        setLoading(true);
-        try {
-            const [resOrdenes, resPagos] = await Promise.all([
-                getOrdenesTrabajo(),
-                getPagosPorMes("1900-01-01", "2100-01-01"),
-            ]);
+  setLoading(true);
+  try {
+    const [resOrdenes, resPagos] = await Promise.all([
+      getOrdenesTrabajo(),
+      getPagosPorMes("1900-01-01", "2100-01-01"),
+    ]);
+
+    console.log("PAGOS RAW", resPagos.data);
+
+    
 
             const ordenesCC = resOrdenes.data.filter(
                 (o) => o.condicion_cobro === "cuenta_corriente"
