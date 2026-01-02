@@ -42,7 +42,10 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     cargarCC();
   }, [clienteId]);
 
-  const totalPagosNum = pagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
+  const totalPagosNum = pagos.reduce(
+    (acc, p) => acc + parseFloat(p.monto || 0),
+    0
+  );
 
   // =========================
   // Agregar pago a la lista
@@ -69,71 +72,69 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
   // Guardar pagos
   // =========================
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (pagos.length === 0) {
-    alert("No hay pagos cargados");
-    return;
-  }
-
-  if (!cuentaCorriente) {
-    alert("El cliente no tiene cuenta corriente");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    let totalPagosNum = 0;
-
-    // 1️⃣ Crear pagos y actualizar UI al instante
-    for (const pago of pagos) {
-      const pagoCreado = await crearPago({
-        cliente: clienteId,
-        metodo_pago: pago.metodo,
-        monto: parseFloat(pago.monto),
-        banco: pago.banco || null,
-        numero_cheque: pago.numero_cheque || null,
-        fecha_cobro: pago.fecha_cobro || null,
-        cuenta_corriente: cuentaCorriente.id,
-        estado: "confirmado",
-      });
-
-      totalPagosNum += parseFloat(pagoCreado.monto);
-
-      // Actualización optimista del estado de cuenta corriente
-      setCuentaCorriente((prev) =>
-        prev
-          ? {
-              ...prev,
-              saldo: prev.saldo - pagoCreado.monto,
-              total_pagos: prev.total_pagos + pagoCreado.monto,
-              saldo_actualizado: prev.saldo_actualizado - pagoCreado.monto,
-            }
-          : prev
-      );
+    if (pagos.length === 0) {
+      alert("No hay pagos cargados");
+      return;
     }
 
-    // 2️⃣ Impactar saldo real en backend
-    await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
+    if (!cuentaCorriente) {
+      alert("El cliente no tiene cuenta corriente");
+      return;
+    }
 
-    // 3️⃣ Limpiar pagos y llamar callback
-    setPagos([]);
-    onPagoRegistrado?.();
+    setLoading(true);
+    try {
+      let totalPagosNumLocal = 0;
 
-    // 4️⃣ Opcional: refrescar desde backend después de 0.5s
-    setTimeout(async () => {
-      const res = await getCuentaCorrienteByCliente(clienteId);
-      setCuentaCorriente(res.data?.[0] || null);
-    }, 500);
+      // 1️⃣ Crear pagos y actualizar UI optimistamente
+      for (const pago of pagos) {
+        const pagoCreado = await crearPago({
+          cliente: clienteId,
+          metodo_pago: pago.metodo,
+          monto: parseFloat(pago.monto),
+          banco: pago.banco || null,
+          numero_cheque: pago.numero_cheque || null,
+          fecha_cobro: pago.fecha_cobro || null,
+          cuenta_corriente: cuentaCorriente.id,
+          estado: "confirmado",
+        });
 
-  } catch (err) {
-    console.error(err);
-    alert("Error al registrar el pago");
-  } finally {
-    setLoading(false);
-  }
-};
+        totalPagosNumLocal += parseFloat(pagoCreado.monto);
 
+        // Actualización optimista del estado de cuenta corriente
+        setCuentaCorriente((prev) =>
+          prev
+            ? {
+                ...prev,
+                saldo: prev.saldo - pagoCreado.monto,
+                total_pagos: prev.total_pagos + pagoCreado.monto,
+                saldo_actualizado: prev.saldo_actualizado - pagoCreado.monto,
+              }
+            : prev
+        );
+      }
+
+      // 2️⃣ Impactar saldo real en backend
+      await impactarPagoEnCuentaCorriente(clienteId, totalPagosNumLocal);
+
+      // 3️⃣ Limpiar pagos y llamar callback
+      setPagos([]);
+      onPagoRegistrado?.();
+
+      // 4️⃣ Refrescar desde backend después de medio segundo
+      setTimeout(async () => {
+        const res = await getCuentaCorrienteByCliente(clienteId);
+        setCuentaCorriente(res.data?.[0] || null);
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      alert("Error al registrar el pago");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // =========================
   // Render
@@ -144,9 +145,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
       <select
         value={pagoActual.metodo}
-        onChange={(e) =>
-          setPagoActual({ ...pagoActual, metodo: e.target.value })
-        }
+        onChange={(e) => setPagoActual({ ...pagoActual, metodo: e.target.value })}
         className="w-full p-2 bg-gray-700 rounded"
       >
         <option value="">Método de pago</option>
@@ -161,9 +160,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         type="number"
         placeholder="Monto"
         value={pagoActual.monto}
-        onChange={(e) =>
-          setPagoActual({ ...pagoActual, monto: e.target.value })
-        }
+        onChange={(e) => setPagoActual({ ...pagoActual, monto: e.target.value })}
         className="w-full p-2 bg-gray-700 rounded"
       />
 
@@ -172,19 +169,14 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
           <input
             placeholder="Banco"
             value={pagoActual.banco}
-            onChange={(e) =>
-              setPagoActual({ ...pagoActual, banco: e.target.value })
-            }
+            onChange={(e) => setPagoActual({ ...pagoActual, banco: e.target.value })}
             className="w-full p-2 bg-gray-700 rounded"
           />
           <input
             placeholder="Número de cheque"
             value={pagoActual.numero_cheque}
             onChange={(e) =>
-              setPagoActual({
-                ...pagoActual,
-                numero_cheque: e.target.value,
-              })
+              setPagoActual({ ...pagoActual, numero_cheque: e.target.value })
             }
             className="w-full p-2 bg-gray-700 rounded"
           />
@@ -192,10 +184,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
             type="date"
             value={pagoActual.fecha_cobro}
             onChange={(e) =>
-              setPagoActual({
-                ...pagoActual,
-                fecha_cobro: e.target.value,
-              })
+              setPagoActual({ ...pagoActual, fecha_cobro: e.target.value })
             }
             className="w-full p-2 bg-gray-700 rounded"
           />
@@ -229,9 +218,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
               </button>
             </div>
           ))}
-          <p className="text-right font-semibold">
-            Total: ${totalPagosNum}
-          </p>
+          <p className="text-right font-semibold">Total: ${totalPagosNum}</p>
         </div>
       )}
 
