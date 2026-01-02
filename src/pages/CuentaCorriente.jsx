@@ -6,6 +6,7 @@ import CuentaCorrienteModal from "../components/CuentaCorrienteModal";
 import Filters from "../components/Filters";
 import { useLocation } from "react-router-dom";
 
+
 export default function CuentaCorriente() {
     const [ordenes, setOrdenes] = useState([]);
     const [pagos, setPagos] = useState([]);
@@ -18,7 +19,7 @@ export default function CuentaCorriente() {
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const location = useLocation();
-    const [refreshKey, setRefreshKey] = useState(0);
+const [refreshKey, setRefreshKey] = useState(0);
 
     const fetchData = async () => {
         setLoading(true);
@@ -45,9 +46,10 @@ export default function CuentaCorriente() {
         }
     };
 
-    useEffect(() => {
-        fetchData();
-    }, [refreshKey, location.state?.refresh]);
+   useEffect(() => {
+  fetchData();
+}, [refreshKey, location.state?.refresh]);
+
 
     // ================= AGRUPAR POR CLIENTE =================
     // ================= AGRUPAR POR CLIENTE =================
@@ -209,6 +211,7 @@ export default function CuentaCorriente() {
                         >
                             Ver detalle
                         </button>
+                        
                     </div>
                 ))}
             </div>
@@ -226,8 +229,10 @@ export default function CuentaCorriente() {
                 <CuentaCorrienteModal
                     cliente={clienteDetalle}
                     onClose={() => setClienteDetalleId(null)}
-                    onPagoRegistrado={() => {
-                        setRefreshKey((k) => k + 1);
+                    onPagoRegistrado={async () => {
+                        await fetchData();
+                        setRefreshKey((k) => k + 1); // 🔥 refresca ordenes + pagos
+                        // NO cerramos el modal
                     }}
                 />
             )}

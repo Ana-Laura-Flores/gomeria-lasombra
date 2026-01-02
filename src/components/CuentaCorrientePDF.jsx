@@ -1,3 +1,4 @@
+import {logo} from "../assets/logo.jpg"
 export default function CuentaCorrientePDF({ cliente, movimientos }) {
   return (
    <div
@@ -13,7 +14,7 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
   {/* HEADER */}
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <img
-      src="../assets/logo.jpg"   // ajustá ruta si hace falta
+      src={logo}   // ajustá ruta si hace falta
       alt="Logo"
       style={{ height: 40 }}
     />
@@ -67,12 +68,12 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
 >
   <thead>
     <tr style={{ background: "#e5e7eb" }}>
-      <th align="left" style={{ borderBottom: "2px solid #999" }}>Fecha</th>
-      <th align="left" style={{ borderBottom: "2px solid #999" }}>Tipo</th>
-      <th align="left" style={{ borderBottom: "2px solid #999" }}>Referencia</th>
-      <th align="right" style={{ borderBottom: "2px solid #999" }}>Debe</th>
-      <th align="right" style={{ borderBottom: "2px solid #999" }}>Haber</th>
-      <th align="right" style={{ borderBottom: "2px solid #999" }}>Saldo</th>
+      <th align="left" style={{ borderBottom: "4px solid #999" }}>Fecha</th>
+      <th align="left" style={{ borderBottom: "4px solid #999" }}>Tipo</th>
+      <th align="left" style={{ borderBottom: "4px solid #999" }}>Referencia</th>
+      <th align="right" style={{ borderBottom: "4px solid #999" }}>Debe</th>
+      <th align="right" style={{ borderBottom: "4px solid #999" }}>Haber</th>
+      <th align="right" style={{ borderBottom: "4px solid #999" }}>Saldo</th>
     </tr>
   </thead>
 
