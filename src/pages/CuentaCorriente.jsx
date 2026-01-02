@@ -19,7 +19,6 @@ export default function CuentaCorriente() {
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const location = useLocation();
-const [refreshKey, setRefreshKey] = useState(0);
 
     const fetchData = async () => {
         setLoading(true);
@@ -46,10 +45,9 @@ const [refreshKey, setRefreshKey] = useState(0);
         }
     };
 
-   useEffect(() => {
-  fetchData();
-}, [refreshKey, location.state?.refresh]);
-
+    useEffect(() => {
+        fetchData();
+    }, [location.state?.refresh]);
 
     // ================= AGRUPAR POR CLIENTE =================
     // ================= AGRUPAR POR CLIENTE =================
@@ -225,16 +223,15 @@ const [refreshKey, setRefreshKey] = useState(0);
             </div>
 
             {/* ================= MODAL ================= */}
-            {clienteDetalle && (
-                <CuentaCorrienteModal
-                    cliente={clienteDetalle}
-                    onClose={() => setClienteDetalleId(null)}
-                    onPagoRegistrado={async () => {
-                        await fetchData();
-                        setRefreshKey((k) => k + 1); 
-                    }}
-                />
-            )}
+            {clienteDetalleId && (
+  <CuentaCorrienteModal
+    cliente={clientesCC.find((c) => c.id === clienteDetalleId)}
+    onClose={() => setClienteDetalleId(null)}
+    onPagoRegistrado={async () => {
+      await fetchData();
+    }}
+  />
+)}
         </MainLayout>
     );
 }
