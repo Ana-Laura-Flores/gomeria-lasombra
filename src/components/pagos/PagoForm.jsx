@@ -85,15 +85,17 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     try {
       // 1️⃣ Crear pagos
       for (const pago of pagos) {
-        await crearPago({
-          cliente: clienteId,
-          metodo_pago: pago.metodo,
-          monto: parseFloat(pago.monto),
-          banco: pago.banco || null,
-          numero_cheque: pago.numero_cheque || null,
-          fecha_cobro: pago.fecha_cobro || null,
-          cuenta_corriente: cuentaCorriente.id,
-        });
+       await crearPago({
+  cliente: clienteId,
+  metodo_pago: pago.metodo,
+  monto: parseFloat(pago.monto),
+  banco: pago.banco || null,
+  numero_cheque: pago.numero_cheque || null,
+  fecha_cobro: pago.fecha_cobro || null,
+  cuenta_corriente: cuentaCorriente.id,
+  estado: "confirmado", // 🔑 CLAVE
+});
+
       }
 
       // 2️⃣ Impactar saldo de la cuenta corriente
