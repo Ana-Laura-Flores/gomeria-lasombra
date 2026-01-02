@@ -63,12 +63,12 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
   cellSpacing="0"
   style={{
     borderCollapse: "separate",
-    borderSpacing: "0 0px",
+    borderSpacing: "0 3px",
   }}
 >
   <thead>
     <tr style={{ background: "#e5e7eb" }}>
-      <th align="left" style={{ borderBottom: "2px solid #999" }}>Fecha</th>
+      <th align="left" style={{ borderBottom: "2px solid #999", paddingTop: "2px" }}>Fecha</th>
       <th align="left" style={{ borderBottom: "2px solid #999" }}>Tipo</th>
       <th align="left" style={{ borderBottom: "2px solid #999" }}>Referencia</th>
       <th align="right" style={{ borderBottom: "2px solid #999" }}>Debe</th>
