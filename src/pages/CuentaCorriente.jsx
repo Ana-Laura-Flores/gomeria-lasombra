@@ -86,26 +86,29 @@ export default function CuentaCorriente() {
         });
 
         // PAGOS
-        pagos.forEach((p) => {
-            if (!p.cliente) return; // ✅ TAMBIÉN ACÁ
+       pagos.forEach((p) => {
+  if (!p.cliente) return;
 
-            const id = p.cliente.id;
+  const clienteId =
+    typeof p.cliente === "object" ? p.cliente.id : p.cliente;
 
-            if (!acc[id]) {
-                acc[id] = {
-                    id,
-                    nombre: p.cliente.nombre,
-                    total: 0,
-                    pagado: 0,
-                    saldo: 0,
-                    ordenes: [],
-                    pagos: [],
-                };
-            }
+  if (!clienteId) return;
 
-            acc[id].pagado += Number(p.monto);
-            acc[id].pagos.push(p);
-        });
+  if (!acc[clienteId]) {
+    acc[clienteId] = {
+      id: clienteId,
+      nombre: p.cliente.nombre || "Cliente",
+      total: 0,
+      pagado: 0,
+      saldo: 0,
+      ordenes: [],
+      pagos: [],
+    };
+  }
+
+  acc[clienteId].pagado += Number(p.monto);
+  acc[clienteId].pagos.push(p);
+});
 
         // SALDO FINAL
         Object.values(acc).forEach((c) => {
