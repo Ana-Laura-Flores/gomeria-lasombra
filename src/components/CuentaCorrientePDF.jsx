@@ -13,7 +13,7 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
   {/* HEADER */}
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
     <img
-      src="./assets/logo.jpg"   // ajustá ruta si hace falta
+      src="../assets/logo.jpg"   // ajustá ruta si hace falta
       alt="Logo"
       style={{ height: 40 }}
     />
@@ -56,30 +56,45 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
   </div>
 
   {/* TABLA */}
-  <table width="100%" cellPadding="6" cellSpacing="0" style={{ borderCollapse: "collapse" }}>
-    <thead>
-      <tr style={{ background: "#f0f0f0" }}>
-        <th align="left">Fecha</th>
-        <th align="left">Tipo</th>
-        <th align="left">Referencia</th>
-        <th align="right">Debe</th>
-        <th align="right">Haber</th>
-        <th align="right">Saldo</th>
+ <table
+  width="100%"
+  cellPadding="6"
+  cellSpacing="0"
+  style={{
+    borderCollapse: "separate",
+    borderSpacing: "0 4px",
+  }}
+>
+  <thead>
+    <tr style={{ background: "#e5e7eb" }}>
+      <th align="left" style={{ borderBottom: "2px solid #999" }}>Fecha</th>
+      <th align="left" style={{ borderBottom: "2px solid #999" }}>Tipo</th>
+      <th align="left" style={{ borderBottom: "2px solid #999" }}>Referencia</th>
+      <th align="right" style={{ borderBottom: "2px solid #999" }}>Debe</th>
+      <th align="right" style={{ borderBottom: "2px solid #999" }}>Haber</th>
+      <th align="right" style={{ borderBottom: "2px solid #999" }}>Saldo</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {movimientos.map((m, i) => (
+      <tr
+        key={i}
+        style={{
+          background: i % 2 === 0 ? "#fafafa" : "#ffffff",
+        }}
+      >
+        <td>{new Date(m.fecha).toLocaleDateString("es-AR")}</td>
+        <td>{m.tipo}</td>
+        <td>{typeof m.referencia === "string" ? m.referencia : ""}</td>
+        <td align="right">{m.debe ? `$${m.debe}` : ""}</td>
+        <td align="right">{m.haber ? `$${m.haber}` : ""}</td>
+        <td align="right">${m.saldo}</td>
       </tr>
-    </thead>
-    <tbody>
-      {movimientos.map((m, i) => (
-        <tr key={i} style={{ borderBottom: "1px solid #ddd" }}>
-          <td>{new Date(m.fecha).toLocaleDateString("es-AR")}</td>
-          <td>{m.tipo}</td>
-          <td>{typeof m.referencia === "string" ? m.referencia : ""}</td>
-          <td align="right">{m.debe ? `$${m.debe}` : ""}</td>
-          <td align="right">{m.haber ? `$${m.haber}` : ""}</td>
-          <td align="right">${m.saldo}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
+    ))}
+  </tbody>
+</table>
+<></>
 
   {/* FOOTER */}
   <div style={{ marginTop: 16, textAlign: "center", fontSize: 10, color: "#666" }}>
