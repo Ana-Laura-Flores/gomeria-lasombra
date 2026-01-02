@@ -83,10 +83,10 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
   try {
     // Sumar todos los montos primero
-    const totalPagosNumLocal = pagos.reduce((acc, p) => acc + parseFloat(p.monto), 0);
+    let totalPagosNumLocal = pagos.reduce((acc, p) => acc + parseFloat(p.monto), 0);
 
     // Crear pagos en paralelo
-    const pagosCreado = await Promise.all(
+    await Promise.all(
       pagos.map((pago) =>
         crearPago({
           cliente: clienteId,
@@ -109,9 +109,10 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     const res = await getCuentaCorrienteByCliente(clienteId);
     setCuentaCorriente(res.data?.[0] || null);
 
-    // Abrir modal de éxito en CuentaCorrienteModal
-    onPagoRegistrado?.(pagosCreado);
+    onPagoRegistrado?.();
 
+    // Redirigir a la página de cuenta corriente
+    // navigate(`/cuentas/${clienteId}`);
   } catch (err) {
     console.error(err);
     alert("Error al registrar el pago");

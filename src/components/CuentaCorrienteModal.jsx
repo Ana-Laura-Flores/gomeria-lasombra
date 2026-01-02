@@ -5,6 +5,10 @@ import PagoForm from "./pagos/PagoForm";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
 
+
+// --------------------
+// CUENTA CORRIENTE MODAL
+// --------------------
 export default function CuentaCorrienteModal({
   clienteId,
   clientesCC,
@@ -12,47 +16,17 @@ export default function CuentaCorrienteModal({
   onPagoRegistrado,
 }) {
   const [showPago, setShowPago] = useState(false);
-  const [pagosExtra, setPagosExtra] = useState([]); // pagos que se agregan desde el modal
+  const [pagosExtra, setPagosExtra] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
-  const navigate = useNavigate();
+    const navigate = useNavigate()
 
-  // Cliente recalculado desde lista actualizada
   const cliente = useMemo(() => {
     return clientesCC.find((c) => c.id === clienteId);
   }, [clientesCC, clienteId]);
 
   if (!cliente) return null;
 
-  // -----------------------------
-  // Manejo de pagos extra
-  // -----------------------------
-  const handlePagoRegistrado = (nuevosPagos) => {
-    // Aseguramos que cada pago tenga fecha y monto correcto
-    const pagosFormateados = nuevosPagos.map((p) => ({
-      ...p,
-      fecha: p.fecha || new Date().toISOString().split("T")[0],
-      monto: Number(p.monto || 0),
-    }));
-
-    setPagosExtra((prev) => [...prev, ...pagosFormateados]);
-    setShowPago(false);
-    setShowSuccess(true);
-  };
-
-  // Cuando se cierra el modal de éxito
-  const handleCloseSuccess = (verDetalle = false) => {
-    setShowSuccess(false);
-    if (verDetalle) {
-      navigate(`/cuentas/${clienteId}`, { state: { pagosExtra } });
-    } else {
-      onClose();
-    }
-    onPagoRegistrado?.(); // refresca la lista general si hace falta
-  };
-
-  // -----------------------------
-  // Movimientos (órdenes + pagos originales + pagos extra)
-  // -----------------------------
+  // Movimientos combinando órdenes y pagos extra
   const movimientos = useMemo(() => {
     const ordenes = cliente.ordenes.map((o) => ({
       fecha: o.fecha,
@@ -82,19 +56,39 @@ export default function CuentaCorrienteModal({
     );
   }, [cliente, pagosExtra]);
 
-  // -----------------------------
-  // Resumen
-  // -----------------------------
-  const totalPagadoExtra = pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0);
-  const totalPagado = cliente.pagado + totalPagadoExtra;
-  const saldo = cliente.total - totalPagado;
+  // Resumen actualizado
+  const resumen = useMemo(() => {
+    const total = cliente.total;
+    const pagado = cliente.pagado + pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0);
+    const saldo = total - pagado;
+    return { total, pagado, saldo };
+  }, [cliente, pagosExtra]);
+
+  const handlePagoRegistrado = (pagosNuevos) => {
+    setPagosExtra((prev) => [...prev, ...pagosNuevos]);
+    setShowPago(false);
+    setShowSuccess(true);
+  };
+
+  const handleCloseSuccess = (verDetalle = false) => {
+    setShowSuccess(false);
+    if (verDetalle) {
+      // Redirige al detalle del cliente pasando pagos extra
+      navigate(`/cuentas/${clienteId}`, { state: { pagosExtra } });
+    } else {
+      onClose();
+    }
+    onPagoRegistrado?.();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
+        
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <h2 className="text-lg font-bold">Cuenta corriente · {cliente.nombre}</h2>
+
           <div className="flex gap-2">
             <button
               onClick={() => setShowPago(true)}
@@ -102,6 +96,7 @@ export default function CuentaCorrienteModal({
             >
               Registrar pago
             </button>
+
             <button
               onClick={() =>
                 exportarPDFOrden({
@@ -113,17 +108,16 @@ export default function CuentaCorrienteModal({
             >
               Exportar PDF
             </button>
-            <button onClick={onClose} className="text-xl font-bold">
-              ✕
-            </button>
+
+            <button onClick={onClose} className="text-xl font-bold">✕</button>
           </div>
         </div>
 
         {/* RESUMEN */}
         <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
-          <Resumen label="Total" value={cliente.total} />
-          <Resumen label="Pagado" value={totalPagado} />
-          <Resumen label="Saldo" value={saldo} saldo />
+          <Resumen label="Total" value={resumen.total} />
+          <Resumen label="Pagado" value={resumen.pagado} />
+          <Resumen label="Saldo" value={resumen.saldo} saldo />
         </div>
 
         {/* MOVIMIENTOS */}
@@ -135,13 +129,7 @@ export default function CuentaCorrienteModal({
         <div className="hidden">
           <div id="cc-pdf">
             <CuentaCorrientePDF
-              cliente={{
-                id: clienteId,
-                nombre: cliente.nombre,
-                total: cliente.total,
-                pagado: totalPagado,
-                saldo,
-              }}
+              cliente={{ id: clienteId, nombre: cliente.nombre, ...resumen }}
               movimientos={movimientos}
             />
           </div>
@@ -151,7 +139,10 @@ export default function CuentaCorrienteModal({
         {showPago && (
           <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
             <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
-              <PagoForm cliente={cliente.id} onPagoRegistrado={handlePagoRegistrado} />
+              <PagoForm
+                cliente={cliente.id}
+                onPagoRegistrado={handlePagoRegistrado}
+              />
               <button
                 onClick={() => setShowPago(false)}
                 className="mt-3 w-full bg-gray-700 py-2 rounded"
@@ -185,6 +176,7 @@ export default function CuentaCorrienteModal({
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
@@ -198,13 +190,9 @@ function Resumen({ label, value, saldo }) {
     <div className="bg-gray-800 p-3 rounded text-center">
       <span className="text-gray-400 text-sm">{label}</span>
       <p
-        className={`text-lg font-bold ${
-          saldo && value > 0 ? "text-red-400" : "text-green-400"
-        }`}
+        className={`text-lg font-bold ${saldo && value > 0 ? "text-red-400" : "text-green-400"}`}
       >
-        {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(
-          Number(value) || 0
-        )}
+        {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(Number(value) || 0)}
       </p>
     </div>
   );

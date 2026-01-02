@@ -7,16 +7,15 @@ import CuentaCorrienteMovimientos from "../components/CuentaCorrienteMovimientos
 import CuentaCorrientePDF from "../components/CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 
-export default function CuentaCorrienteClientePage() {
-  const { clienteId } = useParams();
-  const location = useLocation();
 
+export default function CuentaCorrienteClientePage() {
+    
+  const { clienteId } = useParams(); // <-- tomamos ID de la URL
   const [ordenes, setOrdenes] = useState([]);
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clienteNombre, setClienteNombre] = useState("");
 
-  // Fetch de órdenes y pagos
   const fetchData = async () => {
     if (!clienteId) return setLoading(false);
 
@@ -27,7 +26,7 @@ export default function CuentaCorrienteClientePage() {
         getPagosPorMes("1900-01-01", "2100-01-01"),
       ]);
 
-      // Filtrar órdenes de cuenta corriente del cliente
+      // Filtrar órdenes de cuenta corriente
       const ordenesCCCliente = resOrdenes.data
         .filter((o) => o.condicion_cobro === "cuenta_corriente")
         .filter((o) => o.cliente && String(o.cliente.id) === String(clienteId));
@@ -41,16 +40,12 @@ export default function CuentaCorrienteClientePage() {
         });
 
       setOrdenes(ordenesCCCliente);
+      setPagos(pagosConfirmadosCliente);
 
-      // Si hay pagosExtra en location.state los sumamos
-      const pagosExtra = location.state?.pagosExtra || [];
-      setPagos([...pagosConfirmadosCliente, ...pagosExtra]);
-
-      // Nombre del cliente
+      // Tomar nombre del cliente desde órdenes o pagos
       const nombre =
         ordenesCCCliente[0]?.cliente?.nombre ||
         pagosConfirmadosCliente[0]?.cliente?.nombre ||
-        pagosExtra[0]?.cliente?.nombre ||
         "";
       setClienteNombre(nombre);
     } catch (err) {
@@ -62,10 +57,9 @@ export default function CuentaCorrienteClientePage() {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clienteId, location.state]);
+  }, [clienteId]);
 
-  // Resumen actualizado
+  // Resumen
   const resumen = useMemo(() => {
     const total = ordenes.reduce((acc, o) => acc + Number(o.total || 0), 0);
     const pagado = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
@@ -148,13 +142,7 @@ export default function CuentaCorrienteClientePage() {
       <div className="hidden">
         <div id="cc-pdf">
           <CuentaCorrientePDF
-            cliente={{
-              id: clienteId,
-              nombre: clienteNombre,
-              total: resumen.total,
-              pagado: resumen.pagado,
-              saldo: resumen.saldo,
-            }}
+            cliente={{ id: clienteId, nombre: clienteNombre }}
             movimientos={movimientos}
           />
         </div>
