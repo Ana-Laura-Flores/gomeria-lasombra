@@ -4,7 +4,8 @@ import { getOrdenesTrabajo, getPagosPorMes } from "../services/api";
 import CuentaCorrienteTable from "../components/CuentaCorrienteTable";
 import CuentaCorrienteModal from "../components/CuentaCorrienteModal";
 import Filters from "../components/Filters";
-import { useLocation } from "react-router-dom";
+import { useLocation,  Link } from "react-router-dom";
+
 
 export default function CuentaCorriente() {
     const [ordenes, setOrdenes] = useState([]);
