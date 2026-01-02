@@ -18,6 +18,7 @@ export default function CuentaCorrienteModal({
   const [showPago, setShowPago] = useState(false);
   const [pagosExtra, setPagosExtra] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
+    const navigate = useNavigate();
 
   const cliente = useMemo(() => {
     return clientesCC.find((c) => c.id === clienteId);
