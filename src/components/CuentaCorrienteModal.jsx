@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import PagoForm from "./pagos/PagoForm";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
+import CuentaCorrientePDF from "../components/CuentaCorrientePDF"
 
 
 export default function CuentaCorrienteModal({ cliente, onClose, onPagoRegistrado }) {
