@@ -69,64 +69,71 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
   // Guardar pagos
   // =========================
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (pagos.length === 0) {
-      alert("No hay pagos cargados");
-      return;
+  if (pagos.length === 0) {
+    alert("No hay pagos cargados");
+    return;
+  }
+
+  if (!cuentaCorriente) {
+    alert("El cliente no tiene cuenta corriente");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    let totalPagosNum = 0;
+
+    // 1️⃣ Crear pagos y actualizar UI al instante
+    for (const pago of pagos) {
+      const pagoCreado = await crearPago({
+        cliente: clienteId,
+        metodo_pago: pago.metodo,
+        monto: parseFloat(pago.monto),
+        banco: pago.banco || null,
+        numero_cheque: pago.numero_cheque || null,
+        fecha_cobro: pago.fecha_cobro || null,
+        cuenta_corriente: cuentaCorriente.id,
+        estado: "confirmado",
+      });
+
+      totalPagosNum += parseFloat(pagoCreado.monto);
+
+      // Actualización optimista del estado de cuenta corriente
+      setCuentaCorriente((prev) =>
+        prev
+          ? {
+              ...prev,
+              saldo: prev.saldo - pagoCreado.monto,
+              total_pagos: prev.total_pagos + pagoCreado.monto,
+              saldo_actualizado: prev.saldo_actualizado - pagoCreado.monto,
+            }
+          : prev
+      );
     }
 
-    if (!cuentaCorriente) {
-      alert("El cliente no tiene cuenta corriente");
-      return;
-    }
+    // 2️⃣ Impactar saldo real en backend
+    await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
 
-    setLoading(true);
-    try {
-      // 1️⃣ Crear pagos
-      for (const pago of pagos) {
-       await crearPago({
-  cliente: clienteId,
-  metodo_pago: pago.metodo,
-  monto: parseFloat(pago.monto),
-  banco: pago.banco || null,
-  numero_cheque: pago.numero_cheque || null,
-  fecha_cobro: pago.fecha_cobro || null,
-  cuenta_corriente: cuentaCorriente.id,
-  estado: "confirmado", // 🔑 CLAVE
-});
+    // 3️⃣ Limpiar pagos y llamar callback
+    setPagos([]);
+    onPagoRegistrado?.();
 
-      }
+    // 4️⃣ Opcional: refrescar desde backend después de 0.5s
+    setTimeout(async () => {
+      const res = await getCuentaCorrienteByCliente(clienteId);
+      setCuentaCorriente(res.data?.[0] || null);
+    }, 500);
 
-      // 2️⃣ Impactar saldo de la cuenta corriente
-      await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
+  } catch (err) {
+    console.error(err);
+    alert("Error al registrar el pago");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      // // 3️⃣ Actualización optimista en UI
-      // setCuentaCorriente((prev) => prev ? {
-      //   ...prev,
-      //   saldo: prev.saldo - totalPagosNum,
-      //   total_pagos: prev.total_pagos + totalPagosNum,
-      //   saldo_actualizado: prev.saldo_actualizado - totalPagosNum,
-      // } : null);
-
-      // // 4️⃣ Recargar cuenta corriente desde backend
-      // const res = await getCuentaCorrienteByCliente(clienteId);
-      // setCuentaCorriente(res.data?.[0] || null);
-      // 3️⃣ REFRESCAR DESDE BACKEND
-const res = await getCuentaCorrienteByCliente(clienteId);
-setCuentaCorriente(res.data?.[0] || null);
-
-
-      // 5️⃣ Limpiar pagos y callback
-      setPagos([]);
-      onPagoRegistrado?.();
-    } catch (err) {
-      console.error(err);
-      alert("Error al registrar el pago");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // =========================
   // Render
