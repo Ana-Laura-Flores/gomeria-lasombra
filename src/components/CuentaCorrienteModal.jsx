@@ -11,26 +11,19 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
-  const cliente = useMemo(
-    () => clientesCC.find((c) => c.id === clienteId),
-    [clientesCC, clienteId]
-  );
+  const cliente = useMemo(() => clientesCC.find(c => c.id === clienteId), [clientesCC, clienteId]);
   if (!cliente) return null;
 
   const movimientos = useMemo(() => {
-    const ordenes = cliente.ordenes.map((o) => ({
+    const ordenes = cliente.ordenes.map(o => ({
       fecha: o.fecha,
       tipo: "ORDEN",
-      referencia: (
-        <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">
-          #{o.comprobante || o.id}
-        </Link>
-      ),
+      referencia: <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">#{o.comprobante || o.id}</Link>,
       debe: Number(o.total),
       haber: 0,
     }));
 
-    const pagos = [...cliente.pagos, ...pagosExtra].map((p) => ({
+    const pagos = [...cliente.pagos, ...pagosExtra].map(p => ({
       fecha: p.fecha || new Date().toISOString().split("T")[0],
       tipo: p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO",
       referencia: p.metodo_pago || "Pago",
@@ -52,11 +45,10 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
   }, [cliente, pagosExtra]);
 
   const handlePagoRegistrado = (pagosNuevos) => {
-    console.log("Pagos nuevos:", pagosNuevos); // debug
-    setPagosExtra((prev) => [...prev, ...pagosNuevos]); // agregar pagos
-    setShowPago(false); // cerrar modal de pago
-    setShowSuccess(true); // abrir modal éxito
-    onPagoRegistrado?.(); // refrescar lista principal
+    setPagosExtra(prev => [...prev, ...pagosNuevos]);
+    setShowPago(false);
+    setShowSuccess(true);
+    onPagoRegistrado?.();
   };
 
   const handleSuccessAction = (accion) => {
@@ -78,9 +70,10 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
 
   return (
     <>
-      {/* MODAL PRINCIPAL */}
+      {/* Fondo negro principal */}
       <div className="fixed inset-0 bg-black/60 z-40 flex items-end md:items-center md:justify-center">
         <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
+          
           {/* HEADER */}
           <div className="flex justify-between items-center p-4 border-b border-gray-700">
             <h2 className="text-lg font-bold">Cuenta corriente · {cliente.nombre}</h2>
@@ -92,19 +85,12 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
                 Registrar pago
               </button>
               <button
-                onClick={() =>
-                  exportarPDFOrden({
-                    elementId: "cc-pdf",
-                    filename: `CuentaCorriente-${cliente.nombre}.pdf`,
-                  })
-                }
+                onClick={() => exportarPDFOrden({ elementId: "cc-pdf", filename: `CuentaCorriente-${cliente.nombre}.pdf` })}
                 className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
               >
                 Exportar PDF
               </button>
-              <button onClick={onClose} className="text-xl font-bold">
-                ✕
-              </button>
+              <button onClick={onClose} className="text-xl font-bold">✕</button>
             </div>
           </div>
 
@@ -123,10 +109,7 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
           {/* PDF OCULTO */}
           <div className="hidden">
             <div id="cc-pdf">
-              <CuentaCorrientePDF
-                cliente={{ id: clienteId, nombre: cliente.nombre, ...resumen }}
-                movimientos={movimientos}
-              />
+              <CuentaCorrientePDF cliente={{ id: clienteId, nombre: cliente.nombre, ...resumen }} movimientos={movimientos} />
             </div>
           </div>
         </div>
@@ -137,10 +120,7 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
           <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
             <PagoForm cliente={cliente.id} onPagoRegistrado={handlePagoRegistrado} />
-            <button
-              onClick={() => setShowPago(false)}
-              className="mt-3 w-full bg-gray-700 py-2 rounded"
-            >
+            <button onClick={() => setShowPago(false)} className="mt-3 w-full bg-gray-700 py-2 rounded">
               Cancelar
             </button>
           </div>
