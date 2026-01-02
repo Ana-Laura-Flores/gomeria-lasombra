@@ -1,4 +1,4 @@
-function CuentaCorrientePDF({ cliente, movimientos }) {
+export default function CuentaCorrientePDF({ cliente, movimientos }) {
   return (
     <div style={{ background: "white", color: "black", padding: 20 }}>
       <h2>Cuenta Corriente - {cliente.nombre}</h2>
