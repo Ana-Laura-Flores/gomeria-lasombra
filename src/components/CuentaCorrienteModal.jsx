@@ -122,7 +122,7 @@ export default function CuentaCorrienteModal({
                 cliente={cliente.id}
                 onPagoRegistrado={async () => {
                   setShowPago(false);
-                  await onPagoRegistrado();
+                  await fetchData();
                 }}
               />
 

@@ -118,16 +118,15 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
       // 2️⃣ Impactar saldo real en backend
       await impactarPagoEnCuentaCorriente(clienteId, totalPagosNumLocal);
-
+   const res = await getCuentaCorrienteByCliente(clienteId);
+setCuentaCorriente(res.data?.[0] || null);
       // 3️⃣ Limpiar pagos y llamar callback
       setPagos([]);
       onPagoRegistrado?.();
 
-      // 4️⃣ Refrescar desde backend después de medio segundo
-      setTimeout(async () => {
-        const res = await getCuentaCorrienteByCliente(clienteId);
-        setCuentaCorriente(res.data?.[0] || null);
-      }, 500);
+     
+   
+
     } catch (err) {
       console.error(err);
       alert("Error al registrar el pago");
@@ -135,6 +134,14 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
       setLoading(false);
     }
   };
+useEffect(() => {
+  if (!clienteId) return;
+  const cargarCC = async () => {
+    const res = await getCuentaCorrienteByCliente(clienteId);
+    setCuentaCorriente(res.data?.[0] || null);
+  };
+  cargarCC();
+}, [clienteId, onPagoRegistrado]);
 
   // =========================
   // Render
