@@ -99,17 +99,21 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
       // 2️⃣ Impactar saldo de la cuenta corriente
       await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
 
-      // 3️⃣ Actualización optimista en UI
-      setCuentaCorriente((prev) => prev ? {
-        ...prev,
-        saldo: prev.saldo - totalPagosNum,
-        total_pagos: prev.total_pagos + totalPagosNum,
-        saldo_actualizado: prev.saldo_actualizado - totalPagosNum,
-      } : null);
+      // // 3️⃣ Actualización optimista en UI
+      // setCuentaCorriente((prev) => prev ? {
+      //   ...prev,
+      //   saldo: prev.saldo - totalPagosNum,
+      //   total_pagos: prev.total_pagos + totalPagosNum,
+      //   saldo_actualizado: prev.saldo_actualizado - totalPagosNum,
+      // } : null);
 
       // // 4️⃣ Recargar cuenta corriente desde backend
       // const res = await getCuentaCorrienteByCliente(clienteId);
       // setCuentaCorriente(res.data?.[0] || null);
+      // 3️⃣ REFRESCAR DESDE BACKEND
+const res = await getCuentaCorrienteByCliente(clienteId);
+setCuentaCorriente(res.data?.[0] || null);
+
 
       // 5️⃣ Limpiar pagos y callback
       setPagos([]);

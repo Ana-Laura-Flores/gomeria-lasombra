@@ -19,7 +19,7 @@ export default function CuentaCorriente() {
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const location = useLocation();
-    const [modalKey, setModalKey] = useState(0);
+  
 
 
     const fetchData = async () => {
@@ -225,17 +225,17 @@ export default function CuentaCorriente() {
             </div>
 
             {/* ================= MODAL ================= */}
-         {clienteDetalle && (
-  <CuentaCorrienteModal
-    key={modalKey}
-    cliente={clienteDetalle}
-    onClose={() => setClienteDetalleId(null)}
-    onPagoRegistrado={async () => {
-      await fetchData();      // trae datos nuevos
-      setModalKey(k => k + 1); // 🔥 mata y recrea el modal
-    }}
-  />
-)}
+        <CuentaCorrienteModal
+  cliente={clienteDetalle}
+  onClose={() => setClienteDetalleId(null)}
+  onPagoRegistrado={async () => {
+    await fetchData();
+
+    // 🔥 fuerza recálculo del cliente
+    setClienteDetalleId((prev) => prev);
+  }}
+/>
+
 
         </MainLayout>
     );
