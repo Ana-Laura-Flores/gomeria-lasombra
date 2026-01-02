@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import PagoForm from "./pagos/PagoForm";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
+
+
 
 export default function CuentaCorrienteModal({
   clienteId,
@@ -15,6 +17,8 @@ export default function CuentaCorrienteModal({
   const [pagosExtra, setPagosExtra] = useState([]); // 🔹 nuevos pagos que se agregan al vuelo
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const navigate = useNavigate();
+
 
 const handlePagoRegistrado = (pagosNuevos) => {
   setPagosExtra((prev) => [...prev, ...pagosNuevos]);
@@ -24,10 +28,14 @@ const handlePagoRegistrado = (pagosNuevos) => {
 };
 
 // Cuando el usuario cierre el modal de éxito:
-const handleCloseSuccess = () => {
+const handleCloseSuccess = (verDetalle = false) => {
   setShowSuccess(false);
-  onPagoRegistrado?.(); // ahora refrescamos datos
-  onClose(); // cerramos modal principal si hace falta
+  if (verDetalle) {
+    navigate(`/cuentas/${clienteId}`); // 🔹 redirige al detalle del cliente
+  } else {
+    onClose(); // solo cerramos modal principal
+  }
+  onPagoRegistrado?.(); // refresca datos en la lista general si es necesario
 };
 
 
@@ -150,13 +158,13 @@ const handleCloseSuccess = () => {
       <p>¿Querés ver la cuenta corriente del cliente o volver a órdenes?</p>
       <div className="flex flex-col gap-2 mt-2">
         <button
-          onClick={handleCloseSuccess}
+          onClick={() => handleCloseSuccess(true)} // 🔹 redirige al detalle
           className="bg-blue-600 text-white py-2 rounded"
         >
           Ver cuenta corriente
         </button>
         <button
-          onClick={handleCloseSuccess}
+          onClick={() => handleCloseSuccess(false)} // 🔹 solo cerrar modal
           className="bg-gray-600 text-white py-2 rounded"
         >
           Volver a órdenes
@@ -165,6 +173,7 @@ const handleCloseSuccess = () => {
     </div>
   </div>
 )}
+
 
 
 
