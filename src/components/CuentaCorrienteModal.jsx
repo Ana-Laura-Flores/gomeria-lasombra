@@ -44,18 +44,31 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
     return { total, pagado, saldo };
   }, [cliente, pagosExtra]);
 
-  const handlePagoRegistrado = (pagosNuevos) => {
-    setPagosExtra(prev => [...prev, ...pagosNuevos]);
-    setShowPago(false);
-    setShowSuccess(true);
-    onPagoRegistrado?.(); // refrescar lista general
-  };
+ const handlePagoRegistrado = (pagosNuevos) => {
+  setPagosExtra(prev => [...prev, ...pagosNuevos]); // agregamos pagos
+  setShowPago(false); // cerramos modal de pago
+  setShowSuccess(true); // abrimos modal de éxito
+  onPagoRegistrado?.(); // refresca lista general
+};
 
-  const handleCloseSuccess = (verDetalle = false) => {
-    setShowSuccess(false);
-    if (verDetalle) navigate(`/cuentas/${clienteId}`);
-    else onClose?.();
-  };
+const handleSuccessAction = (accion) => {
+  setShowSuccess(false);
+
+  switch (accion) {
+    case "detalle":
+      navigate(`/cuentas/${clienteId}`);
+      break;
+    case "ordenes":
+      navigate(`/ordenes`);
+      break;
+    case "listado":
+      navigate(`/cuentas`);
+      break;
+    default:
+      onClose?.();
+  }
+};
+
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
@@ -106,27 +119,26 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
           </div>
         )}
 
-       {/* MODAL ÉXITO */}
-{showSuccess && (
+    {showSuccess && (
   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
     <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
       <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
       <p>¿Qué querés hacer ahora?</p>
       <div className="flex flex-col gap-2 mt-2">
         <button
-          onClick={() => { setShowSuccess(false); navigate(`/cuentas/${clienteId}`); }}
+          onClick={() => handleSuccessAction("detalle")}
           className="bg-blue-600 text-white py-2 rounded"
         >
           Ver cuenta corriente del cliente
         </button>
         <button
-          onClick={() => { setShowSuccess(false); navigate(`/ordenes`); }}
+          onClick={() => handleSuccessAction("ordenes")}
           className="bg-gray-600 text-white py-2 rounded"
         >
           Volver a órdenes
         </button>
         <button
-          onClick={() => { setShowSuccess(false); navigate(`/cuentas`); }}
+          onClick={() => handleSuccessAction("listado")}
           className="bg-green-600 text-white py-2 rounded"
         >
           Volver al listado de cuentas corrientes
