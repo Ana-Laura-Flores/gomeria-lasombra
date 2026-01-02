@@ -17,14 +17,13 @@ export default function CuentaCorrienteModal({
 
   const navigate = useNavigate();
 
-  // Cliente seleccionado
   const cliente = useMemo(
     () => clientesCC.find((c) => c.id === clienteId),
     [clientesCC, clienteId]
   );
   if (!cliente) return null;
 
-  // Movimientos combinados: órdenes + pagosExtra
+  // Movimientos combinados: órdenes + pagos
   const movimientos = useMemo(() => {
     const ordenes = cliente.ordenes.map((o) => ({
       fecha: o.fecha,
@@ -57,7 +56,6 @@ export default function CuentaCorrienteModal({
     );
   }, [cliente, pagosExtra]);
 
-  // Resumen
   const resumen = useMemo(() => {
     const total = cliente.total;
     const pagado =
@@ -67,20 +65,27 @@ export default function CuentaCorrienteModal({
     return { total, pagado, saldo };
   }, [cliente, pagosExtra]);
 
-  // =========================
+  // ===========================
   // Manejo de pago registrado
-  // =========================
+  // ===========================
   const handlePagoRegistrado = (pagosNuevos) => {
-    // 1️⃣ Actualizamos pagosExtra para re-render de movimientos
-    setPagosExtra((prev) => [...prev, ...pagosNuevos]);
+  // 1️⃣ Agregamos los pagos al estado local de extras
+  setPagosExtra((prev) => [...prev, ...pagosNuevos]);
 
-    // 2️⃣ Cerramos modal de pago y abrimos modal de éxito
-    setShowPago(false);
-    setShowSuccess(true);
+  // 2️⃣ Opcional: actualizar cliente dentro de clientesCC si querés
+  const clienteIndex = clientesCC.findIndex(c => c.id === clienteId);
+  if (clienteIndex !== -1) {
+    clientesCC[clienteIndex] = {
+      ...clientesCC[clienteIndex],
+      pagos: [...clientesCC[clienteIndex].pagos, ...pagosNuevos]
+    };
+  }
 
-    // 3️⃣ Refrescar lista externa si existe
-    onPagoRegistrado?.();
-  };
+  // 3️⃣ Cerrar modal de pago y abrir modal de éxito
+  setShowPago(false);
+  setShowSuccess(true);
+};
+
 
   const handleSuccessAction = (accion) => {
     setShowSuccess(false);

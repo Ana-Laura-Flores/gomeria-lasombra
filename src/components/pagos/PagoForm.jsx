@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { crearPago, impactarPagoEnCuentaCorriente, getCuentaCorrienteByCliente } from "../../services/api";
+import {
+  crearPago,
+  impactarPagoEnCuentaCorriente,
+  getCuentaCorrienteByCliente,
+} from "../../services/api";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
 
 export default function PagoForm({ cliente, onPagoRegistrado }) {
@@ -35,7 +39,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
   }, [clienteId]);
 
   // =========================
-  // Agregar pago a lista temporal
+  // Agregar pago a lista
   // =========================
   const agregarPago = () => {
     if (!pagoActual.metodo || !pagoActual.monto) return;
@@ -54,42 +58,43 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
   // Guardar pagos en API
   // =========================
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!pagos.length) return alert("No hay pagos cargados");
-    if (!cuentaCorriente) return alert("El cliente no tiene cuenta corriente");
+  e.preventDefault();
+  if (!pagos.length) return alert("No hay pagos cargados");
+  if (!cuentaCorriente) return alert("El cliente no tiene cuenta corriente");
 
-    setLoading(true);
-    try {
-      const pagosGuardados = [];
+  setLoading(true);
+  try {
+    const pagosGuardados = [];
 
-      for (const pago of pagos) {
-        const res = await crearPago({
-          cliente: clienteId,
-          metodo_pago: pago.metodo,
-          monto: Number(pago.monto),
-          banco: pago.banco || null,
-          numero_cheque: pago.numero_cheque || null,
-          fecha_cobro: pago.fecha_cobro || null,
-          cuenta_corriente: cuentaCorriente.id,
-        });
-        pagosGuardados.push(res.data);
-      }
-
-      // Actualizar saldo en cuenta corriente
-      await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
-
-      setPagos([]);
-
-      // 🔥 Pasamos los pagos recién guardados al modal
-      onPagoRegistrado?.(pagosGuardados);
-
-    } catch (err) {
-      console.error(err);
-      alert("Error al registrar el pago");
-    } finally {
-      setLoading(false);
+    for (const pago of pagos) {
+      const res = await crearPago({
+        cliente: clienteId,
+        metodo_pago: pago.metodo,
+        monto: Number(pago.monto),
+        banco: pago.banco || null,
+        numero_cheque: pago.numero_cheque || null,
+        fecha_cobro: pago.fecha_cobro || null,
+        cuenta_corriente: cuentaCorriente.id,
+      });
+      pagosGuardados.push(res.data);
     }
-  };
+
+    // Actualizar saldo en cuenta corriente
+    await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
+
+    setPagos([]);
+    
+    // 🔥 PASAR PAGOS NUEVOS AL MODAL
+    onPagoRegistrado?.(pagosGuardados);
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al registrar el pago");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded space-y-4">
