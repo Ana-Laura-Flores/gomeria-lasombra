@@ -75,25 +75,20 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
   // Guardar pagos
   // =========================
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  if (!pagos.length) return alert("No hay pagos cargados");
+  if (!cuentaCorriente) return alert("El cliente no tiene cuenta corriente");
 
-    if (pagos.length === 0) {
-      alert("No hay pagos cargados");
-      return;
-    }
+  setLoading(true);
 
-    if (!cuentaCorriente) {
-      alert("El cliente no tiene cuenta corriente");
-      return;
-    }
+  try {
+    // Sumar todos los montos primero
+    let totalPagosNumLocal = pagos.reduce((acc, p) => acc + parseFloat(p.monto), 0);
 
-    setLoading(true);
-    try {
-      let totalPagosNumLocal = 0;
-
-      // 1️⃣ Crear pagos y actualizar UI optimistamente
-      for (const pago of pagos) {
-        const pagoCreado = await crearPago({
+    // Crear pagos en paralelo
+    await Promise.all(
+      pagos.map((pago) =>
+        crearPago({
           cliente: clienteId,
           metodo_pago: pago.metodo,
           monto: parseFloat(pago.monto),
@@ -102,41 +97,30 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
           fecha_cobro: pago.fecha_cobro || null,
           cuenta_corriente: cuentaCorriente.id,
           estado: "confirmado",
-        });
+        })
+      )
+    );
 
-        totalPagosNumLocal += parseFloat(pagoCreado.monto);
+    // Impactar saldo en cuenta corriente
+    await impactarPagoEnCuentaCorriente(clienteId, totalPagosNumLocal);
 
-        // Actualización optimista del estado de cuenta corriente
-        setCuentaCorriente((prev) =>
-          prev
-            ? {
-                ...prev,
-                saldo: prev.saldo - pagoCreado.monto,
-                total_pagos: prev.total_pagos + pagoCreado.monto,
-                saldo_actualizado: prev.saldo_actualizado - pagoCreado.monto,
-              }
-            : prev
-        );
-      }
+    // Limpiar pagos y refrescar cuenta corriente
+    setPagos([]);
+    const res = await getCuentaCorrienteByCliente(clienteId);
+    setCuentaCorriente(res.data?.[0] || null);
 
-      // 2️⃣ Impactar saldo real en backend
-      await impactarPagoEnCuentaCorriente(clienteId, totalPagosNumLocal);
-   const res = await getCuentaCorrienteByCliente(clienteId);
-setCuentaCorriente(res.data?.[0] || null);
-      // 3️⃣ Limpiar pagos y llamar callback
-      setPagos([]);
-      onPagoRegistrado?.();
-navigate(`/cuentas/${clienteId}`); // 👈 ir a la página dedicad
-     
-   
+    onPagoRegistrado?.();
 
-    } catch (err) {
-      console.error(err);
-      alert("Error al registrar el pago");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Redirigir a la página de cuenta corriente
+    navigate(`/cuentas/${clienteId}`);
+  } catch (err) {
+    console.error(err);
+    alert("Error al registrar el pago");
+  } finally {
+    setLoading(false);
+  }
+};
+
 useEffect(() => {
   if (!clienteId) return;
   const cargarCC = async () => {
