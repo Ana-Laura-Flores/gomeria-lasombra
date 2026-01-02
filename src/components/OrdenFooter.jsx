@@ -72,8 +72,7 @@ export default function OrdenFooter({
         return;
       }
 
-      const comprobante = Date.now();
-
+      const comprobante = await generarNumeroComprobante();
 
       // 1️⃣ Crear ORDEN
       const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {

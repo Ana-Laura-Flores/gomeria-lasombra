@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import PagoForm from "./pagos/PagoForm";
+import { exportarPDFOrden } from "../utils/exportarPDFOrden";
+
 
 export default function CuentaCorrienteModal({ cliente, onClose, onPagoRegistrado }) {
   const [showPago, setShowPago] = useState(false);
@@ -47,6 +49,18 @@ export default function CuentaCorrienteModal({ cliente, onClose, onPagoRegistrad
             >
               Registrar pago
             </button>
+            <button
+  onClick={() =>
+    exportarPDFOrden({
+      elementId: "cc-pdf",
+      filename: `CuentaCorriente-${cliente.nombre}.pdf`,
+    })
+  }
+  className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+>
+  Exportar PDF
+</button>
+
             <button onClick={onClose} className="text-xl font-bold">✕</button>
           </div>
         </div>
@@ -62,6 +76,11 @@ export default function CuentaCorrienteModal({ cliente, onClose, onPagoRegistrad
         <div className="flex-1 overflow-y-auto p-4">
           <CuentaCorrienteMovimientos movimientos={movimientos} />
         </div>
+<div className="hidden">
+  <div id="cc-pdf">
+    <CuentaCorrientePDF cliente={cliente} movimientos={movimientos} />
+  </div>
+</div>
 
         {/* MODAL REGISTRAR PAGO */}
         {showPago && (

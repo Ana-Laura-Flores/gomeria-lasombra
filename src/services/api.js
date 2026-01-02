@@ -98,15 +98,27 @@ export const getUltimoComprobante = async () => {
   return res.data[0]?.comprobante || null;
 };
 
-export const generarNumeroComprobante = async () => {
-  const ultimo = await getUltimoComprobante();
-  let siguiente = 1;
-  if (ultimo) {
-    siguiente = Number(ultimo) + 1;
-  }
-  return String(siguiente).padStart(6, "0"); // Ej: 000001
-};
+// export const generarNumeroComprobante = async () => {
+//   const ultimo = await getUltimoComprobante();
+//   let siguiente = 1;
+//   if (ultimo) {
+//     siguiente = Number(ultimo) + 1;
+//   }
+//   return String(siguiente).padStart(6, "0"); // Ej: 000001
+// };
 
+export const generarNumeroComprobante = async () => {
+  const res = await fetch(`${API_URL}/items/ordenes_trabajo?sort=-comprobante&limit=1`, {
+    headers: authHeaders(),
+  });
+
+  const data = await res.json();
+  const last = data.data?.[0];
+
+  return last?.comprobante
+    ? Number(last.comprobante) + 1
+    : 1;
+};
 
 export const getDashboardOrdenes = async (desde, hasta) => {
   return apiFetch(
