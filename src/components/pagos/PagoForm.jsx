@@ -61,53 +61,43 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
   // Guardar pagos
   // =========================
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!pagos.length) return alert("No hay pagos cargados");
-    if (!cuentaCorriente) return alert("El cliente no tiene cuenta corriente");
+  e.preventDefault();
+  if (!pagos.length) return alert("No hay pagos cargados");
 
-    setLoading(true);
+  setLoading(true);
+  try {
+    const pagosCreado = await Promise.all(
+      pagos.map((pago) =>
+        crearPago({
+          cliente: clienteId,
+          metodo_pago: pago.metodo,
+          monto: parseFloat(pago.monto),
+          banco: pago.banco || null,
+          numero_cheque: pago.numero_cheque || null,
+          fecha_cobro: pago.fecha_cobro || null,
+          cuenta_corriente: cuentaCorriente.id,
+          estado: "confirmado",
+        })
+      )
+    );
 
-    try {
-      const totalPagosNumLocal = pagos.reduce((acc, p) => acc + parseFloat(p.monto), 0);
+    await impactarPagoEnCuentaCorriente(
+      clienteId,
+      pagos.reduce((acc, p) => acc + parseFloat(p.monto), 0)
+    );
 
-      // Crear pagos en paralelo
-      await Promise.all(
-        pagos.map((pago) =>
-          crearPago({
-            cliente: clienteId,
-            metodo_pago: pago.metodo,
-            monto: parseFloat(pago.monto),
-            banco: pago.banco || null,
-            numero_cheque: pago.numero_cheque || null,
-            fecha_cobro: pago.fecha_cobro || null,
-            cuenta_corriente: cuentaCorriente.id,
-            estado: "confirmado",
-          })
-        )
-      );
+    // 🔄 Actualizar movimientos inmediatamente en modal
+    onPagoRegistrado(pagosCreado); // <-- pasamos los pagos creados al modal
+    setPagos([]);
+    setShowSuccess(true);
+  } catch (err) {
+    console.error(err);
+    alert("Error al registrar el pago");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      // Impactar saldo en cuenta corriente
-      await impactarPagoEnCuentaCorriente(clienteId, totalPagosNumLocal);
-
-      // Refrescar cuenta corriente
-      const res = await getCuentaCorrienteByCliente(clienteId);
-      setCuentaCorriente(res.data?.[0] || null);
-
-      // Limpiar pagos
-      setPagos([]);
-
-      // Mostrar modal de éxito
-      setShowSuccess(true);
-
-      // Llamar callback padre para refrescar lista de clientesCC
-      onPagoRegistrado?.();
-    } catch (err) {
-      console.error(err);
-      alert("Error al registrar el pago");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // =========================
   // Render
