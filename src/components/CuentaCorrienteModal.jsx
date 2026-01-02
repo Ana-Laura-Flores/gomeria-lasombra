@@ -14,6 +14,15 @@ export default function CuentaCorrienteModal({
   const [showPago, setShowPago] = useState(false);
   const [pagosExtra, setPagosExtra] = useState([]); // 🔹 nuevos pagos que se agregan al vuelo
 
+  const [showSuccess, setShowSuccess] = useState(false);
+
+const handlePagoRegistrado = (pagosNuevos) => {
+  setPagosExtra((prev) => [...prev, ...pagosNuevos]);
+  setShowPago(false);
+  setShowSuccess(true); // Abrir modal de éxito desde aquí
+  onPagoRegistrado?.();
+};
+
   // Cliente recalculado desde lista actualizada
   const cliente = useMemo(() => {
     return clientesCC.find((c) => c.id === clienteId);
@@ -128,6 +137,25 @@ export default function CuentaCorrienteModal({
             </div>
           </div>
         )}
+
+        {/* MODAL REGISTRAR PAGO */}
+{showPago && (
+  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+    <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
+      <PagoForm
+        cliente={cliente.id}
+        onPagoRegistrado={handlePagoRegistrado} // <-- usar la función correcta
+      />
+      <button
+        onClick={() => setShowPago(false)}
+        className="mt-3 w-full bg-gray-700 py-2 rounded"
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );
