@@ -23,16 +23,12 @@ export default function CuentaCorriente() {
 
 
     const fetchData = async () => {
-  setLoading(true);
-  try {
-    const [resOrdenes, resPagos] = await Promise.all([
-      getOrdenesTrabajo(),
-      getPagosPorMes("1900-01-01", "2100-01-01"),
-    ]);
-
-    console.log("PAGOS RAW", resPagos.data);
-
-    
+        setLoading(true);
+        try {
+            const [resOrdenes, resPagos] = await Promise.all([
+                getOrdenesTrabajo(),
+                getPagosPorMes("1900-01-01", "2100-01-01"),
+            ]);
 
             const ordenesCC = resOrdenes.data.filter(
                 (o) => o.condicion_cobro === "cuenta_corriente"
@@ -231,15 +227,12 @@ export default function CuentaCorriente() {
             {/* ================= MODAL ================= */}
     {clienteDetalle && (
   <CuentaCorrienteModal
-    cliente={clienteDetalle}
-    onClose={() => setClienteDetalleId(null)}
-    onPagoRegistrado={async () => {
-      await fetchData();
+  clienteId={clienteDetalleId}
+  clientesCC={clientesCC}
+  onClose={() => setClienteDetalleId(null)}
+  onPagoRegistrado={fetchData}
+/>
 
-      // fuerza re-evaluación
-      setClienteDetalleId((prev) => prev);
-    }}
-  />
 )}
 
 
