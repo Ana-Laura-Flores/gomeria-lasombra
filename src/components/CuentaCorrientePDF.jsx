@@ -63,7 +63,7 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
   cellSpacing="0"
   style={{
     borderCollapse: "separate",
-    borderSpacing: "0 6px",
+    borderSpacing: "0 0px",
   }}
 >
   <thead>
