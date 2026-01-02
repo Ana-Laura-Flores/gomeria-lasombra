@@ -109,19 +109,20 @@ const handleSuccessAction = (accion) => {
           </div>
         </div>
 
-        {/* MODAL PAGOS */}
-        {showPago && (
-          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-            <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
-              <PagoForm cliente={cliente.id} onPagoRegistrado={handlePagoRegistrado} />
-              <button onClick={() => setShowPago(false)} className="mt-3 w-full bg-gray-700 py-2 rounded">
-                Cancelar
-              </button>
-            </div>
-          </div>
-        )}
+      {/* MODAL PAGOS */}
+{showPago && (
+  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+    <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
+      <PagoForm cliente={cliente.id} onPagoRegistrado={handlePagoRegistrado} />
+      <button onClick={() => setShowPago(false)} className="mt-3 w-full bg-gray-700 py-2 rounded">
+        Cancelar
+      </button>
+    </div>
+  </div>
+)}
 
-  {showSuccess && (
+{/* MODAL SUCCESS */}
+{showSuccess && (
   <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
     <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
       <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
