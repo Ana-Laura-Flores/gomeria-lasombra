@@ -225,16 +225,19 @@ export default function CuentaCorriente() {
             </div>
 
             {/* ================= MODAL ================= */}
-        <CuentaCorrienteModal
-  cliente={clienteDetalle}
-  onClose={() => setClienteDetalleId(null)}
-  onPagoRegistrado={async () => {
-    await fetchData();
+    {clienteDetalle && (
+  <CuentaCorrienteModal
+    cliente={clienteDetalle}
+    onClose={() => setClienteDetalleId(null)}
+    onPagoRegistrado={async () => {
+      await fetchData();
 
-    // 🔥 fuerza recálculo del cliente
-    setClienteDetalleId((prev) => prev);
-  }}
-/>
+      // fuerza re-evaluación
+      setClienteDetalleId((prev) => prev);
+    }}
+  />
+)}
+
 
 
         </MainLayout>
