@@ -18,10 +18,18 @@ export default function CuentaCorrienteModal({
 
 const handlePagoRegistrado = (pagosNuevos) => {
   setPagosExtra((prev) => [...prev, ...pagosNuevos]);
+  
+  // Cerrar modal de pago primero
   setShowPago(false);
-  setShowSuccess(true); // Abrir modal de éxito desde aquí
-  onPagoRegistrado?.();
+
+  // Abrir modal de éxito en el siguiente render
+  setTimeout(() => {
+    setShowSuccess(true);
+  }, 0);
+
+  onPagoRegistrado?.(); // refresca datos padre
 };
+
 
   // Cliente recalculado desde lista actualizada
   const cliente = useMemo(() => {
