@@ -106,19 +106,36 @@ export default function CuentaCorrienteModal({ clienteId, clientesCC, onClose, o
           </div>
         )}
 
-        {/* MODAL ÉXITO */}
-        {showSuccess && (
-          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-            <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
-              <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
-              <p>¿Querés ver la cuenta corriente del cliente o volver a órdenes?</p>
-              <div className="flex flex-col gap-2 mt-2">
-                <button onClick={() => handleCloseSuccess(true)} className="bg-blue-600 text-white py-2 rounded">Ver cuenta corriente</button>
-                <button onClick={() => handleCloseSuccess(false)} className="bg-gray-600 text-white py-2 rounded">Volver a órdenes</button>
-              </div>
-            </div>
-          </div>
-        )}
+       {/* MODAL ÉXITO */}
+{showSuccess && (
+  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+    <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
+      <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
+      <p>¿Qué querés hacer ahora?</p>
+      <div className="flex flex-col gap-2 mt-2">
+        <button
+          onClick={() => { setShowSuccess(false); navigate(`/cuentas/${clienteId}`); }}
+          className="bg-blue-600 text-white py-2 rounded"
+        >
+          Ver cuenta corriente del cliente
+        </button>
+        <button
+          onClick={() => { setShowSuccess(false); navigate(`/ordenes`); }}
+          className="bg-gray-600 text-white py-2 rounded"
+        >
+          Volver a órdenes
+        </button>
+        <button
+          onClick={() => { setShowSuccess(false); navigate(`/cuentas`); }}
+          className="bg-green-600 text-white py-2 rounded"
+        >
+          Volver al listado de cuentas corrientes
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       </div>
     </div>
