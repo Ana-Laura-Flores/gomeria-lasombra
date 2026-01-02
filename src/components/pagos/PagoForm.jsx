@@ -79,6 +79,8 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         pagosGuardados.push(res.data);
       }
 
+
+      
       // Actualizar saldo en cuenta corriente
       await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
 
