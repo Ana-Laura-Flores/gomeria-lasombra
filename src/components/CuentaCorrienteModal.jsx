@@ -6,7 +6,9 @@ import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
 
 
-
+// --------------------
+// CUENTA CORRIENTE MODAL
+// --------------------
 export default function CuentaCorrienteModal({
   clienteId,
   clientesCC,
@@ -14,40 +16,16 @@ export default function CuentaCorrienteModal({
   onPagoRegistrado,
 }) {
   const [showPago, setShowPago] = useState(false);
-  const [pagosExtra, setPagosExtra] = useState([]); // 🔹 nuevos pagos que se agregan al vuelo
-
+  const [pagosExtra, setPagosExtra] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
-  const navigate = useNavigate();
 
-
-const handlePagoRegistrado = (pagosNuevos) => {
-  setPagosExtra((prev) => [...prev, ...pagosNuevos]);
-  setShowPago(false); // cerrar modal de pago
-  setShowSuccess(true); // abrir modal de éxito
-  // no llamar al padre todavía
-};
-
-// Cuando el usuario cierre el modal de éxito:
-const handleCloseSuccess = (verDetalle = false) => {
-  setShowSuccess(false);
-  if (verDetalle) {
-    navigate(`/cuentas/${clienteId}`); // 🔹 redirige al detalle del cliente
-  } else {
-    onClose(); // solo cerramos modal principal
-  }
-  onPagoRegistrado?.(); // refresca datos en la lista general si es necesario
-};
-
-
-
-  // Cliente recalculado desde lista actualizada
   const cliente = useMemo(() => {
     return clientesCC.find((c) => c.id === clienteId);
   }, [clientesCC, clienteId]);
 
   if (!cliente) return null;
 
-  // Movimientos combinando órdenes y pagos (incluye pagos extra)
+  // Movimientos combinando órdenes y pagos extra
   const movimientos = useMemo(() => {
     const ordenes = cliente.ordenes.map((o) => ({
       fecha: o.fecha,
@@ -77,15 +55,38 @@ const handleCloseSuccess = (verDetalle = false) => {
     );
   }, [cliente, pagosExtra]);
 
+  // Resumen actualizado
+  const resumen = useMemo(() => {
+    const total = cliente.total;
+    const pagado = cliente.pagado + pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0);
+    const saldo = total - pagado;
+    return { total, pagado, saldo };
+  }, [cliente, pagosExtra]);
+
+  const handlePagoRegistrado = (pagosNuevos) => {
+    setPagosExtra((prev) => [...prev, ...pagosNuevos]);
+    setShowPago(false);
+    setShowSuccess(true);
+  };
+
+  const handleCloseSuccess = (verDetalle = false) => {
+    setShowSuccess(false);
+    if (verDetalle) {
+      // Redirige al detalle del cliente pasando pagos extra
+      navigate(`/cuentas/${clienteId}`, { state: { pagosExtra } });
+    } else {
+      onClose();
+    }
+    onPagoRegistrado?.();
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
-
+        
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h2 className="text-lg font-bold">
-            Cuenta corriente · {cliente.nombre}
-          </h2>
+          <h2 className="text-lg font-bold">Cuenta corriente · {cliente.nombre}</h2>
 
           <div className="flex gap-2">
             <button
@@ -96,28 +97,26 @@ const handleCloseSuccess = (verDetalle = false) => {
             </button>
 
             <button
-              onClick={() => {
+              onClick={() =>
                 exportarPDFOrden({
                   elementId: "cc-pdf",
                   filename: `CuentaCorriente-${cliente.nombre}.pdf`,
-                });
-              }}
+                })
+              }
               className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
             >
               Exportar PDF
             </button>
 
-            <button onClick={onClose} className="text-xl font-bold">
-              ✕
-            </button>
+            <button onClick={onClose} className="text-xl font-bold">✕</button>
           </div>
         </div>
 
         {/* RESUMEN */}
         <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
-          <Resumen label="Total" value={cliente.total} />
-          <Resumen label="Pagado" value={cliente.pagado + pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0)} />
-          <Resumen label="Saldo" value={cliente.total - cliente.pagado - pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0)} saldo />
+          <Resumen label="Total" value={resumen.total} />
+          <Resumen label="Pagado" value={resumen.pagado} />
+          <Resumen label="Saldo" value={resumen.saldo} saldo />
         </div>
 
         {/* MOVIMIENTOS */}
@@ -128,54 +127,54 @@ const handleCloseSuccess = (verDetalle = false) => {
         {/* PDF OCULTO */}
         <div className="hidden">
           <div id="cc-pdf">
-            <CuentaCorrientePDF cliente={cliente} movimientos={movimientos} />
+            <CuentaCorrientePDF
+              cliente={{ id: clienteId, nombre: cliente.nombre, ...resumen }}
+              movimientos={movimientos}
+            />
           </div>
         </div>
 
-      {/* MODAL REGISTRAR PAGO */}
-{showPago && (
-  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-    <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
-      <PagoForm
-        cliente={cliente.id}
-        onPagoRegistrado={handlePagoRegistrado} // ✅ aquí usamos la función correcta
-      />
-      <button
-        onClick={() => setShowPago(false)}
-        className="mt-3 w-full bg-gray-700 py-2 rounded"
-      >
-        Cancelar
-      </button>
-    </div>
-  </div>
-)}
+        {/* MODAL REGISTRAR PAGO */}
+        {showPago && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+            <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
+              <PagoForm
+                cliente={cliente.id}
+                onPagoRegistrado={handlePagoRegistrado}
+              />
+              <button
+                onClick={() => setShowPago(false)}
+                className="mt-3 w-full bg-gray-700 py-2 rounded"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
 
-{/* MODAL ÉXITO */}
-{showSuccess && (
-  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-    <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
-      <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
-      <p>¿Querés ver la cuenta corriente del cliente o volver a órdenes?</p>
-      <div className="flex flex-col gap-2 mt-2">
-        <button
-          onClick={() => handleCloseSuccess(true)} // 🔹 redirige al detalle
-          className="bg-blue-600 text-white py-2 rounded"
-        >
-          Ver cuenta corriente
-        </button>
-        <button
-          onClick={() => handleCloseSuccess(false)} // 🔹 solo cerrar modal
-          className="bg-gray-600 text-white py-2 rounded"
-        >
-          Volver a órdenes
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
+        {/* MODAL ÉXITO */}
+        {showSuccess && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+            <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
+              <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
+              <p>¿Querés ver la cuenta corriente del cliente o volver a órdenes?</p>
+              <div className="flex flex-col gap-2 mt-2">
+                <button
+                  onClick={() => handleCloseSuccess(true)}
+                  className="bg-blue-600 text-white py-2 rounded"
+                >
+                  Ver cuenta corriente
+                </button>
+                <button
+                  onClick={() => handleCloseSuccess(false)}
+                  className="bg-gray-600 text-white py-2 rounded"
+                >
+                  Volver a órdenes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
@@ -190,9 +189,7 @@ function Resumen({ label, value, saldo }) {
     <div className="bg-gray-800 p-3 rounded text-center">
       <span className="text-gray-400 text-sm">{label}</span>
       <p
-        className={`text-lg font-bold ${
-          saldo && value > 0 ? "text-red-400" : "text-green-400"
-        }`}
+        className={`text-lg font-bold ${saldo && value > 0 ? "text-red-400" : "text-green-400"}`}
       >
         {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(Number(value) || 0)}
       </p>
