@@ -71,16 +71,20 @@ export default function CuentaCorrienteModal({
             </button>
 
             <button
-              onClick={() =>
-                exportarPDFOrden({
-                  elementId: "cc-pdf",
-                  filename: `CuentaCorriente-${cliente.nombre}.pdf`,
-                })
-              }
-              className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
-            >
-              Exportar PDF
-            </button>
+  onClick={async () => {
+    await onPagoRegistrado(); // 🔄 vuelve a pedir datos
+    setTimeout(() => {
+      exportarPDFOrden({
+        elementId: "cc-pdf",
+        filename: `CuentaCorriente-${cliente.nombre}.pdf`,
+      });
+    }, 200);
+  }}
+  className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+>
+  Exportar PDF
+</button>
+
 
             <button onClick={onClose} className="text-xl font-bold">
               ✕
