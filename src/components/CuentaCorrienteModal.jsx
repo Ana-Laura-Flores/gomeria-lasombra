@@ -115,36 +115,13 @@ const handlePagoRegistrado = (pagosNuevos) => {
           </div>
         </div>
 
-        {/* MODAL REGISTRAR PAGO */}
-        {showPago && (
-          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-            <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
-              <PagoForm
-                cliente={cliente.id}
-                onPagoRegistrado={(pagosNuevos) => {
-                  // agregar pagos al instante al modal
-                  setPagosExtra((prev) => [...prev, ...pagosNuevos]);
-                  setShowPago(false);
-                  onPagoRegistrado?.(); // refresca datos padre
-                }}
-              />
-              <button
-                onClick={() => setShowPago(false)}
-                className="mt-3 w-full bg-gray-700 py-2 rounded"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL REGISTRAR PAGO */}
+      {/* MODAL REGISTRAR PAGO */}
 {showPago && (
   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
     <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
       <PagoForm
         cliente={cliente.id}
-        onPagoRegistrado={handlePagoRegistrado} // <-- usar la función correcta
+        onPagoRegistrado={handlePagoRegistrado} // ✅ aquí usamos la función correcta
       />
       <button
         onClick={() => setShowPago(false)}
@@ -155,6 +132,37 @@ const handlePagoRegistrado = (pagosNuevos) => {
     </div>
   </div>
 )}
+
+{/* MODAL ÉXITO */}
+{showSuccess && (
+  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+    <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
+      <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
+      <p>¿Querés ver la cuenta corriente del cliente o volver a órdenes?</p>
+      <div className="flex flex-col gap-2 mt-2">
+        <button
+          onClick={() => {
+            setShowSuccess(false);
+            onClose(); // cerramos el modal principal si querés
+          }}
+          className="bg-blue-600 text-white py-2 rounded"
+        >
+          Ver cuenta corriente
+        </button>
+        <button
+          onClick={() => {
+            setShowSuccess(false);
+            onClose();
+          }}
+          className="bg-gray-600 text-white py-2 rounded"
+        >
+          Volver a órdenes
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       </div>
     </div>
