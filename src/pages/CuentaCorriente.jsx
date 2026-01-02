@@ -231,8 +231,7 @@ const [refreshKey, setRefreshKey] = useState(0);
                     onClose={() => setClienteDetalleId(null)}
                     onPagoRegistrado={async () => {
                         await fetchData();
-                        setRefreshKey((k) => k + 1); // 🔥 refresca ordenes + pagos
-                        // NO cerramos el modal
+                        setRefreshKey((k) => k + 1); 
                     }}
                 />
             )}
