@@ -11,44 +11,42 @@ export default function CuentaCorriente() {
     const [pagos, setPagos] = useState([]);
 
     const [loading, setLoading] = useState(true);
-    const [detalleCliente, setDetalleCliente] = useState(null);
+    const [clienteDetalleId, setClienteDetalleId] = useState(null);
+
     const [filtroDeuda, setFiltroDeuda] = useState(false);
     const [searchNombre, setSearchNombre] = useState("");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const location = useLocation();
 
-
     const fetchData = async () => {
-      setLoading(true);
-  try {
-    const [resOrdenes, resPagos] = await Promise.all([
-      getOrdenesTrabajo(),
-      getPagosPorMes("1900-01-01", "2100-01-01"),
-    ]);
+        setLoading(true);
+        try {
+            const [resOrdenes, resPagos] = await Promise.all([
+                getOrdenesTrabajo(),
+                getPagosPorMes("1900-01-01", "2100-01-01"),
+            ]);
 
-    const ordenesCC = resOrdenes.data.filter(
-      (o) => o.condicion_cobro === "cuenta_corriente"
-    );
+            const ordenesCC = resOrdenes.data.filter(
+                (o) => o.condicion_cobro === "cuenta_corriente"
+            );
 
-    const pagosConfirmados = resPagos.data.filter(
-      (p) => p.estado === "confirmado"
-    );
+            const pagosConfirmados = resPagos.data.filter(
+                (p) => p.estado === "confirmado"
+            );
 
-    setOrdenes(ordenesCC);
-    setPagos(pagosConfirmados);
-  } catch (error) {
-    console.error("Error cargando cuenta corriente:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+            setOrdenes(ordenesCC);
+            setPagos(pagosConfirmados);
+        } catch (error) {
+            console.error("Error cargando cuenta corriente:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-useEffect(() => {
-  fetchData();
-}, [location.state?.refresh]);
-
-
+    useEffect(() => {
+        fetchData();
+    }, [location.state?.refresh]);
 
     // ================= AGRUPAR POR CLIENTE =================
     // ================= AGRUPAR POR CLIENTE =================
@@ -114,6 +112,11 @@ useEffect(() => {
         return Object.values(acc);
     }, [ordenes, pagos, fechaDesde, fechaHasta]);
 
+    const clienteDetalle = useMemo(() => {
+        if (!clienteDetalleId) return null;
+        return clientesCC.find((c) => c.id === clienteDetalleId);
+    }, [clienteDetalleId, clientesCC]);
+
     // ================= FILTROS =================
     const clientesFiltrados = useMemo(() => {
         let res = filtroDeuda
@@ -127,8 +130,8 @@ useEffect(() => {
         }
 
         return res.sort((a, b) =>
-  (a.nombre || "").localeCompare(b.nombre || "")
-);
+            (a.nombre || "").localeCompare(b.nombre || "")
+        );
     }, [clientesCC, filtroDeuda, searchNombre]);
 
     if (loading) {
@@ -200,11 +203,17 @@ useEffect(() => {
                         </div>
 
                         <button
-                            onClick={() => setDetalleCliente(cliente)}
+                            onClick={() => setClienteDetalleId(cliente.id)}
                             className="mt-4 w-full bg-blue-600 py-2 rounded font-semibold"
                         >
                             Ver detalle
                         </button>
+                        <Link
+                            to={`/ordenes/${o.id}?pdf=true`}
+                            className="text-xs text-gray-400 hover:text-white"
+                        >
+                            Descargar PDF
+                        </Link>
                     </div>
                 ))}
             </div>
@@ -213,23 +222,21 @@ useEffect(() => {
             <div className="hidden md:block">
                 <CuentaCorrienteTable
                     clientes={clientesFiltrados}
-                    onVerDetalle={setDetalleCliente}
+                    onVerDetalle={(cliente) => setClienteDetalleId(cliente.id)}
                 />
             </div>
 
             {/* ================= MODAL ================= */}
-            {detalleCliente && (
-  <CuentaCorrienteModal
-    cliente={detalleCliente}
-    onClose={() => setDetalleCliente(null)}
-    onPagoRegistrado={async () => {
-      await fetchData();       // 🔥 refresca TODO
-      setDetalleCliente(null); // opcional: cerrar modal
-    }}
-  />
-)}
-
+            {clienteDetalle && (
+                <CuentaCorrienteModal
+                    cliente={clienteDetalle}
+                    onClose={() => setClienteDetalleId(null)}
+                    onPagoRegistrado={async () => {
+                        await fetchData(); // 🔥 refresca ordenes + pagos
+                        // NO cerramos el modal
+                    }}
+                />
+            )}
         </MainLayout>
     );
-    
 }

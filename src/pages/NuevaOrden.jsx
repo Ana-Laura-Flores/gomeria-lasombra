@@ -14,7 +14,6 @@ import useItems from "../hooks/useItems";
 import { useMetodoPago } from "../hooks/useMetodoPago";
 import useProductos from "../hooks/useProductos";
 
-
 // secciones
 import DatosPrincipales from "../components/nueva-orden/DatosPrincipales";
 import ClienteSection from "../components/nueva-orden/ClienteSection";
@@ -47,7 +46,6 @@ export default function NuevaOrden() {
 
     return (
         <MainLayout>
-          
             <h1 className="text-2xl font-bold mb-6">Nueva Orden</h1>
 
             {/* Datos principales */}
@@ -145,8 +143,9 @@ export default function NuevaOrden() {
 
                         <button
                             onClick={() => {
-                                setShowModal(false);
                                 estado.resetForm();
+                                setShowModal(false);
+
                                 window.scrollTo(0, 0);
                             }}
                             className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
