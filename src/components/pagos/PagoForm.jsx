@@ -5,6 +5,7 @@ import {
   getCuentaCorrienteByCliente,
 } from "../../services/api";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
+import { useNavigate } from "react-router-dom";
 
 export default function PagoForm({ cliente, onPagoRegistrado }) {
   const metodos = useMetodoPago();
@@ -14,6 +15,8 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
   const [cuentaCorriente, setCuentaCorriente] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const [pagos, setPagos] = useState([]);
   const [pagoActual, setPagoActual] = useState({
