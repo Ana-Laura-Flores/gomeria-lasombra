@@ -28,15 +28,21 @@ const getRangoPorTipo = (tipo, valor) => {
     };
   }
 
-  if (tipo === "mes") {
-    const [y, m] = valor.split("-");
-    const ultimoDia = new Date(y, Number(m), 0).getDate();
+ if (tipo === "mes") {
+  const [y, m] = valor.split("-"); // m = "08"
 
-    return {
-      desde: startOfDay(`${y}-${m}-01`),
-      hasta: endOfDay(`${y}-${m}-${String(ultimoDia).padStart(2, "0")}`),
-    };
-  }
+  const lastDay = new Date(
+    Number(y),
+    Number(m), // 👈 OK así
+    0
+  ).getDate();
+
+  return {
+    desde: `${y}-${m}-01T00:00:00`,
+    hasta: `${y}-${m}-${String(lastDay).padStart(2, "0")}T23:59:59`,
+  };
+}
+
 
   // rango personalizado
   return {
@@ -84,11 +90,12 @@ export default function Dashboard() {
       setRango({ desde, hasta });
 
       try {
-        const [oRes, gRes, pRes] = await Promise.all([
-          getDashboardOrdenes(desde.slice(0, 10), hasta.slice(0, 10)),
-          getGastosPorMes(desde, hasta),
-          getPagosPorMes(desde, hasta),
-        ]);
+       const [oRes, gRes, pRes] = await Promise.all([
+  getDashboardOrdenes(desde, hasta),
+  getGastosPorMes(desde, hasta),
+  getPagosPorMes(desde, hasta),
+]);
+
 
         setOrdenes(oRes.data || []);
         setGastos(gRes.data || []);
