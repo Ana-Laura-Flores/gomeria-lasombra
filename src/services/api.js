@@ -12,16 +12,32 @@ export const authHeaders = () => ({
 // Fetch genérico
 // --------------------
 export const apiFetch = async (endpoint, options = {}) => {
-  const res = await fetch(`${API_URL}/items/${endpoint}`, {
-   ...options,
+  // Construir URL base
+  let url = endpoint.startsWith("http")
+    ? endpoint
+    : `${API_URL}/items/${endpoint}`;
+
+  // Si es GET (o no se especifica método), agregamos un parámetro único para romper cache
+  const method = options.method ? options.method.toUpperCase() : "GET";
+  if (method === "GET") {
+    const separator = url.includes("?") ? "&" : "?";
+    url = `${url}${separator}_=${Date.now()}`;
+  }
+
+  const res = await fetch(url, {
+    ...options,
+    method, // aseguramos que siempre haya método
     headers: {
       ...authHeaders(),
       ...(options.headers || {}),
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
     },
+    cache: "no-store", // rompe cache en navegadores modernos
   });
 
   if (!res.ok) {
-    throw new Error(`Error al llamar a API: ${res.statusText}`);
+    throw new Error(`Error al llamar a API: ${res.status} ${res.statusText}`);
   }
 
   return res.json();
