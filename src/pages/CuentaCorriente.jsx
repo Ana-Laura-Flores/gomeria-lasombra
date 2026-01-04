@@ -45,7 +45,7 @@ export default function CuentaCorriente() {
 
   useEffect(() => {
     fetchData();
-  }, [location.key]);
+  }, [location.state?.refresh]);
 
   // ================= AGRUPAR POR CLIENTE =================
   const clientesCC = useMemo(() => {
