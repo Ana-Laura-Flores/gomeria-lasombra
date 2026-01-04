@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layouts/MainLayout";
 import {
   getOrdenesTrabajo,
-  getPagosConfirmados,
+  getPagosCliente,
 } from "../services/api";
 import CuentaCorrienteTable from "../components/CuentaCorrienteTable";
 import CuentaCorrienteModal from "../components/CuentaCorrienteModal";
@@ -27,7 +27,7 @@ export default function CuentaCorriente() {
     try {
       const [resOrdenes, resPagos] = await Promise.all([
         getOrdenesTrabajo(),
-        getPagosConfirmados(),
+        getPagosCliente(),
       ]);
 
       const ordenesCC = resOrdenes.data.filter(
