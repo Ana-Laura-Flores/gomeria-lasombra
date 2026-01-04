@@ -9,7 +9,7 @@ export default function CuentaCorrienteModal({
   clienteId,
   clientesCC,
   onClose,
-  onPagoRegistrado, // función opcional para refrescar lista externa
+  onPagoRegistrado,
 }) {
   const [showPago, setShowPago] = useState(false);
   const [pagosExtra, setPagosExtra] = useState([]);
@@ -23,16 +23,12 @@ export default function CuentaCorrienteModal({
   );
   if (!cliente) return null;
 
-  // Movimientos combinados: órdenes + pagos
   const movimientos = useMemo(() => {
     const ordenes = cliente.ordenes.map((o) => ({
       fecha: o.fecha,
       tipo: "ORDEN",
       referencia: (
-        <Link
-          to={`/ordenes/${o.id}`}
-          className="text-blue-400 hover:underline"
-        >
+        <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">
           #{o.comprobante || o.id}
         </Link>
       ),
@@ -59,37 +55,22 @@ export default function CuentaCorrienteModal({
   const resumen = useMemo(() => {
     const total = cliente.total;
     const pagado =
-      cliente.pagado +
-      pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0);
+      cliente.pagado + pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0);
     const saldo = total - pagado;
     return { total, pagado, saldo };
   }, [cliente, pagosExtra]);
 
-  // ===========================
-  // Manejo de pago registrado
-  // ===========================
   const handlePagoRegistrado = (pagosNuevos) => {
-  // 1️⃣ Agregamos los pagos al estado local de extras
-  setPagosExtra((prev) => [...prev, ...pagosNuevos]);
-
-  // 2️⃣ Opcional: actualizar cliente dentro de clientesCC si querés
-  const clienteIndex = clientesCC.findIndex(c => c.id === clienteId);
-  if (clienteIndex !== -1) {
-    clientesCC[clienteIndex] = {
-      ...clientesCC[clienteIndex],
-      pagos: [...clientesCC[clienteIndex].pagos, ...pagosNuevos]
-    };
-  }
-
-  // 3️⃣ Cerrar modal de pago y abrir modal de éxito
-  setShowPago(false);
-  setShowSuccess(true);
-};
-
+    if (pagosNuevos?.length) {
+      setPagosExtra((prev) => [...prev, ...pagosNuevos]);
+    }
+    setShowPago(false);
+    setShowSuccess(true);
+    onPagoRegistrado?.(); // re-fetch en el padre para tener la base actualizada
+  };
 
   const handleSuccessAction = (accion) => {
     setShowSuccess(false);
-    onPagoRegistrado?.();
     switch (accion) {
       case "detalle":
         navigate(`/cuentas/${clienteId}`);
@@ -108,11 +89,9 @@ export default function CuentaCorrienteModal({
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
-        {/* HEADER */}
+        {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h2 className="text-lg font-bold">
-            Cuenta corriente · {cliente.nombre}
-          </h2>
+          <h2 className="text-lg font-bold">Cuenta corriente · {cliente.nombre}</h2>
           <div className="flex gap-2">
             <button
               onClick={() => setShowPago(true)}
@@ -131,25 +110,23 @@ export default function CuentaCorrienteModal({
             >
               Exportar PDF
             </button>
-            <button onClick={onClose} className="text-xl font-bold">
-              ✕
-            </button>
+            <button onClick={onClose} className="text-xl font-bold">✕</button>
           </div>
         </div>
 
-        {/* RESUMEN */}
+        {/* Resumen */}
         <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
           <Resumen label="Total" value={resumen.total} />
           <Resumen label="Pagado" value={resumen.pagado} />
           <Resumen label="Saldo" value={resumen.saldo} saldo />
         </div>
 
-        {/* MOVIMIENTOS */}
+        {/* Movimientos */}
         <div className="flex-1 overflow-y-auto p-4">
           <CuentaCorrienteMovimientos movimientos={movimientos} />
         </div>
 
-        {/* PDF OCULTO */}
+        {/* PDF oculto */}
         <div className="hidden">
           <div id="cc-pdf">
             <CuentaCorrientePDF
@@ -159,14 +136,11 @@ export default function CuentaCorrienteModal({
           </div>
         </div>
 
-        {/* MODAL PAGOS */}
+        {/* Modal pagos */}
         {showPago && (
           <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
             <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
-              <PagoForm
-                cliente={cliente.id}
-                onPagoRegistrado={handlePagoRegistrado}
-              />
+              <PagoForm cliente={cliente.id} onPagoRegistrado={handlePagoRegistrado} />
               <button
                 onClick={() => setShowPago(false)}
                 className="mt-3 w-full bg-gray-700 py-2 rounded"
@@ -177,13 +151,11 @@ export default function CuentaCorrienteModal({
           </div>
         )}
 
-        {/* MODAL SUCCESS */}
+        {/* Modal success */}
         {showSuccess && (
           <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
             <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
-              <h2 className="text-lg font-bold mb-2">
-                Pago registrado correctamente
-              </h2>
+              <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
               <p>¿Qué querés hacer ahora?</p>
               <div className="flex flex-col gap-2 mt-2">
                 <button

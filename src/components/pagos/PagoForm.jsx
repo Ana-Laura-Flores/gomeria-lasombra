@@ -21,12 +21,8 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     fecha_cobro: "",
   });
 
-  // =========================
-  // Cargar cuenta corriente
-  // =========================
   useEffect(() => {
     if (!clienteId) return;
-
     const cargarCC = async () => {
       try {
         const res = await getCuentaCorrienteByCliente(clienteId);
@@ -38,63 +34,62 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     cargarCC();
   }, [clienteId]);
 
-  // =========================
-  // Agregar pago a lista
-  // =========================
   const agregarPago = () => {
     if (!pagoActual.metodo || !pagoActual.monto) return;
-
     setPagos((prev) => [...prev, pagoActual]);
-    setPagoActual({ metodo: "", monto: "", banco: "", numero_cheque: "", fecha_cobro: "" });
+    setPagoActual({
+      metodo: "",
+      monto: "",
+      banco: "",
+      numero_cheque: "",
+      fecha_cobro: "",
+    });
   };
 
   const eliminarPago = (index) => {
     setPagos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const totalPagosNum = pagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
+  const totalPagosNum = pagos.reduce(
+    (acc, p) => acc + parseFloat(p.monto || 0),
+    0
+  );
 
-  // =========================
-  // Guardar pagos en API
-  // =========================
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!pagos.length) return alert("No hay pagos cargados");
-  if (!cuentaCorriente) return alert("El cliente no tiene cuenta corriente");
+    e.preventDefault();
+    if (!pagos.length) return alert("No hay pagos cargados");
+    if (!cuentaCorriente) return alert("El cliente no tiene cuenta corriente");
 
-  setLoading(true);
-  try {
-    const pagosGuardados = [];
+    setLoading(true);
+    try {
+      const pagosGuardados = [];
 
-    for (const pago of pagos) {
-      const res = await crearPago({
-        cliente: clienteId,
-        metodo_pago: pago.metodo,
-        monto: Number(pago.monto),
-        banco: pago.banco || null,
-        numero_cheque: pago.numero_cheque || null,
-        fecha_cobro: pago.fecha_cobro || null,
-        cuenta_corriente: cuentaCorriente.id,
-      });
-      pagosGuardados.push(res.data);
+      for (const pago of pagos) {
+        const res = await crearPago({
+          cliente: clienteId,
+          metodo_pago: pago.metodo,
+          monto: Number(pago.monto),
+          banco: pago.banco || null,
+          numero_cheque: pago.numero_cheque || null,
+          fecha_cobro: pago.fecha_cobro || null,
+          cuenta_corriente: cuentaCorriente.id,
+        });
+        pagosGuardados.push(res.data);
+      }
+
+      await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
+
+      setPagos([]);
+
+      // Devolver pagos creados al modal para mostrar al instante
+      onPagoRegistrado?.(pagosGuardados);
+    } catch (err) {
+      console.error(err);
+      alert("Error al registrar el pago");
+    } finally {
+      setLoading(false);
     }
-
-    // Actualizar saldo en cuenta corriente
-    await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
-
-    setPagos([]);
-    
-    // 🔥 PASAR PAGOS NUEVOS AL MODAL
-    onPagoRegistrado?.(pagosGuardados);
-
-  } catch (err) {
-    console.error(err);
-    alert("Error al registrar el pago");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded space-y-4">
@@ -102,12 +97,16 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
       <select
         value={pagoActual.metodo}
-        onChange={(e) => setPagoActual({ ...pagoActual, metodo: e.target.value })}
+        onChange={(e) =>
+          setPagoActual({ ...pagoActual, metodo: e.target.value })
+        }
         className="w-full p-2 bg-gray-700 rounded"
       >
         <option value="">Método de pago</option>
         {metodos.map((m) => (
-          <option key={m.value} value={m.value}>{m.text}</option>
+          <option key={m.value} value={m.value}>
+            {m.text}
+          </option>
         ))}
       </select>
 
@@ -115,34 +114,67 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         type="number"
         placeholder="Monto"
         value={pagoActual.monto}
-        onChange={(e) => setPagoActual({ ...pagoActual, monto: e.target.value })}
+        onChange={(e) =>
+          setPagoActual({ ...pagoActual, monto: e.target.value })
+        }
         className="w-full p-2 bg-gray-700 rounded"
       />
 
       {pagoActual.metodo === "cheque" && (
         <div className="space-y-2">
-          <input placeholder="Banco" value={pagoActual.banco}
-            onChange={(e) => setPagoActual({ ...pagoActual, banco: e.target.value })}
-            className="w-full p-2 bg-gray-700 rounded" />
-          <input placeholder="Número de cheque" value={pagoActual.numero_cheque}
-            onChange={(e) => setPagoActual({ ...pagoActual, numero_cheque: e.target.value })}
-            className="w-full p-2 bg-gray-700 rounded" />
-          <input type="date" value={pagoActual.fecha_cobro}
-            onChange={(e) => setPagoActual({ ...pagoActual, fecha_cobro: e.target.value })}
-            className="w-full p-2 bg-gray-700 rounded" />
+          <input
+            placeholder="Banco"
+            value={pagoActual.banco}
+            onChange={(e) =>
+              setPagoActual({ ...pagoActual, banco: e.target.value })
+            }
+            className="w-full p-2 bg-gray-700 rounded"
+          />
+          <input
+            placeholder="Número de cheque"
+            value={pagoActual.numero_cheque}
+            onChange={(e) =>
+              setPagoActual({
+                ...pagoActual,
+                numero_cheque: e.target.value,
+              })
+            }
+            className="w-full p-2 bg-gray-700 rounded"
+          />
+          <input
+            type="date"
+            value={pagoActual.fecha_cobro}
+            onChange={(e) =>
+              setPagoActual({ ...pagoActual, fecha_cobro: e.target.value })
+            }
+            className="w-full p-2 bg-gray-700 rounded"
+          />
         </div>
       )}
 
-      <button type="button" onClick={agregarPago} className="bg-blue-600 w-full py-2 rounded">
+      <button
+        type="button"
+        onClick={agregarPago}
+        className="bg-blue-600 w-full py-2 rounded"
+      >
         Agregar pago
       </button>
 
       {pagos.length > 0 && (
         <div className="space-y-2">
           {pagos.map((p, i) => (
-            <div key={i} className="bg-gray-700 p-2 rounded flex justify-between">
-              <span>{p.metodo} – ${p.monto}</span>
-              <button type="button" onClick={() => eliminarPago(i)} className="text-red-400">
+            <div
+              key={i}
+              className="bg-gray-700 p-2 rounded flex justify-between"
+            >
+              <span>
+                {p.metodo} – ${p.monto}
+              </span>
+              <button
+                type="button"
+                onClick={() => eliminarPago(i)}
+                className="text-red-400"
+              >
                 Quitar
               </button>
             </div>
@@ -151,7 +183,11 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         </div>
       )}
 
-      <button type="submit" disabled={loading} className="bg-green-600 w-full py-2 rounded disabled:opacity-50">
+      <button
+        type="submit"
+        disabled={loading}
+        className="bg-green-600 w-full py-2 rounded disabled:opacity-50"
+      >
         {loading ? "Guardando..." : "Confirmar pagos"}
       </button>
     </form>
