@@ -14,6 +14,8 @@ export default function CuentaCorrienteClientePage() {
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clienteNombre, setClienteNombre] = useState("");
+  const location = useLocation();
+
 
   const fetchData = async () => {
     if (!clienteId) return setLoading(false);
@@ -55,8 +57,9 @@ export default function CuentaCorrienteClientePage() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, [clienteId]);
+  fetchData();
+}, [clienteId, location.key]);
+
 
   // Resumen
   const resumen = useMemo(() => {

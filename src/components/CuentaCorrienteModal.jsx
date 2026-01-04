@@ -101,7 +101,10 @@ export default function CuentaCorrienteModal({
         navigate(`/ordenes`);
         break;
       case "listado":
-        navigate(`/cuenta-corriente`);
+       navigate("/cuenta-corriente", {
+  state: { refresh: Date.now() },
+});
+
         break;
       default:
         onClose?.();
