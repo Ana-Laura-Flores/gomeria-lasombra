@@ -26,7 +26,7 @@ export default function CuentaCorrienteClientePage() {
         getOrdenesTrabajo(),
         getPagosPorMes("1900-01-01", "2100-01-01"),
       ]);
-
+console.log("Pagos crudos API:", resPagos.data);
       // Filtrar órdenes de cuenta corriente
       const ordenesCCCliente = resOrdenes.data
         .filter((o) => o.condicion_cobro === "cuenta_corriente")
