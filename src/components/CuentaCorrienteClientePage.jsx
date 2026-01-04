@@ -24,9 +24,10 @@ export default function CuentaCorrienteClientePage() {
     try {
       const [resOrdenes, resPagos] = await Promise.all([
         getOrdenesTrabajo(),
-        getPagosPorMes("1900-01-01", "2100-01-01"),
+        getPagosCliente(clienteId),
+
       ]);
-console.log("Pagos crudos API:", resPagos.data);
+
       // Filtrar órdenes de cuenta corriente
       const ordenesCCCliente = resOrdenes.data
         .filter((o) => o.condicion_cobro === "cuenta_corriente")

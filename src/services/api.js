@@ -152,6 +152,11 @@ export const getOrdenesCuentaCorriente = async (clienteId) => {
   );
 };
 
+export const getPagosCliente = async (clienteId) => {
+  return apiFetch(
+    `pagos?filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado&sort=fecha`
+  );
+};
 
 
 // Traer todas las órdenes para cuenta corriente
