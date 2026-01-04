@@ -1,3 +1,4 @@
+// src/components/CuentaCorrienteModal.jsx
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
@@ -61,35 +62,37 @@ export default function CuentaCorrienteModal({
   }, [cliente, pagosExtra]);
 
   const handlePagoRegistrado = (pagosNuevos) => {
-    if (pagosNuevos?.length) {
+    if (Array.isArray(pagosNuevos) && pagosNuevos.length) {
       setPagosExtra((prev) => [...prev, ...pagosNuevos]);
     }
     setShowPago(false);
     setShowSuccess(true);
-    onPagoRegistrado?.(); // re-fetch en el padre para tener la base actualizada
+    onPagoRegistrado?.(); // re-fetch en el padre
   };
 
   const handleSuccessAction = (accion) => {
     setShowSuccess(false);
-    switch (accion) {
-      case "detalle":
-        navigate(`/cuentas/${clienteId}`);
-        break;
-      case "ordenes":
-        navigate(`/ordenes`);
-        break;
-      case "listado":
-        navigate(`/cuentas`);
-        break;
-      default:
-        onClose?.();
+
+    if (accion === "detalle") {
+      navigate(`/cuentas/${clienteId}`);
+      return;
     }
+    if (accion === "ordenes") {
+      navigate(`/ordenes`);
+      return;
+    }
+    if (accion === "listado") {
+      navigate(`/cuentas`);
+      return;
+    }
+
+    onClose?.();
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
-        {/* Header */}
+        {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <h2 className="text-lg font-bold">Cuenta corriente · {cliente.nombre}</h2>
           <div className="flex gap-2">
@@ -114,19 +117,19 @@ export default function CuentaCorrienteModal({
           </div>
         </div>
 
-        {/* Resumen */}
+        {/* RESUMEN */}
         <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
           <Resumen label="Total" value={resumen.total} />
           <Resumen label="Pagado" value={resumen.pagado} />
           <Resumen label="Saldo" value={resumen.saldo} saldo />
         </div>
 
-        {/* Movimientos */}
+        {/* MOVIMIENTOS */}
         <div className="flex-1 overflow-y-auto p-4">
           <CuentaCorrienteMovimientos movimientos={movimientos} />
         </div>
 
-        {/* PDF oculto */}
+        {/* PDF OCULTO */}
         <div className="hidden">
           <div id="cc-pdf">
             <CuentaCorrientePDF
@@ -136,9 +139,9 @@ export default function CuentaCorrienteModal({
           </div>
         </div>
 
-        {/* Modal pagos */}
+        {/* MODAL PAGOS */}
         {showPago && (
-          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center">
             <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
               <PagoForm cliente={cliente.id} onPagoRegistrado={handlePagoRegistrado} />
               <button
@@ -151,9 +154,9 @@ export default function CuentaCorrienteModal({
           </div>
         )}
 
-        {/* Modal success */}
+        {/* MODAL SUCCESS */}
         {showSuccess && (
-          <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center">
             <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
               <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
               <p>¿Qué querés hacer ahora?</p>
