@@ -38,10 +38,18 @@ export default function CuentaCorrienteModal({
         getPagosPorMes("1900-01-01", "2100-01-01"),
       ]);
 
-      const pagosCliente = resPagos.data.filter((p) => {
-        const id = typeof p.cliente === "object" ? p.cliente.id : p.cliente;
-        return id === clienteId && p.estado === "confirmado";
-      });
+     const pagosCliente = (resPagos.data || []).filter((p) => {
+  if (!p.cliente) return false;
+
+  const id =
+    typeof p.cliente === "object" ? p.cliente.id : p.cliente;
+
+  return (
+    String(id) === String(clienteId) &&
+    p.estado === "confirmado"
+  );
+});
+
 
       setOrdenes(resOrdenes.data || []);
       setPagos(pagosCliente || []);
