@@ -86,7 +86,7 @@ export default function CuentaCorrienteModal({
     setShowSuccess(true);
 
     // Refrescar lista general si existe la función
-   onPagoRegistrado?.();
+  //  onPagoRegistrado?.();
   };
 
   const handleSuccessAction = (accion) => {
