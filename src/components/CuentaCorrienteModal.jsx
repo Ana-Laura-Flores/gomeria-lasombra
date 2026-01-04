@@ -91,7 +91,7 @@ export default function CuentaCorrienteModal({
         navigate(`/ordenes`);
         break;
       case "listado":
-        navigate(`/cuentas`);
+        navigate(`/cuenta-corriente`);
         break;
       default:
         onClose?.();
