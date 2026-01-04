@@ -90,6 +90,7 @@ export default function CuentaCorrienteModal({
   };
 
   const handleSuccessAction = (accion) => {
+    onPagoRegistrado?.();
     setShowSuccess(false);
     
     switch (accion) {
