@@ -94,11 +94,11 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
           fecha_cobro: pago.fecha_cobro || null,
           cuenta_corriente: cc.id,
         });
-
+ await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
         pagosGuardados.push(res.data);
       }
 
-      await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
+     
 
       setPagos([]);
       onPagoRegistrado?.(pagosGuardados);

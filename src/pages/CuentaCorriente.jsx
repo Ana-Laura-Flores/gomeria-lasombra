@@ -239,8 +239,6 @@ export default function CuentaCorriente() {
 
 )}
 
-
-
         </MainLayout>
     );
 }
