@@ -1,89 +1,47 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import PagoForm from "./pagos/PagoForm";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
 
-import {
-  getOrdenesCuentaCorriente,
-  getPagosPorMes,
-} from "../services/api";
-
 export default function CuentaCorrienteModal({
   clienteId,
+  clientesCC,
   onClose,
-  onPagoRegistrado,
+  onPagoRegistrado, // función opcional para refrescar lista externa
 }) {
-  const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(true);
-  const [ordenes, setOrdenes] = useState([]);
-  const [pagos, setPagos] = useState([]);
-  const [clienteNombre, setClienteNombre] = useState("");
-
   const [showPago, setShowPago] = useState(false);
+  const [pagosExtra, setPagosExtra] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // =========================
-  // CARGA DE DATOS REALES
-  // =========================
-  const fetchData = async () => {
-    if (!clienteId) return;
-
-    setLoading(true);
-    try {
-      const [resOrdenes, resPagos] = await Promise.all([
-        getOrdenesCuentaCorriente(clienteId),
-        getPagosPorMes("1900-01-01", "2100-01-01"),
-      ]);
-
-     const pagosCliente = (resPagos.data || []).filter((p) => {
-  if (!p.cliente) return false;
-
-  const id =
-    typeof p.cliente === "object" ? p.cliente.id : p.cliente;
-
-  return (
-    String(id) === String(clienteId) &&
-    p.estado === "confirmado"
-  );
-});
-
-
-      setOrdenes(resOrdenes.data || []);
-      setPagos(pagosCliente || []);
-
-      const nombre =
-        resOrdenes.data?.[0]?.cliente?.nombre ||
-        pagosCliente?.[0]?.cliente?.nombre ||
-        "";
-
-      setClienteNombre(nombre);
-    } catch (err) {
-      console.error("Error cargando cuenta corriente:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchData();
-  }, [clienteId]);
+  return () => {
+    setPagosExtra([]);
+    setShowPago(false);
+    setShowSuccess(false);
+  };
+}, []);
 
-  const isReady = !loading;
 
-  // =========================
-  // MOVIMIENTOS (SEGURO)
-  // =========================
+  const cliente = useMemo(
+    () => clientesCC.find((c) => c.id === clienteId),
+    [clientesCC, clienteId]
+  );
+  if (!cliente) return null;
+
+  // Movimientos combinados: órdenes + pagos
   const movimientos = useMemo(() => {
-    if (!isReady) return [];
-
-    const movOrdenes = ordenes.map((o) => ({
+    const ordenes = cliente.ordenes.map((o) => ({
       fecha: o.fecha,
       tipo: "ORDEN",
       referencia: (
-        <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">
+        <Link
+          to={`/ordenes/${o.id}`}
+          className="text-blue-400 hover:underline"
+        >
           #{o.comprobante || o.id}
         </Link>
       ),
@@ -91,8 +49,8 @@ export default function CuentaCorrienteModal({
       haber: 0,
     }));
 
-    const movPagos = pagos.map((p) => ({
-      fecha: p.fecha,
+    const pagos = [...cliente.pagos, ...pagosExtra].map((p) => ({
+      fecha: p.fecha || new Date().toISOString().split("T")[0],
       tipo: p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO",
       referencia: p.metodo_pago || "Pago",
       debe: 0,
@@ -102,49 +60,69 @@ export default function CuentaCorrienteModal({
       fecha_cobro: p.fecha_cobro || null,
     }));
 
-    return [...movOrdenes, ...movPagos].sort(
+    return [...ordenes, ...pagos].sort(
       (a, b) => new Date(a.fecha) - new Date(b.fecha)
     );
-  }, [isReady, ordenes, pagos]);
+  }, [cliente, pagosExtra]);
 
-  // =========================
-  // RESUMEN
-  // =========================
   const resumen = useMemo(() => {
-    if (!isReady) return { total: 0, pagado: 0, saldo: 0 };
+    const total = cliente.total;
+    const pagado =
+      cliente.pagado +
+      pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0);
+    const saldo = total - pagado;
+    return { total, pagado, saldo };
+  }, [cliente, pagosExtra]);
 
-    const total = ordenes.reduce((acc, o) => acc + Number(o.total || 0), 0);
-    const pagado = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
+  // ===========================
+  // Manejo de pago registrado
+  // ===========================
+  const handlePagoRegistrado = (pagosNuevos) => {
+    // Agregamos pagos a la lista local
+    setPagosExtra((prev) => [...prev, ...pagosNuevos]);
 
-    return { total, pagado, saldo: total - pagado };
-  }, [isReady, ordenes, pagos]);
-
-  // =========================
-  // PAGO REGISTRADO
-  // =========================
-  const handlePagoRegistrado = async () => {
+    // Cerramos modal de pago y abrimos modal de éxito
     setShowPago(false);
     setShowSuccess(true);
-    await fetchData();        // 🔥 refresco REAL
-    onPagoRegistrado?.();     // refresca listado padre
+
+    // Refrescar lista general si existe la función
+  //  onPagoRegistrado?.();
   };
 
-  // =========================
-  // RENDER
-  // =========================
+  const handleSuccessAction = (accion) => {
+    onPagoRegistrado?.();
+    setShowSuccess(false);
+    
+    switch (accion) {
+      case "detalle":
+        navigate(`/cuentas/${clienteId}`);
+        break;
+      case "ordenes":
+        navigate(`/ordenes`);
+        break;
+      case "listado":
+       navigate("/cuenta-corriente", {
+  state: { refresh: Date.now() },
+});
+
+        break;
+      default:
+        onClose?.();
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
-
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <h2 className="text-lg font-bold">
-            Cuenta corriente · {clienteNombre || clienteId}
+            Cuenta corriente · {cliente.nombre}
           </h2>
           <div className="flex gap-2">
             <button
               onClick={() => setShowPago(true)}
-              className="bg-green-600 px-3 py-1 rounded text-sm"
+              className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm"
             >
               Registrar pago
             </button>
@@ -152,10 +130,10 @@ export default function CuentaCorrienteModal({
               onClick={() =>
                 exportarPDFOrden({
                   elementId: "cc-pdf",
-                  filename: `CuentaCorriente-${clienteNombre || clienteId}.pdf`,
+                  filename: `CuentaCorriente-${cliente.nombre}.pdf`,
                 })
               }
-              className="bg-blue-600 px-3 py-1 rounded text-sm"
+              className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
             >
               Exportar PDF
             </button>
@@ -165,42 +143,34 @@ export default function CuentaCorrienteModal({
           </div>
         </div>
 
-        {!isReady ? (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
-            Cargando cuenta corriente...
-          </div>
-        ) : (
-          <>
-            {/* RESUMEN */}
-            <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
-              <Resumen label="Total" value={resumen.total} />
-              <Resumen label="Pagado" value={resumen.pagado} />
-              <Resumen label="Saldo" value={resumen.saldo} saldo />
-            </div>
+        {/* RESUMEN */}
+        <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-700">
+          <Resumen label="Total" value={resumen.total} />
+          <Resumen label="Pagado" value={resumen.pagado} />
+          <Resumen label="Saldo" value={resumen.saldo} saldo />
+        </div>
 
-            {/* MOVIMIENTOS */}
-            <div className="flex-1 overflow-y-auto p-4">
-              <CuentaCorrienteMovimientos movimientos={movimientos} />
-            </div>
-          </>
-        )}
+        {/* MOVIMIENTOS */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <CuentaCorrienteMovimientos movimientos={movimientos} />
+        </div>
 
         {/* PDF OCULTO */}
         <div className="hidden">
           <div id="cc-pdf">
             <CuentaCorrientePDF
-              cliente={{ id: clienteId, nombre: clienteNombre, ...resumen }}
+              cliente={{ id: clienteId, nombre: cliente.nombre, ...resumen }}
               movimientos={movimientos}
             />
           </div>
         </div>
 
-        {/* MODAL PAGO */}
+        {/* MODAL PAGOS */}
         {showPago && (
           <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
             <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
               <PagoForm
-                cliente={clienteId}
+                cliente={cliente.id}
                 onPagoRegistrado={handlePagoRegistrado}
               />
               <button
@@ -217,18 +187,30 @@ export default function CuentaCorrienteModal({
         {showSuccess && (
           <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
             <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
-              <h2 className="text-lg font-bold">
+              <h2 className="text-lg font-bold mb-2">
                 Pago registrado correctamente
               </h2>
-              <button
-                onClick={() => {
-                  setShowSuccess(false);
-                  navigate(`/cuentas/${clienteId}`);
-                }}
-                className="bg-blue-600 w-full py-2 rounded"
-              >
-                Ver cuenta corriente
-              </button>
+              <p>¿Qué querés hacer ahora?</p>
+              <div className="flex flex-col gap-2 mt-2">
+                <button
+                  onClick={() => handleSuccessAction("detalle")}
+                  className="bg-blue-600 text-white py-2 rounded"
+                >
+                  Ver cuenta corriente del cliente
+                </button>
+                <button
+                  onClick={() => handleSuccessAction("ordenes")}
+                  className="bg-gray-600 text-white py-2 rounded"
+                >
+                  Volver a órdenes
+                </button>
+                <button
+                  onClick={() => handleSuccessAction("listado")}
+                  className="bg-green-600 text-white py-2 rounded"
+                >
+                  Volver al listado de cuentas corrientes
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -249,7 +231,7 @@ function Resumen({ label, value, saldo }) {
         {new Intl.NumberFormat("es-AR", {
           style: "currency",
           currency: "ARS",
-        }).format(value || 0)}
+        }).format(Number(value) || 0)}
       </p>
     </div>
   );
