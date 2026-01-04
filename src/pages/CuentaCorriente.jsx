@@ -47,9 +47,10 @@ export default function CuentaCorriente() {
         }
     };
 
-   useEffect(() => {
+  useEffect(() => {
   fetchData();
-}, [location.key]);
+}, [location.state?.refresh]);
+
 
 
     // ================= AGRUPAR POR CLIENTE =================

@@ -131,6 +131,7 @@ export default function CuentaCorrienteClientePage() {
                     </button>
                     <Link
                         to="/cuenta-corriente"
+                        state={{ refresh: Date.now() }}
                         className="px-3 py-1 rounded bg-gray-700"
                     >
                         Volver
