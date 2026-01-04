@@ -56,9 +56,10 @@ export default function CuentaCorrienteClientePage() {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
   fetchData();
-}, [clienteId, location.key]);
+}, [clienteId, location.state?.refresh]);
+
 
 
   // Resumen
