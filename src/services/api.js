@@ -157,7 +157,12 @@ export const getPagosCliente = async (clienteId) => {
   );
 };
 
-
+export const getPagosConfirmados = async () => {
+  return apiFetch(
+    "pagos?filter[estado][_eq]=confirmado&fields=*,cliente.*"
+  );
+};
+ 
 // Traer todas las órdenes para cuenta corriente
 export const getCuentasCorrientes = async () => {
   return apiFetch(
