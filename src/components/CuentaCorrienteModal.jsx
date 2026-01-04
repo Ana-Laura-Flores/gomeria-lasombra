@@ -17,6 +17,15 @@ export default function CuentaCorrienteModal({
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+  return () => {
+    setPagosExtra([]);
+    setShowPago(false);
+    setShowSuccess(false);
+  };
+}, []);
+
+
   const cliente = useMemo(
     () => clientesCC.find((c) => c.id === clienteId),
     [clientesCC, clienteId]
@@ -77,7 +86,7 @@ export default function CuentaCorrienteModal({
     setShowSuccess(true);
 
     // Refrescar lista general si existe la función
-   
+   onPagoRegistrado?.();
   };
 
   const handleSuccessAction = (accion) => {
