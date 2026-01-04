@@ -146,11 +146,10 @@ export const getOrdenesCuentaCorriente = async (clienteId) => {
   if (!clienteId) return { data: [] };
 
   return apiFetch(
-    `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente`
-      
-    
+    `ordenes_trabajo?fields=id,fecha,total,comprobante&filter[cliente][_eq]=${clienteId}&filter[condicion_cobro][_eq]=cuenta_corriente&sort=fecha`
   );
 };
+
 
 export const getPagosCliente = async (clienteId) => {
   return apiFetch(
