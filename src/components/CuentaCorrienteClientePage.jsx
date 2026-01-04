@@ -1,14 +1,15 @@
 // src/pages/CuentaCorrienteClientePage.jsx
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { getOrdenesTrabajo, getPagosPorMes } from "../services/api";
 import CuentaCorrienteMovimientos from "../components/CuentaCorrienteMovimientos";
 import CuentaCorrientePDF from "../components/CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 
+
 export default function CuentaCorrienteClientePage() {
-  const { clienteId } = useParams();
+  const { clienteId } = useParams(); // <-- tomamos ID de la URL
   const [ordenes, setOrdenes] = useState([]);
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,13 +25,13 @@ export default function CuentaCorrienteClientePage() {
         getPagosPorMes("1900-01-01", "2100-01-01"),
       ]);
 
-      // Órdenes CC del cliente
-      const ordenesCCCliente = (resOrdenes.data || [])
+      // Filtrar órdenes de cuenta corriente
+      const ordenesCCCliente = resOrdenes.data
         .filter((o) => o.condicion_cobro === "cuenta_corriente")
         .filter((o) => o.cliente && String(o.cliente.id) === String(clienteId));
 
-      // Pagos confirmados del cliente
-      const pagosConfirmadosCliente = (resPagos.data || [])
+      // Filtrar pagos confirmados del cliente
+      const pagosConfirmadosCliente = resPagos.data
         .filter((p) => p.estado === "confirmado")
         .filter((p) => {
           const id = p.cliente?.id ?? p.cliente;
@@ -40,6 +41,7 @@ export default function CuentaCorrienteClientePage() {
       setOrdenes(ordenesCCCliente);
       setPagos(pagosConfirmadosCliente);
 
+      // Tomar nombre del cliente desde órdenes o pagos
       const nombre =
         ordenesCCCliente[0]?.cliente?.nombre ||
         pagosConfirmadosCliente[0]?.cliente?.nombre ||
@@ -56,18 +58,23 @@ export default function CuentaCorrienteClientePage() {
     fetchData();
   }, [clienteId]);
 
+  // Resumen
   const resumen = useMemo(() => {
     const total = ordenes.reduce((acc, o) => acc + Number(o.total || 0), 0);
     const pagado = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
     return { total, pagado, saldo: total - pagado };
   }, [ordenes, pagos]);
 
+  // Movimientos
   const movimientos = useMemo(() => {
     const msOrdenes = ordenes.map((o) => ({
       fecha: o.fecha,
       tipo: "ORDEN",
       referencia: (
-        <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">
+        <Link
+          to={`/ordenes/${o.id}`}
+          className="text-blue-400 hover:underline"
+        >
           #{o.comprobante || o.id}
         </Link>
       ),
@@ -117,7 +124,7 @@ export default function CuentaCorrienteClientePage() {
           >
             Exportar PDF
           </button>
-          <Link to="/cuentas" className="px-3 py-1 rounded bg-gray-700">
+          <Link to="/cuenta-corriente" className="px-3 py-1 rounded bg-gray-700">
             Volver
           </Link>
         </div>

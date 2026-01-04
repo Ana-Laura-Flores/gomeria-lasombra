@@ -1,4 +1,3 @@
-// src/components/CuentaCorrienteModal.jsx
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
@@ -10,7 +9,7 @@ export default function CuentaCorrienteModal({
   clienteId,
   clientesCC,
   onClose,
-  onPagoRegistrado,
+  onPagoRegistrado, // función opcional para refrescar lista externa
 }) {
   const [showPago, setShowPago] = useState(false);
   const [pagosExtra, setPagosExtra] = useState([]);
@@ -24,12 +23,16 @@ export default function CuentaCorrienteModal({
   );
   if (!cliente) return null;
 
+  // Movimientos combinados: órdenes + pagos
   const movimientos = useMemo(() => {
     const ordenes = cliente.ordenes.map((o) => ({
       fecha: o.fecha,
       tipo: "ORDEN",
       referencia: (
-        <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">
+        <Link
+          to={`/ordenes/${o.id}`}
+          className="text-blue-400 hover:underline"
+        >
           #{o.comprobante || o.id}
         </Link>
       ),
@@ -56,37 +59,43 @@ export default function CuentaCorrienteModal({
   const resumen = useMemo(() => {
     const total = cliente.total;
     const pagado =
-      cliente.pagado + pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0);
+      cliente.pagado +
+      pagosExtra.reduce((acc, p) => acc + Number(p.monto), 0);
     const saldo = total - pagado;
     return { total, pagado, saldo };
   }, [cliente, pagosExtra]);
 
+  // ===========================
+  // Manejo de pago registrado
+  // ===========================
   const handlePagoRegistrado = (pagosNuevos) => {
-    if (Array.isArray(pagosNuevos) && pagosNuevos.length) {
-      setPagosExtra((prev) => [...prev, ...pagosNuevos]);
-    }
+    // Agregamos pagos a la lista local
+    setPagosExtra((prev) => [...prev, ...pagosNuevos]);
+
+    // Cerramos modal de pago y abrimos modal de éxito
     setShowPago(false);
     setShowSuccess(true);
-    onPagoRegistrado?.(); // re-fetch en el padre
+
+    // Refrescar lista general si existe la función
+   
   };
 
   const handleSuccessAction = (accion) => {
     setShowSuccess(false);
-
-    if (accion === "detalle") {
-      navigate(`/cuentas/${clienteId}`);
-      return;
+    
+    switch (accion) {
+      case "detalle":
+        navigate(`/cuentas/${clienteId}`);
+        break;
+      case "ordenes":
+        navigate(`/ordenes`);
+        break;
+      case "listado":
+        navigate(`/cuentas`);
+        break;
+      default:
+        onClose?.();
     }
-    if (accion === "ordenes") {
-      navigate(`/ordenes`);
-      return;
-    }
-    if (accion === "listado") {
-      navigate(`/cuentas`);
-      return;
-    }
-
-    onClose?.();
   };
 
   return (
@@ -94,7 +103,9 @@ export default function CuentaCorrienteModal({
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h2 className="text-lg font-bold">Cuenta corriente · {cliente.nombre}</h2>
+          <h2 className="text-lg font-bold">
+            Cuenta corriente · {cliente.nombre}
+          </h2>
           <div className="flex gap-2">
             <button
               onClick={() => setShowPago(true)}
@@ -113,7 +124,9 @@ export default function CuentaCorrienteModal({
             >
               Exportar PDF
             </button>
-            <button onClick={onClose} className="text-xl font-bold">✕</button>
+            <button onClick={onClose} className="text-xl font-bold">
+              ✕
+            </button>
           </div>
         </div>
 
@@ -141,9 +154,12 @@ export default function CuentaCorrienteModal({
 
         {/* MODAL PAGOS */}
         {showPago && (
-          <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
             <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
-              <PagoForm cliente={cliente.id} onPagoRegistrado={handlePagoRegistrado} />
+              <PagoForm
+                cliente={cliente.id}
+                onPagoRegistrado={handlePagoRegistrado}
+              />
               <button
                 onClick={() => setShowPago(false)}
                 className="mt-3 w-full bg-gray-700 py-2 rounded"
@@ -156,9 +172,11 @@ export default function CuentaCorrienteModal({
 
         {/* MODAL SUCCESS */}
         {showSuccess && (
-          <div className="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
             <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
-              <h2 className="text-lg font-bold mb-2">Pago registrado correctamente</h2>
+              <h2 className="text-lg font-bold mb-2">
+                Pago registrado correctamente
+              </h2>
               <p>¿Qué querés hacer ahora?</p>
               <div className="flex flex-col gap-2 mt-2">
                 <button
