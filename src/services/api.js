@@ -198,25 +198,31 @@ export const getPagosCuentaCorriente = async (clienteId) => {
 
 
 export const crearCuentaCorriente = async ({ cliente, saldo_inicial = 0 }) => {
+  // ⚠️ Esperamos que authHeaders devuelva el objeto con Authorization
+  const headers = await authHeaders();
+
   const res = await fetch(`${API_URL}/items/cuenta_corriente`, {
     method: "POST",
-    headers: authHeaders(),
+    headers, // ahora sí es un objeto válido
     body: JSON.stringify({
       cliente,
       saldo: saldo_inicial,
       total_pagos: 0,
       total_ordenes: 0,
       saldo_actualizado: saldo_inicial,
-      activa: true
+      activa: true,
     }),
   });
 
-  if (!res.ok) throw new Error("No se pudo crear la cuenta corriente");
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Error al crear cuenta corriente: ${err}`);
+  }
 
   const data = await res.json();
-  return data.data; // devuelve todo el objeto creado
+  return data.data;
 };
- 
+
 
 
 export const impactarPagoEnCuentaCorriente = async (clienteId, monto) => {
@@ -315,21 +321,24 @@ export const getPagosPorMes = async (desde, hasta) => {
 
 // services/api.js
 export const getMetodosPagoField = async () => {
-  const res = await fetch(
-    `${API_URL}/fields/pagos/metodo_pago`,
-    {
-      headers: authHeaders(),
-    }
-  );
+  // ⚠️ await aquí para headers válidos
+  const headers = await authHeaders();
+
+  const res = await fetch(`${API_URL}/fields/pagos/metodo_pago`, {
+    headers,
+  });
 
   if (!res.ok) {
-    throw new Error("Error al cargar métodos de pago");
+    const err = await res.text();
+    throw new Error(`Error al cargar métodos de pago: ${err}`);
   }
 
   const json = await res.json();
 
-  return json.data.meta?.options?.choices || [];
+  // Devolver las opciones del campo, o un array vacío si no hay
+  return json.data?.meta?.options?.choices || [];
 };
+
 
 // GASTOS
 export const getGastos = async () =>
