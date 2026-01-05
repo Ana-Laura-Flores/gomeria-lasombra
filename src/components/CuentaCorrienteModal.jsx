@@ -160,7 +160,13 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
             <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
               <h2 className="text-lg font-bold">Pago registrado correctamente</h2>
               <div className="flex flex-col gap-2">
-                <button onClick={() => handleSuccessAction("detalle")} className="bg-blue-600 py-2 rounded">Ver cuenta corriente</button>
+<button onClick={async () => {
+  setShowSuccess(false);
+  const pagosActualizados = await getPagosCliente(clienteId);
+  setPagos(pagosActualizados.data.filter(p => p.estado === "confirmado"));
+  navigate(`/cuentas/${clienteId}`);
+}}>Ver cuenta corriente</button>
+
                 <button onClick={() => handleSuccessAction("ordenes")} className="bg-gray-600 py-2 rounded">Volver a órdenes</button>
                 <button onClick={() => handleSuccessAction("listado")} className="bg-green-600 py-2 rounded">Volver al listado</button>
               </div>
