@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import PagoForm from "./pagos/PagoForm";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
@@ -15,6 +15,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const [showPago, setShowPago] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!clienteId) return;
@@ -48,7 +49,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     };
 
     fetchData();
-  }, [clienteId]);
+  }, [clienteId, location.state?.refresh]);
 
   const movimientos = useMemo(() => {
     const movOrdenes = ordenes.map((o) => ({

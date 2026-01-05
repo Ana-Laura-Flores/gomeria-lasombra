@@ -47,7 +47,7 @@ export default function CuentaCorrienteClientePage() {
 
   useEffect(() => {
     fetchData();
-  }, [clienteId, location.key]);
+  }, [clienteId, location.state?.refresh]);
 
   const resumen = useMemo(() => {
     const total = ordenes.reduce((acc, o) => acc + Number(o.total || 0), 0);
