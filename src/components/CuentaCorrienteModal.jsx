@@ -4,7 +4,6 @@ import PagoForm from "./pagos/PagoForm";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
-import { getOrdenesTrabajo, getPagosCliente } from "../services/api";
 
 export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistrado }) {
   const [cliente, setCliente] = useState(null);
@@ -15,7 +14,6 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
-  // ======== CARGAR DATOS ========
   useEffect(() => {
     if (!clienteId) return;
 
@@ -50,7 +48,6 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     fetchData();
   }, [clienteId]);
 
-  // ======== MOVIMIENTOS ========
   const movimientos = useMemo(() => {
     const movOrdenes = ordenes.map((o) => ({
       fecha: o.fecha,
@@ -74,33 +71,26 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     return [...movOrdenes, ...movPagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
   }, [ordenes, pagos]);
 
-  // ======== RESUMEN ========
   const resumen = useMemo(() => {
     const total = ordenes.reduce((a, o) => a + Number(o.total), 0);
     const pagado = pagos.reduce((a, p) => a + Number(p.monto), 0);
     return { total, pagado, saldo: total - pagado };
   }, [ordenes, pagos]);
 
-  // ======== HANDLER PAGO ========
   const handlePagoRegistrado = (pagosNuevos) => {
-    // Normalizar los pagos para que tengan la misma estructura que los del backend
-    const pagosNormalizados = pagosNuevos.map((p) => ({
-      ...p,
-      fecha: p.fecha || new Date().toISOString().split("T")[0],
-    }));
-
-    setPagos((prev) => [...prev, ...pagosNormalizados]);
+    setPagos((prev) => [...prev, ...pagosNuevos]);
     setShowPago(false);
     setShowSuccess(true);
+
+    onPagoRegistrado?.(); // REFRESCA TABLA PRINCIPAL
   };
 
   const handleSuccessAction = (accion) => {
-    onPagoRegistrado?.();
     setShowSuccess(false);
     switch (accion) {
       case "detalle": navigate(`/cuentas/${clienteId}`); break;
       case "ordenes": navigate("/ordenes"); break;
-      case "listado": navigate("/cuenta-corriente", { state: { refresh: Date.now() } }); break;
+      case "listado": onClose?.(); break;
       default: onClose?.();
     }
   };
@@ -111,7 +101,6 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
-
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <h2 className="text-lg font-bold">Cuenta corriente · {cliente.nombre}</h2>
@@ -164,7 +153,6 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

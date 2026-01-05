@@ -40,6 +40,7 @@ export default function CuentaCorriente() {
     }
   };
 
+  // Refrescar si hay cambio en la ubicación
   useEffect(() => {
     fetchData();
   }, [location.state?.refresh]);
@@ -106,10 +107,10 @@ export default function CuentaCorriente() {
 
       {clienteDetalleId && (
         <CuentaCorrienteModal
-         key={clienteDetalleId}
+          key={clienteDetalleId} // IMPORTANTE: usar clienteDetalleId
           clienteId={clienteDetalleId}
           onClose={() => setClienteDetalleId(null)}
-          onPagoRegistrado={fetchData}
+          onPagoRegistrado={fetchData} // refresca la tabla principal
         />
       )}
     </MainLayout>

@@ -40,14 +40,14 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
   }, [clienteId]);
 
   // =========================
-  // Acciones locales
+  // Agregar / eliminar pagos
   // =========================
   const agregarPago = () => {
     if (!pagoActual.metodo || !pagoActual.monto) return;
 
     setPagos((prev) => [
       ...prev,
-      { ...pagoActual, monto: Number(pagoActual.monto) },
+      { ...pagoActual, monto: parseFloat(pagoActual.monto) },
     ]);
 
     setPagoActual({
@@ -78,7 +78,8 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
       // Crear cuenta corriente si no existe
       if (!cc) {
-        cc = await crearCuentaCorriente({ cliente: clienteId });
+        const res = await crearCuentaCorriente({ cliente: clienteId });
+        cc = res?.data || res;
         setCuentaCorriente(cc);
       }
 
@@ -88,7 +89,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         const res = await crearPago({
           cliente: clienteId,
           metodo_pago: pago.metodo,
-          monto: Number(pago.monto),
+          monto: parseFloat(pago.monto),
           banco: pago.banco || null,
           numero_cheque: pago.numero_cheque || null,
           fecha_cobro: pago.fecha_cobro || null,
@@ -96,15 +97,18 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
           estado: "confirmado",
         });
 
-        // Normalizar para que el modal lo pueda mostrar inmediatamente
-        pagosGuardados.push({
-          ...res.data,
-          fecha: res.data.fecha || new Date().toISOString().split("T")[0],
-        });
+        // Normalizar para el modal
+        const pagoNormalizado = {
+          ...(res?.data || res),
+          fecha: (res?.data?.fecha || new Date().toISOString().split("T")[0]),
+        };
+
+        pagosGuardados.push(pagoNormalizado);
       }
 
+      // Limpiar lista local
       setPagos([]);
-      onPagoRegistrado?.(pagosGuardados);
+      onPagoRegistrado?.(pagosGuardados); // REFRESCA MODAL + TABLA
     } catch (err) {
       console.error(err);
       alert("Error al registrar el pago");
@@ -174,11 +178,13 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         <div className="space-y-2">
           {pagos.map((p, i) => (
             <div key={i} className="bg-gray-700 p-2 rounded flex justify-between">
-              <span>{p.metodo} – ${p.monto}</span>
+              <span>{p.metodo} – {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(p.monto)}</span>
               <button type="button" onClick={() => eliminarPago(i)} className="text-red-400">Quitar</button>
             </div>
           ))}
-          <p className="text-right font-semibold">Total: ${totalPagosNum}</p>
+          <p className="text-right font-semibold">
+            Total: {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(totalPagosNum)}
+          </p>
         </div>
       )}
 
