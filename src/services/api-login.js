@@ -43,6 +43,7 @@ export async function refreshToken() {
   }
 
   const data = await res.json();
+  console.log("login response", data);
   localStorage.setItem("access_token", data.data.access_token);
   localStorage.setItem("refresh_token", data.data.refresh_token);
 
