@@ -5,7 +5,7 @@ import { getOrdenesCuentaCorriente, getPagosCliente } from "../services/api";
 import CuentaCorrienteMovimientos from "../components/CuentaCorrienteMovimientos";
 import CuentaCorrientePDF from "../components/CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
-import BottomNav from "./BottomNav";
+import BottomNav from "./BotoomNav";
 
 export default function CuentaCorrienteClientePage() {
   const { clienteId } = useParams();
