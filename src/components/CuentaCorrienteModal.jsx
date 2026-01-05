@@ -17,6 +17,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const navigate = useNavigate();
 
   useEffect(() => {
+    
     if (!clienteId) return;
 
     const fetchData = async () => {
@@ -97,7 +98,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
 
   switch (accion) {
     case "detalle":
-      navigate(`/cuentas/${clienteId}`);
+      navigate(`/cuentas/${clienteId}`, { state: { refresh: Date.now() } });
       break;
     case "ordenes":
       navigate("/ordenes");
