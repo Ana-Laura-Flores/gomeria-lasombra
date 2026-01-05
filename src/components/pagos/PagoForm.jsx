@@ -87,7 +87,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
       for (const pago of pagos) {
         const res = await crearPago({
-          cliente: clienteId,
+          cliente: String(clienteId),
           metodo_pago: pago.metodo,
           monto: parseFloat(pago.monto),
           banco: pago.banco || null,
