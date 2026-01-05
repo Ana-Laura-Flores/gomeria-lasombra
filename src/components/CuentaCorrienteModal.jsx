@@ -155,7 +155,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
       <h2 className="text-lg font-bold">Pago registrado correctamente</h2>
 
       <button
-        onClick={handleCerrarSuccess}
+        onClick={handleSuccessAction}
         className="bg-green-600 py-2 rounded w-full"
       >
         Aceptar
