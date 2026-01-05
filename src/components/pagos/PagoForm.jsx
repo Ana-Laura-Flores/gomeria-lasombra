@@ -104,11 +104,12 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         };
 
         pagosGuardados.push(pagoNormalizado);
+      
       }
-
+  onPagoRegistrado?.([pagoNormalizado]); // REFRESCA MODAL + TABLA
       // Limpiar lista local
       setPagos([]);
-      onPagoRegistrado?.([pagoNormalizado]); // REFRESCA MODAL + TABLA
+      
     } catch (err) {
       console.error(err);
       alert("Error al registrar el pago");
