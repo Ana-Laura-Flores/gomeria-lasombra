@@ -34,7 +34,7 @@ console.log("fetchData ejecutado con clienteId", clienteId);
 
 
       const pagosConfirmadosCliente = resPagos.data
-        .filter((p) => p.estado === "confirmado")
+        // .filter((p) => p.estado === "confirmado")
         .filter((p) => (p.cliente?.id ?? p.cliente) === clienteId);
 
       setOrdenes(ordenesCCCliente);
