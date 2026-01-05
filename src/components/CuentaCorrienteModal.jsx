@@ -98,7 +98,9 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
 
   switch (accion) {
     case "detalle":
-      navigate(`/cuentas/${clienteId}`, { state: { refresh: Date.now() } });
+     setTimeout(() => {
+  navigate(`/cuentas/${clienteId}`, { state: { refresh: Date.now() } });
+}, 800);
       break;
     case "ordenes":
       navigate("/ordenes");
