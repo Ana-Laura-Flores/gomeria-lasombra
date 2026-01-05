@@ -17,6 +17,7 @@ export default function CuentaCorrienteClientePage() {
 
   const fetchData = async () => {
     if (!clienteId) return setLoading(false);
+console.log("fetchData ejecutado con clienteId", clienteId);
 
     setLoading(true);
     try {
