@@ -30,6 +30,9 @@ console.log("fetchData ejecutado con clienteId", clienteId);
         .filter((o) => o.condicion_cobro === "cuenta_corriente")
         .filter((o) => o.cliente && String(o.cliente.id) === String(clienteId));
 
+         console.log("Pagos API crudos:", resPagos.data);
+
+
       const pagosConfirmadosCliente = resPagos.data
         .filter((p) => p.estado === "confirmado")
         .filter((p) => (p.cliente?.id ?? p.cliente) === clienteId);
