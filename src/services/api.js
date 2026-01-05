@@ -153,7 +153,7 @@ export const getOrdenesCuentaCorriente = async (clienteId) => {
 
 export const getPagosCliente = async (clienteId) => {
   return apiFetch(
-    `pagos?filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado&sort=fecha`
+    `pagos?filter[cliente][_eq]=${clienteId}&sort=fecha`
   );
 };
 
