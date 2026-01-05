@@ -3,6 +3,17 @@ export const API_URL = import.meta.env.VITE_API_URL;
 // --------------------
 // Headers de autenticación
 // --------------------
+
+
+export const authHeaders = async () => {
+  const token = localStorage.getItem("access_token");
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}; 
+
+
 export const apiFetch = async (endpoint, options = {}) => {
   let url = endpoint.startsWith("http")
     ? endpoint
@@ -34,6 +45,7 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   return res.json();
 };
+
 
 // --------------------
 // Tarifas (para tipos de vehículo y precios)
