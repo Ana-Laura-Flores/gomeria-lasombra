@@ -108,7 +108,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
       // Limpiar lista local
       setPagos([]);
-      onPagoRegistrado?.(pagosGuardados); // REFRESCA MODAL + TABLA
+      onPagoRegistrado?.([pagoNormalizado]); // REFRESCA MODAL + TABLA
     } catch (err) {
       console.error(err);
       alert("Error al registrar el pago");

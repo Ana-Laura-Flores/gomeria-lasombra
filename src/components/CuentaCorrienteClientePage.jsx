@@ -6,6 +6,7 @@ import CuentaCorrienteMovimientos from "../components/CuentaCorrienteMovimientos
 import CuentaCorrientePDF from "../components/CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import BottomNav from "./BotoomNav";
+import PagoForm from "../components/PagoForm"; // 👈 asegurate de importar tu PagoForm
 
 export default function CuentaCorrienteClientePage() {
   const { clienteId } = useParams();
@@ -17,8 +18,6 @@ export default function CuentaCorrienteClientePage() {
 
   const fetchData = async () => {
     if (!clienteId) return setLoading(false);
-console.log("fetchData ejecutado con clienteId", clienteId);
-
     setLoading(true);
     try {
       const [resOrdenes, resPagos] = await Promise.all([
@@ -30,18 +29,16 @@ console.log("fetchData ejecutado con clienteId", clienteId);
         .filter((o) => o.condicion_cobro === "cuenta_corriente")
         .filter((o) => o.cliente && String(o.cliente.id) === String(clienteId));
 
-         console.log("Pagos API crudos:", resPagos.data);
-
-
       const pagosConfirmadosCliente = resPagos.data
-        // .filter((p) => p.estado === "confirmado")
-       .filter((p) => String(p.cliente?.id ?? p.cliente) === String(clienteId));
-
+        .filter((p) => String(p.cliente?.id ?? p.cliente) === String(clienteId));
 
       setOrdenes(ordenesCCCliente);
       setPagos(pagosConfirmadosCliente);
 
-      const nombre = ordenesCCCliente[0]?.cliente?.nombre || pagosConfirmadosCliente[0]?.cliente?.nombre || "";
+      const nombre =
+        ordenesCCCliente[0]?.cliente?.nombre ||
+        pagosConfirmadosCliente[0]?.cliente?.nombre ||
+        "";
       setClienteNombre(nombre);
     } catch (err) {
       console.error("Error cargando cuenta corriente del cliente:", err);
@@ -50,11 +47,18 @@ console.log("fetchData ejecutado con clienteId", clienteId);
     }
   };
 
-  
-useEffect(() => {
-  console.log("location.state", location.state);
-  fetchData();
-}, [clienteId, location.state?.refresh]);
+  useEffect(() => {
+    fetchData();
+  }, [clienteId, location.state?.refresh]);
+
+  // 👇 Handler para pagos nuevos
+  const handlePagoRegistrado = (pagosNuevos) => {
+    setPagos((prev) => {
+      const ids = new Set(prev.map((p) => p.id));
+      const filtrados = pagosNuevos.filter((p) => !ids.has(p.id));
+      return [...prev, ...filtrados];
+    });
+  };
 
   const resumen = useMemo(() => {
     const total = ordenes.reduce((acc, o) => acc + Number(o.total || 0), 0);
@@ -66,7 +70,14 @@ useEffect(() => {
     const msOrdenes = ordenes.map((o) => ({
       fecha: o.fecha,
       tipo: "ORDEN",
-      referencia: <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">#{o.comprobante || o.id}</Link>,
+      referencia: (
+        <Link
+          to={`/ordenes/${o.id}`}
+          className="text-blue-400 hover:underline"
+        >
+          #{o.comprobante || o.id}
+        </Link>
+      ),
       debe: Number(o.total),
       haber: 0,
     }));
@@ -82,18 +93,32 @@ useEffect(() => {
       fecha_cobro: p.fecha_cobro || null,
     }));
 
-    return [...msOrdenes, ...msPagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    return [...msOrdenes, ...msPagos].sort(
+      (a, b) => new Date(a.fecha) - new Date(b.fecha)
+    );
   }, [ordenes, pagos]);
 
-  if (loading) return <MainLayout><p>Cargando cuenta corriente del cliente...</p></MainLayout>;
+  if (loading)
+    return (
+      <MainLayout>
+        <p>Cargando cuenta corriente del cliente...</p>
+      </MainLayout>
+    );
 
   return (
     <MainLayout>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Cuenta Corriente · {clienteNombre || clienteId}</h1>
+        <h1 className="text-2xl font-bold">
+          Cuenta Corriente · {clienteNombre || clienteId}
+        </h1>
         <div className="flex gap-2">
           <button
-            onClick={() => exportarPDFOrden({ elementId: "cc-pdf", filename: `CuentaCorriente-${clienteNombre || clienteId}.pdf` })}
+            onClick={() =>
+              exportarPDFOrden({
+                elementId: "cc-pdf",
+                filename: `CuentaCorriente-${clienteNombre || clienteId}.pdf`,
+              })
+            }
             className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
           >
             Exportar PDF
@@ -118,16 +143,26 @@ useEffect(() => {
         <CuentaCorrienteMovimientos movimientos={movimientos} />
       </div>
 
+      {/* 👇 Integrar PagoForm aquí */}
+      <div className="mt-6">
+        <PagoForm cliente={clienteId} onPagoRegistrado={handlePagoRegistrado} />
+      </div>
+
       <div className="hidden">
         <div id="cc-pdf">
           <CuentaCorrientePDF
-            cliente={{ id: clienteId, nombre: clienteNombre, total: resumen.total, pagado: resumen.pagado, saldo: resumen.saldo }}
+            cliente={{
+              id: clienteId,
+              nombre: clienteNombre,
+              total: resumen.total,
+              pagado: resumen.pagado,
+              saldo: resumen.saldo,
+            }}
             movimientos={movimientos}
           />
         </div>
       </div>
 
-      {/* BottomNav solo en mobile */}
       <div className="block md:hidden">
         <BottomNav />
       </div>
@@ -139,8 +174,15 @@ function Resumen({ label, value, saldo }) {
   return (
     <div className="bg-gray-800 p-3 rounded text-center">
       <span className="text-gray-400 text-sm">{label}</span>
-      <p className={`text-lg font-bold ${saldo && value > 0 ? "text-red-400" : "text-green-400"}`}>
-        {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(Number(value) || 0)}
+      <p
+        className={`text-lg font-bold ${
+          saldo && value > 0 ? "text-red-400" : "text-green-400"
+        }`}
+      >
+        {new Intl.NumberFormat("es-AR", {
+          style: "currency",
+          currency: "ARS",
+        }).format(Number(value) || 0)}
       </p>
     </div>
   );
