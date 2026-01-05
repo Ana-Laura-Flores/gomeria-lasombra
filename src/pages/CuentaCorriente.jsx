@@ -104,18 +104,18 @@ export default function CuentaCorriente() {
         clientes={clientesFiltrados}
         onVerDetalle={(cliente) => setClienteDetalleId(cliente.id)}
       />
-<CuentaCorrienteModal
-  key={clienteDetalleId}
-  clienteId={clienteDetalleId}
-  onClose={() => setClienteDetalleId(null)}
-  onPagoRegistrado={(pagosNuevos) => {
-    // Actualiza el estado local al instante
-    setPagos((prev) => [...prev, ...pagosNuevos]);
+{clienteDetalleId && (
+  <CuentaCorrienteModal
+    key={clienteDetalleId}
+    clienteId={clienteDetalleId}
+    onClose={() => setClienteDetalleId(null)}
+    onPagoRegistrado={(pagosNuevos) => {
+      setPagos((prev) => [...prev, ...pagosNuevos]);
+      fetchData();
+    }}
+  />
+)}
 
-    // Luego refetch para sincronizar con backend
-    fetchData();
-  }}
-/>
     </MainLayout>
   );
 }
