@@ -106,6 +106,7 @@ export default function CuentaCorriente() {
 
       {clienteDetalleId && (
         <CuentaCorrienteModal
+         key={clienteId}
           clienteId={clienteDetalleId}
           onClose={() => setClienteDetalleId(null)}
           onPagoRegistrado={fetchData}
