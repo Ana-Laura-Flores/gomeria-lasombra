@@ -57,11 +57,11 @@ useEffect(() => {
 }, [clienteId, location.state?.refresh]);
 
 // dentro de CuentaCorrienteClientePage
-const handlePagoRegistrado = (pagosNuevos) => {
-  if (!pagosNuevos) return;
-  const nuevos = Array.isArray(pagosNuevos) ? pagosNuevos : [pagosNuevos];
-  setPagos((prev) => [...prev, ...nuevos]);
-};
+// const handlePagoRegistrado = (pagosNuevos) => {
+//   if (!pagosNuevos) return;
+//   const nuevos = Array.isArray(pagosNuevos) ? pagosNuevos : [pagosNuevos];
+//   setPagos((prev) => [...prev, ...nuevos]);
+// };
   const resumen = useMemo(() => {
     const total = ordenes.reduce((acc, o) => acc + Number(o.total || 0), 0);
     const pagado = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
