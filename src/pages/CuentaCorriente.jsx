@@ -109,10 +109,12 @@ export default function CuentaCorriente() {
     key={clienteDetalleId}
     clienteId={clienteDetalleId}
     onClose={() => setClienteDetalleId(null)}
-    onPagoRegistrado={(pagosNuevos) => {
-      setPagos((prev) => [...prev, ...pagosNuevos]);
-      fetchData();
-    }}
+   onPagoRegistrado={(pagosNuevos) => {
+  if (!pagosNuevos) return;
+  const nuevos = Array.isArray(pagosNuevos) ? pagosNuevos : [pagosNuevos];
+  setPagos((prev) => [...prev, ...nuevos]);
+  fetchData();
+}}
   />
 )}
 
