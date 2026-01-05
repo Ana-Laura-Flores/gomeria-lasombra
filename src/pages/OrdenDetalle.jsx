@@ -200,14 +200,7 @@ export default function OrdenDetalle() {
                             Descargar PDF
                         </button>
 
-                        {orden.saldo > 0 && (
-                            <Link
-                                to={`/pagos/nuevo?orden=${orden.id}`}
-                                className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
-                            >
-                                Registrar pago
-                            </Link>
-                        )}
+                      
                     </div>
                 </div>
             </div>
