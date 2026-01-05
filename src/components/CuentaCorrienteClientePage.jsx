@@ -6,7 +6,7 @@ import CuentaCorrienteMovimientos from "../components/CuentaCorrienteMovimientos
 import CuentaCorrientePDF from "../components/CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import BottomNav from "./BotoomNav";
-import PagoForm from "../components/PagoForm"; // 👈 asegurate de importar tu PagoForm
+import PagoForm from "../components/pagos/PagoForm"; // 👈 asegurate de importar tu PagoForm
 
 export default function CuentaCorrienteClientePage() {
   const { clienteId } = useParams();
