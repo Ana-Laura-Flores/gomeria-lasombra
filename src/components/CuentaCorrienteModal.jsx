@@ -83,7 +83,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const handlePagoRegistrado = (pagosNuevos) => {
     setPagos((prev) => [...prev, ...pagosNuevos]);
     setShowPago(false);
-    onPagoRegistrado?.(confirmados);
+    onPagoRegistrado?.(pagosNuevos);
 
     
   };
