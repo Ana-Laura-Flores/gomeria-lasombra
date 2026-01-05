@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   crearPago,
-  impactarPagoEnCuentaCorriente,
   getCuentaCorrienteByCliente,
   crearCuentaCorriente,
 } from "../../services/api";
@@ -76,7 +75,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     try {
       let cc = cuentaCorriente;
 
-      // 🔥 Crear cuenta corriente si no existe
+      // Crear cuenta corriente si no existe
       if (!cc) {
         cc = await crearCuentaCorriente({ cliente: clienteId });
         setCuentaCorriente(cc);
@@ -95,10 +94,9 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
           cuenta_corriente: cc.id,
           estado: "confirmado",
         });
- await impactarPagoEnCuentaCorriente(clienteId, totalPagosNum);
+
         pagosGuardados.push(res.data);
       }
-    
 
       setPagos([]);
       onPagoRegistrado?.(pagosGuardados);
