@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import { getOrdenesTrabajo, getPagosCliente } from "../services/api";
+import { getOrdenesTrabajo, getPagosConfirmados } from "../services/api";
 import CuentaCorrienteMovimientos from "../components/CuentaCorrienteMovimientos";
 import CuentaCorrientePDF from "../components/CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
@@ -23,7 +23,7 @@ console.log("fetchData ejecutado con clienteId", clienteId);
     try {
       const [resOrdenes, resPagos] = await Promise.all([
         getOrdenesTrabajo(),
-        getPagosCliente(clienteId),
+        getPagosConfirmados(clienteId),
       ]);
 
       const ordenesCCCliente = resOrdenes.data
