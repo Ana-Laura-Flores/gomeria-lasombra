@@ -91,27 +91,16 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
  const handleSuccessAction = async (accion) => {
   setShowSuccess(false);
 
-  // Refrescar desde API
+  // Refrescar pagos confirmados
   const pagosActualizados = await getPagosCliente(clienteId);
-  const confirmados = (pagosActualizados.data || []).filter(p => p.estado === "confirmado");
+  const confirmados = (pagosActualizados.data || []).filter(
+    (p) => p.estado === "confirmado"
+  );
+
   setPagos(confirmados);
-
-  // Avisar al padre con los pagos nuevos
   onPagoRegistrado?.(confirmados);
-
-  switch (accion) {
-    case "detalle":
-      navigate(`/cuentas/${clienteId}`, { state: { refresh: Date.now() } });
-      break;
-    case "ordenes":
-      navigate("/ordenes");
-      break;
-    case "listado":
       onClose?.();
-      break;
-    default:
-      onClose?.();
-  }
+  
 };
 
   if (loading) return <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white">Cargando cuenta corriente...</div>;
@@ -161,17 +150,20 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
 
         {/* MODAL SUCCESS */}
         {showSuccess && (
-          <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
-            <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
-              <h2 className="text-lg font-bold">Pago registrado correctamente</h2>
-              <div className="flex flex-col gap-2">
-                <button onClick={() => handleSuccessAction("detalle")} className="bg-blue-600 py-2 rounded">Ver cuenta corriente</button>
-                <button onClick={() => handleSuccessAction("ordenes")} className="bg-gray-600 py-2 rounded">Volver a órdenes</button>
-                <button onClick={() => handleSuccessAction("listado")} className="bg-green-600 py-2 rounded">Volver al listado</button>
-              </div>
-            </div>
-          </div>
-        )}
+  <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
+    <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
+      <h2 className="text-lg font-bold">Pago registrado correctamente</h2>
+
+      <button
+        onClick={handleCerrarSuccess}
+        className="bg-green-600 py-2 rounded w-full"
+      >
+        Aceptar
+      </button>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );
