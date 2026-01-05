@@ -87,16 +87,27 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     
   };
 
-  const handleSuccessAction = (accion) => {
-    setShowSuccess(false);
-    onPagoRegistrado?.(); // REFRESCA TABLA PRINCIPAL
-    switch (accion) {
-      case "detalle": navigate(`/cuentas/${clienteId}`); break;
-      case "ordenes": navigate("/ordenes"); break;
-      case "listado": onClose?.(); break;
-      default: onClose?.();
-    }
-  };
+ const handleSuccessAction = async (accion) => {
+  setShowSuccess(false);
+
+  // Refrescar desde API
+  const pagosActualizados = await getPagosCliente(clienteId);
+  setPagos(pagosActualizados.data.filter(p => p.estado === "confirmado"));
+
+  switch (accion) {
+    case "detalle":
+      navigate(`/cuentas/${clienteId}`);
+      break;
+    case "ordenes":
+      navigate("/ordenes");
+      break;
+    case "listado":
+      onClose?.();
+      break;
+    default:
+      onClose?.();
+  }
+};
 
   if (loading) return <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white">Cargando cuenta corriente...</div>;
   if (!cliente) return null;
