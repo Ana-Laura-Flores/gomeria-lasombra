@@ -93,14 +93,15 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
 
   // Refrescar desde API
   const pagosActualizados = await getPagosCliente(clienteId);
-  setPagos(pagosActualizados.data.filter(p => p.estado === "confirmado"));
-  onPagoRegistrado?.();
+  const confirmados = (pagosActualizados.data || []).filter(p => p.estado === "confirmado");
+  setPagos(confirmados);
+
+  // Avisar al padre con los pagos nuevos
+  onPagoRegistrado?.(confirmados);
 
   switch (accion) {
     case "detalle":
-     
-  navigate(`/cuentas/${clienteId}`, { state: { refresh: Date.now() } });
-
+      navigate(`/cuentas/${clienteId}`, { state: { refresh: Date.now() } });
       break;
     case "ordenes":
       navigate("/ordenes");
