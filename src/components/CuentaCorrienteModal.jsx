@@ -4,6 +4,8 @@ import PagoForm from "./pagos/PagoForm";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
+import { getOrdenesTrabajo, getPagosCliente } from "../services/api";
+
 
 export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistrado }) {
   const [cliente, setCliente] = useState(null);
