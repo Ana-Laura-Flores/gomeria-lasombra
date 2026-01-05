@@ -106,7 +106,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
         pagosGuardados.push(pagoNormalizado);
       
       }
-  onPagoRegistrado?.([pagoNormalizado]); // REFRESCA MODAL + TABLA
+  onPagoRegistrado?.(pagosGuardados); // REFRESCA MODAL + TABLA
       // Limpiar lista local
       setPagos([]);
       
