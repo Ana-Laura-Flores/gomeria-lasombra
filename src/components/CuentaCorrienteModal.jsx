@@ -99,7 +99,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
 
   setPagos(confirmados);
   onPagoRegistrado?.(confirmados);
-      onClose?.();
+    
   
 };
 
