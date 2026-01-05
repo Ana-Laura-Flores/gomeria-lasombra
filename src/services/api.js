@@ -3,25 +3,6 @@ export const API_URL = import.meta.env.VITE_API_URL;
 // --------------------
 // Headers de autenticación
 // --------------------
-export const authHeaders = async () => {
-  let token = localStorage.getItem("access_token");
-  const expiresAt = localStorage.getItem("access_token_expires");
-
-  // Si el token expiró, refrescar
-  if (!token || (expiresAt && Date.now() > expiresAt)) {
-    token = await refreshToken();
-  }
-
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-};
-
-
-// --------------------
-// Fetch genérico
-// --------------------
 export const apiFetch = async (endpoint, options = {}) => {
   let url = endpoint.startsWith("http")
     ? endpoint
@@ -29,20 +10,22 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   const method = options.method ? options.method.toUpperCase() : "GET";
 
-  // Si es GET, agregamos parámetro único para romper cache
   if (method === "GET") {
     const separator = url.includes("?") ? "&" : "?";
     url = `${url}${separator}_=${Date.now()}`;
   }
 
+  // ⚠️ await aquí
+  const headers = await authHeaders();
+
   const res = await fetch(url, {
     ...options,
     method,
     headers: {
-      ...authHeaders(),
+      ...headers,
       ...(options.headers || {}),
     },
-    cache: "no-store", // esto sí lo podés dejar
+    cache: "no-store",
   });
 
   if (!res.ok) {
@@ -51,7 +34,6 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   return res.json();
 };
-
 
 // --------------------
 // Tarifas (para tipos de vehículo y precios)
