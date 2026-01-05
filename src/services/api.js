@@ -29,31 +29,21 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   const method = options.method ? options.method.toUpperCase() : "GET";
 
+  // Si es GET, agregamos parámetro único para romper cache
   if (method === "GET") {
     const separator = url.includes("?") ? "&" : "?";
     url = `${url}${separator}_=${Date.now()}`;
   }
 
-  // Obtenemos headers actualizados
-  const headers = await authHeaders();
-
   const res = await fetch(url, {
     ...options,
     method,
-    headers: { ...headers, ...(options.headers || {}) },
-    cache: "no-store",
+    headers: {
+      ...authHeaders(),
+      ...(options.headers || {}),
+    },
+    cache: "no-store", // esto sí lo podés dejar
   });
-
-  // Si recibimos 401, refrescar token y reintentar
-  if (res.status === 401) {
-    const token = await refreshToken();
-    const headersRetry = { ...options.headers, Authorization: `Bearer ${token}` };
-
-    return fetch(url, { ...options, method, headers: headersRetry, cache: "no-store" }).then(r => {
-      if (!r.ok) throw new Error(`Error al llamar a API: ${r.status} ${r.statusText}`);
-      return r.json();
-    });
-  }
 
   if (!res.ok) {
     throw new Error(`Error al llamar a API: ${res.status} ${res.statusText}`);
