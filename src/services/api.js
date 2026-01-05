@@ -3,17 +3,14 @@ export const API_URL = import.meta.env.VITE_API_URL;
 // --------------------
 // Headers de autenticación
 // --------------------
+export const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
 
-
-export const authHeaders = async () => {
-  const token = localStorage.getItem("access_token");
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-}; 
-
-
+// --------------------
+// Fetch genérico
+// --------------------
 export const apiFetch = async (endpoint, options = {}) => {
   let url = endpoint.startsWith("http")
     ? endpoint
@@ -21,22 +18,20 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   const method = options.method ? options.method.toUpperCase() : "GET";
 
+  // Si es GET, agregamos parámetro único para romper cache
   if (method === "GET") {
     const separator = url.includes("?") ? "&" : "?";
     url = `${url}${separator}_=${Date.now()}`;
   }
 
-  // ⚠️ await aquí
-  const headers = await authHeaders();
-
   const res = await fetch(url, {
     ...options,
     method,
     headers: {
-      ...headers,
+      ...authHeaders(),
       ...(options.headers || {}),
     },
-    cache: "no-store",
+    cache: "no-store", // esto sí lo podés dejar
   });
 
   if (!res.ok) {
@@ -198,31 +193,25 @@ export const getPagosCuentaCorriente = async (clienteId) => {
 
 
 export const crearCuentaCorriente = async ({ cliente, saldo_inicial = 0 }) => {
-  // ⚠️ Esperamos que authHeaders devuelva el objeto con Authorization
-  const headers = await authHeaders();
-
   const res = await fetch(`${API_URL}/items/cuenta_corriente`, {
     method: "POST",
-    headers, // ahora sí es un objeto válido
+    headers: authHeaders(),
     body: JSON.stringify({
       cliente,
       saldo: saldo_inicial,
       total_pagos: 0,
       total_ordenes: 0,
       saldo_actualizado: saldo_inicial,
-      activa: true,
+      activa: true
     }),
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Error al crear cuenta corriente: ${err}`);
-  }
+  if (!res.ok) throw new Error("No se pudo crear la cuenta corriente");
 
   const data = await res.json();
-  return data.data;
+  return data.data; // devuelve todo el objeto creado
 };
-
+ 
 
 
 export const impactarPagoEnCuentaCorriente = async (clienteId, monto) => {
@@ -321,24 +310,21 @@ export const getPagosPorMes = async (desde, hasta) => {
 
 // services/api.js
 export const getMetodosPagoField = async () => {
-  // ⚠️ await aquí para headers válidos
-  const headers = await authHeaders();
-
-  const res = await fetch(`${API_URL}/fields/pagos/metodo_pago`, {
-    headers,
-  });
+  const res = await fetch(
+    `${API_URL}/fields/pagos/metodo_pago`,
+    {
+      headers: authHeaders(),
+    }
+  );
 
   if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Error al cargar métodos de pago: ${err}`);
+    throw new Error("Error al cargar métodos de pago");
   }
 
   const json = await res.json();
 
-  // Devolver las opciones del campo, o un array vacío si no hay
-  return json.data?.meta?.options?.choices || [];
+  return json.data.meta?.options?.choices || [];
 };
-
 
 // GASTOS
 export const getGastos = async () =>

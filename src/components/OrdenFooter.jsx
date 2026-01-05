@@ -5,7 +5,6 @@ import {
   crearPago,
   getCuentaCorrienteByCliente,
   actualizarCuentaCorriente,
-  apiFetch, // ⚡ importante para refresh
 } from "../services/api";
 import { useState } from "react";
 
@@ -22,21 +21,13 @@ export default function OrdenFooter({
   onSuccess,
 }) {
   const [loading, setLoading] = useState(false);
-  const [ordenes, setOrdenes] = useState([]);
 
   const crearClienteNuevo = async (nombre) => {
-    const headers = await authHeaders();
-
     const res = await fetch(`${API_URL}/items/clientes`, {
       method: "POST",
-      headers,
+      headers: authHeaders(),
       body: JSON.stringify({ nombre }),
     });
-
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Error al crear cliente: ${err}`);
-    }
 
     const data = await res.json();
     return data.data.id;
@@ -47,7 +38,7 @@ export default function OrdenFooter({
     setLoading(true);
 
     try {
-      // 🔒 Snapshot seguro
+      // 🔒 SNAPSHOT SEGURO
       const snapshot = {
         fecha,
         cliente,
@@ -60,10 +51,7 @@ export default function OrdenFooter({
         total,
       };
 
-      if (!snapshot.items.length) {
-        alert("No hay items para guardar");
-        return;
-      }
+      if (!snapshot.items.length) return;
 
       let clienteId =
         typeof snapshot.cliente === "object"
@@ -87,10 +75,9 @@ export default function OrdenFooter({
       const comprobante = await generarNumeroComprobante();
 
       // 1️⃣ Crear ORDEN
-      const ordenHeaders = await authHeaders();
       const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
         method: "POST",
-        headers: ordenHeaders,
+        headers: authHeaders(),
         body: JSON.stringify({
           fecha: snapshot.fecha,
           cliente: clienteId,
@@ -98,18 +85,20 @@ export default function OrdenFooter({
           patente: snapshot.patente,
           condicion_cobro: snapshot.condicionCobro,
           estado:
-            snapshot.condicionCobro === "contado" ? "pagado" : "pendiente",
+            snapshot.condicionCobro === "contado"
+              ? "pagado"
+              : "pendiente",
           total: snapshot.total,
           total_pagado:
-            snapshot.condicionCobro === "contado" ? snapshot.total : 0,
-          saldo: snapshot.condicionCobro === "contado" ? 0 : snapshot.total,
+            snapshot.condicionCobro === "contado"
+              ? snapshot.total
+              : 0,
+          saldo:
+            snapshot.condicionCobro === "contado"
+              ? 0
+              : snapshot.total,
         }),
       });
-
-      if (!ordenRes.ok) {
-        const err = await ordenRes.text();
-        throw new Error(`Error al crear orden: ${err}`);
-      }
 
       const ordenData = await ordenRes.json();
       const ordenId = ordenData.data.id;
@@ -120,31 +109,29 @@ export default function OrdenFooter({
         let cc = ccRes.data[0];
 
         if (!cc) {
-          const ccHeaders = await authHeaders();
-          const ccCreate = await fetch(`${API_URL}/items/cuenta_corriente`, {
-            method: "POST",
-            headers: ccHeaders,
-            body: JSON.stringify({
-              cliente: clienteId,
-              total_ordenes: 0,
-              total_pagos: 0,
-              saldo: 0,
-              saldo_actualizado: 0,
-              activa: true,
-            }),
-          });
-
-          if (!ccCreate.ok) {
-            const err = await ccCreate.text();
-            throw new Error(`Error al crear cuenta corriente: ${err}`);
-          }
+          const ccCreate = await fetch(
+            `${API_URL}/items/cuenta_corriente`,
+            {
+              method: "POST",
+              headers: authHeaders(),
+              body: JSON.stringify({
+                cliente: clienteId,
+                total_ordenes: 0,
+                total_pagos: 0,
+                saldo: 0,
+                saldo_actualizado: 0,
+                activa: true,
+              }),
+            }
+          );
 
           const ccData = await ccCreate.json();
           cc = ccData.data;
         }
 
         await actualizarCuentaCorriente(cc.id, {
-          total_ordenes: Number(cc.total_ordenes) + Number(snapshot.total),
+          total_ordenes:
+            Number(cc.total_ordenes) + Number(snapshot.total),
           saldo: Number(cc.saldo) + Number(snapshot.total),
           saldo_actualizado:
             Number(cc.saldo_actualizado) + Number(snapshot.total),
@@ -159,30 +146,28 @@ export default function OrdenFooter({
         )
           continue;
 
-        const itemHeaders = await authHeaders();
-        const itemRes = await fetch(`${API_URL}/items/items_orden`, {
+        await fetch(`${API_URL}/items/items_orden`, {
           method: "POST",
-          headers: itemHeaders,
+          headers: authHeaders(),
           body: JSON.stringify({
             orden: ordenId,
             tipo_item: item.tipo_item,
             tarifa: item.tipo_item === "servicio" ? item.tarifa : null,
-            producto: item.tipo_item === "producto" ? item.producto : null,
+            producto:
+              item.tipo_item === "producto" ? item.producto : null,
             cantidad: item.cantidad,
             precio_unitario: item.precio_unitario,
             subtotal: item.subtotal,
             nombre: item.nombre || "",
           }),
         });
-
-        if (!itemRes.ok) {
-          const err = await itemRes.text();
-          console.warn(`Error al crear item: ${err}`);
-        }
       }
 
       // 4️⃣ Pago contado
-      if (snapshot.condicionCobro === "contado" && snapshot.metodoPago) {
+      if (
+        snapshot.condicionCobro === "contado" &&
+        snapshot.metodoPago
+      ) {
         await crearPago({
           orden: ordenId,
           metodo_pago: snapshot.metodoPago,
@@ -190,16 +175,10 @@ export default function OrdenFooter({
         });
       }
 
-      // 5️⃣ Refresh automático
-      const ordenesActualizadas = await apiFetch(
-        `ordenes_trabajo?fields=id,total,total_pagado,saldo,fecha`
-      );
-      setOrdenes(ordenesActualizadas.data);
-
       onSuccess(ordenId);
     } catch (error) {
       console.error(error);
-      alert("Error al guardar la orden: " + error.message);
+      alert("Error al guardar la orden");
     } finally {
       setLoading(false);
     }
