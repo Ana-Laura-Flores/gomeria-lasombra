@@ -84,11 +84,12 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     setShowPago(false);
     setShowSuccess(true);
 
-    onPagoRegistrado?.(); // REFRESCA TABLA PRINCIPAL
+    
   };
 
   const handleSuccessAction = (accion) => {
     setShowSuccess(false);
+    onPagoRegistrado?.(); // REFRESCA TABLA PRINCIPAL
     switch (accion) {
       case "detalle": navigate(`/cuentas/${clienteId}`); break;
       case "ordenes": navigate("/ordenes"); break;
