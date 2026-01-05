@@ -10,12 +10,12 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const [cliente, setCliente] = useState(null);
   const [ordenes, setOrdenes] = useState([]);
   const [pagos, setPagos] = useState([]);
-  const [pagosExtra, setPagosExtra] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPago, setShowPago] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
+  // ======== CARGAR DATOS ========
   useEffect(() => {
     if (!clienteId) return;
 
@@ -50,6 +50,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     fetchData();
   }, [clienteId]);
 
+  // ======== MOVIMIENTOS ========
   const movimientos = useMemo(() => {
     const movOrdenes = ordenes.map((o) => ({
       fecha: o.fecha,
@@ -59,7 +60,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
       haber: 0,
     }));
 
-    const movPagos = [...pagos, ...pagosExtra].map((p) => ({
+    const movPagos = pagos.map((p) => ({
       fecha: p.fecha || new Date().toISOString().split("T")[0],
       tipo: p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO",
       referencia: p.metodo_pago || "Pago",
@@ -71,16 +72,24 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     }));
 
     return [...movOrdenes, ...movPagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-  }, [ordenes, pagos, pagosExtra]);
+  }, [ordenes, pagos]);
 
+  // ======== RESUMEN ========
   const resumen = useMemo(() => {
     const total = ordenes.reduce((a, o) => a + Number(o.total), 0);
-    const pagado = [...pagos, ...pagosExtra].reduce((a, p) => a + Number(p.monto), 0);
+    const pagado = pagos.reduce((a, p) => a + Number(p.monto), 0);
     return { total, pagado, saldo: total - pagado };
-  }, [ordenes, pagos, pagosExtra]);
+  }, [ordenes, pagos]);
 
+  // ======== HANDLER PAGO ========
   const handlePagoRegistrado = (pagosNuevos) => {
-    setPagosExtra((prev) => [...prev, ...pagosNuevos]);
+    // Normalizar los pagos para que tengan la misma estructura que los del backend
+    const pagosNormalizados = pagosNuevos.map((p) => ({
+      ...p,
+      fecha: p.fecha || new Date().toISOString().split("T")[0],
+    }));
+
+    setPagos((prev) => [...prev, ...pagosNormalizados]);
     setShowPago(false);
     setShowSuccess(true);
   };
