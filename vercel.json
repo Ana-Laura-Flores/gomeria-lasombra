@@ -4,5 +4,14 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "headers": [
+    {
+      "source": "/items/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "Pragma", "value": "no-cache" }
+      ]
+    }
   ]
 }
