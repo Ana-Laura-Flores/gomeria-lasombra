@@ -72,7 +72,24 @@ export default function OrdenFooter({
         return;
       }
 
-      const comprobante = await generarNumeroComprobante();
+      // 7️⃣ Generar comprobante (con reintento)
+let comprobante = null;
+let intentos = 0;
+
+while (!comprobante && intentos < 3) {
+  try {
+    comprobante = await generarNumeroComprobante();
+  } catch (error) {
+    intentos++;
+  }
+}
+
+if (!comprobante) {
+  alert("No se pudo generar el comprobante");
+  return;
+}
+
+      
 
       // 1️⃣ Crear ORDEN
       const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
@@ -139,29 +156,33 @@ export default function OrdenFooter({
       }
 
       // 3️⃣ Items
-      for (const item of snapshot.items) {
-        if (
-          (item.tipo_item === "servicio" && !item.tarifa) ||
-          (item.tipo_item === "producto" && !item.producto)
-        )
-          continue;
+     // 3️⃣ Items (en paralelo)
+await Promise.all(
+  snapshot.items.map((item) => {
+    if (
+      (item.tipo_item === "servicio" && !item.tarifa) ||
+      (item.tipo_item === "producto" && !item.producto)
+    )
+      return null;
 
-        await fetch(`${API_URL}/items/items_orden`, {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({
-            orden: ordenId,
-            tipo_item: item.tipo_item,
-            tarifa: item.tipo_item === "servicio" ? item.tarifa : null,
-            producto:
-              item.tipo_item === "producto" ? item.producto : null,
-            cantidad: item.cantidad,
-            precio_unitario: item.precio_unitario,
-            subtotal: item.subtotal,
-            nombre: item.nombre || "",
-          }),
-        });
-      }
+    return fetch(`${API_URL}/items/items_orden`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({
+        orden: ordenId,
+        tipo_item: item.tipo_item,
+        tarifa: item.tipo_item === "servicio" ? item.tarifa : null,
+        producto:
+          item.tipo_item === "producto" ? item.producto : null,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario,
+        subtotal: item.subtotal,
+        nombre: item.nombre || "",
+      }),
+    });
+  })
+);
+
 
       // 4️⃣ Pago contado
       if (
