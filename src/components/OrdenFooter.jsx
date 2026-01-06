@@ -92,33 +92,44 @@ if (!comprobante) {
       
 
       // 1️⃣ Crear ORDEN
-      const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          fecha: snapshot.fecha,
-          cliente: clienteId,
-          comprobante,
-          patente: snapshot.patente,
-          condicion_cobro: snapshot.condicionCobro,
-          estado:
-            snapshot.condicionCobro === "contado"
-              ? "pagado"
-              : "pendiente",
-          total: snapshot.total,
-          total_pagado:
-            snapshot.condicionCobro === "contado"
-              ? snapshot.total
-              : 0,
-          saldo:
-            snapshot.condicionCobro === "contado"
-              ? 0
-              : snapshot.total,
-        }),
-      });
+    const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
+  method: "POST",
+  headers: authHeaders(),
+  body: JSON.stringify({
+    fecha: snapshot.fecha,
+    cliente: clienteId,
+    comprobante,
+    patente: snapshot.patente,
+    condicion_cobro: snapshot.condicionCobro,
+    estado:
+      snapshot.condicionCobro === "contado"
+        ? "pagado"
+        : "pendiente",
+    total: snapshot.total,
+    total_pagado:
+      snapshot.condicionCobro === "contado"
+        ? snapshot.total
+        : 0,
+    saldo:
+      snapshot.condicionCobro === "contado"
+        ? 0
+        : snapshot.total,
+    cuenta_corriente:
+      snapshot.condicionCobro === "cuenta_corriente",
+  }),
+});
 
-      const ordenData = await ordenRes.json();
-      const ordenId = ordenData.data.id;
+const ordenData = await ordenRes.json();
+
+console.log("RESPUESTA ORDEN:", ordenData);
+
+if (!ordenRes.ok) {
+  alert("ERROR AL CREAR ORDEN");
+  return;
+}
+
+
+    
 
       // 2️⃣ Cuenta corriente
       if (snapshot.condicionCobro === "cuenta_corriente") {
