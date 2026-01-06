@@ -92,44 +92,33 @@ if (!comprobante) {
       
 
       // 1️⃣ Crear ORDEN
-    const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
-  method: "POST",
-  headers: authHeaders(),
-  body: JSON.stringify({
-    fecha: snapshot.fecha,
-    cliente: clienteId,
-    comprobante,
-    patente: snapshot.patente,
-    condicion_cobro: snapshot.condicionCobro,
-    estado:
-      snapshot.condicionCobro === "contado"
-        ? "pagado"
-        : "pendiente",
-    total: snapshot.total,
-    total_pagado:
-      snapshot.condicionCobro === "contado"
-        ? snapshot.total
-        : 0,
-    saldo:
-      snapshot.condicionCobro === "contado"
-        ? 0
-        : snapshot.total,
-    cuenta_corriente:
-      snapshot.condicionCobro === "cuenta_corriente",
-  }),
-});
+      const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          fecha: snapshot.fecha,
+          cliente: clienteId,
+          comprobante,
+          patente: snapshot.patente,
+          condicion_cobro: snapshot.condicionCobro,
+          estado:
+            snapshot.condicionCobro === "contado"
+              ? "pagado"
+              : "pendiente",
+          total: snapshot.total,
+          total_pagado:
+            snapshot.condicionCobro === "contado"
+              ? snapshot.total
+              : 0,
+          saldo:
+            snapshot.condicionCobro === "contado"
+              ? 0
+              : snapshot.total,
+        }),
+      });
 
-const ordenData = await ordenRes.json();
-
-console.log("RESPUESTA ORDEN:", ordenData);
-
-if (!ordenRes.ok) {
-  alert("ERROR AL CREAR ORDEN");
-  return;
-}
-
-
-    
+      const ordenData = await ordenRes.json();
+      const ordenId = ordenData.data.id;
 
       // 2️⃣ Cuenta corriente
       if (snapshot.condicionCobro === "cuenta_corriente") {
@@ -167,33 +156,29 @@ if (!ordenRes.ok) {
       }
 
       // 3️⃣ Items
-     // 3️⃣ Items (en paralelo)
-await Promise.all(
-  snapshot.items.map((item) => {
-    if (
-      (item.tipo_item === "servicio" && !item.tarifa) ||
-      (item.tipo_item === "producto" && !item.producto)
-    )
-      return null;
+      for (const item of snapshot.items) {
+        if (
+          (item.tipo_item === "servicio" && !item.tarifa) ||
+          (item.tipo_item === "producto" && !item.producto)
+        )
+          continue;
 
-    return fetch(`${API_URL}/items/items_orden`, {
-      method: "POST",
-      headers: authHeaders(),
-      body: JSON.stringify({
-        orden: ordenId,
-        tipo_item: item.tipo_item,
-        tarifa: item.tipo_item === "servicio" ? item.tarifa : null,
-        producto:
-          item.tipo_item === "producto" ? item.producto : null,
-        cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario,
-        subtotal: item.subtotal,
-        nombre: item.nombre || "",
-      }),
-    });
-  })
-);
-
+        await fetch(`${API_URL}/items/items_orden`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            orden: ordenId,
+            tipo_item: item.tipo_item,
+            tarifa: item.tipo_item === "servicio" ? item.tarifa : null,
+            producto:
+              item.tipo_item === "producto" ? item.producto : null,
+            cantidad: item.cantidad,
+            precio_unitario: item.precio_unitario,
+            subtotal: item.subtotal,
+            nombre: item.nombre || "",
+          }),
+        });
+      }
 
       // 4️⃣ Pago contado
       if (
