@@ -114,13 +114,13 @@ export const getUltimoComprobante = async () => {
 
  export const generarNumeroComprobante = async () => {
   // 1️⃣ Leer contador
-  const res = await apiFetch("items/contadores/ordenes_trabajo");
+  const res = await apiFetch("contadores/ordenes_trabajo");
   const ultimo = Number(res.data.ultimo);
 
   const siguiente = ultimo + 1;
 
   // 2️⃣ Actualizar contador
-  await apiFetch("items/contadores/ordenes_trabajo", {
+  await apiFetch("contadores/ordenes_trabajo", {
     method: "PATCH",
     body: JSON.stringify({ ultimo: siguiente }),
   });
