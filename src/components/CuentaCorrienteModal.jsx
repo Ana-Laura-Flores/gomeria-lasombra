@@ -51,6 +51,17 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     fetchData();
   }, [clienteId]);
 
+  useEffect(() => {
+  if (!showSuccess) return;
+
+  const t = setTimeout(() => {
+    setShowSuccess(false);
+  }, 300);
+
+  return () => clearTimeout(t);
+}, [showSuccess]);
+
+
   const movimientos = useMemo(() => {
     const movOrdenes = ordenes.map((o) => ({
       fecha: o.fecha,
@@ -169,11 +180,12 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
       </button>
 
       <button
-        onClick={() => setShowSuccess(false)}
-        className="bg-green-600 py-2 rounded w-full"
-      >
-        Aceptar
-      </button>
+  onClick={() => {}}
+  className="bg-green-600 py-2 rounded w-full"
+>
+  Aceptar
+</button>
+
     </div>
   </div>
 )}
