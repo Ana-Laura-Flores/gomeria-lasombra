@@ -72,24 +72,7 @@ export default function OrdenFooter({
         return;
       }
 
-      // 7️⃣ Generar comprobante (con reintento)
-let comprobante = null;
-let intentos = 0;
-
-while (!comprobante && intentos < 3) {
-  try {
-    comprobante = await generarNumeroComprobante();
-  } catch (error) {
-    intentos++;
-  }
-}
-
-if (!comprobante) {
-  alert("No se pudo generar el comprobante");
-  return;
-}
-
-      
+      const comprobante = await generarNumeroComprobante();
 
       // 1️⃣ Crear ORDEN
       const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {

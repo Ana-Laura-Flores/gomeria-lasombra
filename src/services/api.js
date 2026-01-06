@@ -113,21 +113,13 @@ export const getUltimoComprobante = async () => {
 };
 
  export const generarNumeroComprobante = async () => {
-  // 1️⃣ Leer contador
-  const res = await apiFetch("contadores/ordenes_trabajo");
-  const ultimo = Number(res.data.ultimo);
-
-  const siguiente = ultimo + 1;
-
-  // 2️⃣ Actualizar contador
-  await apiFetch("contadores/ordenes_trabajo", {
-    method: "PATCH",
-    body: JSON.stringify({ ultimo: siguiente }),
-  });
-
-  return String(siguiente).padStart(6, "0");
-};
-
+   const ultimo = await getUltimoComprobante();
+   let siguiente = 1;
+   if (ultimo) {
+     siguiente = Number(ultimo) + 1;
+   }
+   return String(siguiente).padStart(6, "0"); // Ej: 000001
+ };
 
 // export const generarNumeroComprobante = async () => {
 //   const res = await fetch(`${API_URL}/items/ordenes_trabajo?sort=-comprobante&limit=1`, {
