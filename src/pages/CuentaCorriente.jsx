@@ -106,17 +106,14 @@ export default function CuentaCorriente() {
       />
 {clienteDetalleId && (
   <CuentaCorrienteModal
-    key={clienteDetalleId}
     clienteId={clienteDetalleId}
     onClose={() => setClienteDetalleId(null)}
-   onPagoRegistrado={(pagosNuevos) => {
-  if (!pagosNuevos) return;
-  const nuevos = Array.isArray(pagosNuevos) ? pagosNuevos : [pagosNuevos];
-  setPagos((prev) => [...prev, ...nuevos]);
-  fetchData();
-}}
+    onPagoRegistrado={() => {
+      // opcional: refrescar listado general
+    }}
   />
 )}
+
 
     </MainLayout>
   );

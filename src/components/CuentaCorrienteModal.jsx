@@ -88,20 +88,20 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     
   };
 
- const handleSuccessAction = async (accion) => {
-  setShowSuccess(false);
+//  const handleSuccessAction = async (accion) => {
+//   setShowSuccess(false);
 
-  // Refrescar pagos confirmados
-  const pagosActualizados = await getPagosCliente(clienteId);
-  const confirmados = (pagosActualizados.data || []).filter(
-    (p) => p.estado === "confirmado"
-  );
+//   // Refrescar pagos confirmados
+//   const pagosActualizados = await getPagosCliente(clienteId);
+//   const confirmados = (pagosActualizados.data || []).filter(
+//     (p) => p.estado === "confirmado"
+//   );
 
-  setPagos(confirmados);
-  onPagoRegistrado?.(confirmados);
+//   setPagos(confirmados);
+//   onPagoRegistrado?.(confirmados);
     
   
-};
+// };
 
   if (loading) return <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white">Cargando cuenta corriente...</div>;
   if (!cliente) return null;
@@ -149,13 +149,27 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
         )}
 
         {/* MODAL SUCCESS */}
-        {showSuccess && (
+       {showSuccess && (
   <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
     <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
-      <h2 className="text-lg font-bold">Pago registrado correctamente</h2>
+      <h2 className="text-lg font-bold">
+        Pago creado exitosamente
+      </h2>
 
       <button
-        onClick={handleSuccessAction}
+        onClick={() =>
+          exportarPDFOrden({
+            elementId: "cc-pdf",
+            filename: `CuentaCorriente-${cliente.nombre}.pdf`,
+          })
+        }
+        className="bg-blue-600 py-2 rounded w-full"
+      >
+        Descargar PDF
+      </button>
+
+      <button
+        onClick={() => setShowSuccess(false)}
         className="bg-green-600 py-2 rounded w-full"
       >
         Aceptar
@@ -163,6 +177,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     </div>
   </div>
 )}
+
 
       </div>
     </div>
