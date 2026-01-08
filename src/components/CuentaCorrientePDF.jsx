@@ -3,117 +3,152 @@ import logo from "../assets/logo.jpg";
 export default function CuentaCorrientePDF({ cliente, movimientos }) {
   let saldoAcumulado = 0;
 
-  return (
-   <div
-  id="pdf-cuenta-corriente"
-  style={{
-    backgroundColor: "#ffffff",
-    color: "#000000",
-    padding: "16px",
-    fontFamily: "Arial, sans-serif",
-    fontSize: "11px",
-    width: "100%",
-    boxSizing: "border-box",
-  }}
->
+  const th = {
+    padding: "6px",
+    borderBottom: "1px solid #d1d5db",
+    textAlign: "left",
+    fontWeight: "bold",
+  };
 
+  const td = {
+    padding: "4px 6px",
+    borderBottom: "1px solid #e5e7eb",
+  };
+
+  return (
+    <div
+      id="pdf-cuenta-corriente"
+      style={{
+        backgroundColor: "#ffffff",
+        color: "#000000",
+        padding: "16px",
+        fontFamily: "Arial, sans-serif",
+        fontSize: "11px",
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
       {/* HEADER */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "12px",
+        }}
+      >
         <img
           src={logo}
           alt="Logo"
-          className="h-9 max-w-full object-contain"
+          style={{ height: 36, objectFit: "contain" }}
         />
 
-        <div className="text-right flex-1">
-          <h2 className="m-0 text-sm sm:text-base font-semibold">
-            Cuenta Corriente
-          </h2>
-          <small className="text-gray-600">
+        <div style={{ textAlign: "right", flex: 1 }}>
+          <h2 style={{ margin: 0, fontSize: 14 }}>Cuenta Corriente</h2>
+          <small style={{ color: "#4b5563" }}>
             {new Date().toLocaleDateString("es-AR")}
           </small>
         </div>
       </div>
 
-      <hr className="my-3 border-gray-300" />
+      <hr
+        style={{
+          margin: "12px 0",
+          border: "none",
+          borderTop: "1px solid #d1d5db",
+        }}
+      />
 
       {/* CLIENTE */}
-      <div className="mb-3 text-xs sm:text-sm">
+      <div style={{ marginBottom: 10 }}>
         <strong>Cliente:</strong> {cliente.nombre}
       </div>
 
       {/* TOTALES */}
       <div
-        className="
-          mb-4 p-3
-          border border-gray-300 rounded-md
-          flex flex-wrap gap-3
-          text-xs sm:text-sm
-        "
+        style={{
+          marginBottom: 14,
+          padding: 10,
+          border: "1px solid #d1d5db",
+          borderRadius: 6,
+          display: "flex",
+          gap: 12,
+          fontSize: 11,
+        }}
       >
-        <div className="flex-1 min-w-[90px]">
-          <div className="text-gray-500">Total</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ color: "#6b7280" }}>Total</div>
           <strong>${cliente.total}</strong>
         </div>
-        <div className="flex-1 min-w-[90px]">
-          <div className="text-gray-500">Pagado</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ color: "#6b7280" }}>Pagado</div>
           <strong>${cliente.pagado}</strong>
         </div>
-        <div className="flex-1 min-w-[90px]">
-          <div className="text-gray-500">Saldo</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ color: "#6b7280" }}>Saldo</div>
           <strong>${cliente.saldo}</strong>
         </div>
       </div>
 
       {/* TABLA */}
-      <div className="w-full overflow-x-auto">
-        <table className="w-full table-fixed border-collapse text-[10px] sm:text-[11px]">
-          <thead>
-  <tr className="bg-gray-200">
-    <th className="px-2 py-1 text-left">Fecha</th>
-    <th className="px-2 py-1 text-left">Tipo</th>
-    <th className="px-2 py-1 text-left">Ref</th>
-    <th className="px-2 py-1 text-right">Debe</th>
-    <th className="px-2 py-1 text-right">Haber</th>
-    <th className="px-2 py-1 text-right">Saldo</th>
-  </tr>
-</thead>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontSize: "10px",
+        }}
+      >
+        <thead>
+          <tr style={{ backgroundColor: "#e5e7eb" }}>
+            <th style={th}>Fecha</th>
+            <th style={th}>Tipo</th>
+            <th style={th}>Ref</th>
+            <th style={{ ...th, textAlign: "right" }}>Debe</th>
+            <th style={{ ...th, textAlign: "right" }}>Haber</th>
+            <th style={{ ...th, textAlign: "right" }}>Saldo</th>
+          </tr>
+        </thead>
 
+        <tbody>
+          {movimientos.map((m, i) => {
+            saldoAcumulado += (m.debe || 0) - (m.haber || 0);
 
-          <tbody>
-            {movimientos.map((m, i) => {
-              saldoAcumulado += (m.debe || 0) - (m.haber || 0);
-
-              return (
-                <tr
-                  key={i}
-                  className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                >
-                  <td className="td">
-                    {new Date(m.fecha).toLocaleDateString("es-AR")}
-                  </td>
-                  <td className="td">{m.tipo}</td>
-                  <td className="td">
-                    {typeof m.referencia === "string" ? m.referencia : ""}
-                  </td>
-                  <td className="td text-right">
-                    {m.debe ? `$${m.debe}` : ""}
-                  </td>
-                  <td className="td text-right">
-                    {m.haber ? `$${m.haber}` : ""}
-                  </td>
-                  <td className="td text-right font-bold">
-                    ${saldoAcumulado}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+            return (
+              <tr
+                key={i}
+                style={{
+                  backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff",
+                }}
+              >
+                <td style={td}>
+                  {new Date(m.fecha).toLocaleDateString("es-AR")}
+                </td>
+                <td style={td}>{m.tipo}</td>
+                <td style={td}>{m.referencia || ""}</td>
+                <td style={{ ...td, textAlign: "right" }}>
+                  {m.debe ? `$${m.debe}` : ""}
+                </td>
+                <td style={{ ...td, textAlign: "right" }}>
+                  {m.haber ? `$${m.haber}` : ""}
+                </td>
+                <td style={{ ...td, textAlign: "right", fontWeight: "bold" }}>
+                  ${saldoAcumulado}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
 
       {/* FOOTER */}
-      <div className="mt-4 text-center text-[9px] sm:text-[10px] text-gray-500">
+      <div
+        style={{
+          marginTop: 16,
+          textAlign: "center",
+          fontSize: 9,
+          color: "#6b7280",
+        }}
+      >
         Documento generado automáticamente – Sistema Gomería La Sombra
       </div>
     </div>
