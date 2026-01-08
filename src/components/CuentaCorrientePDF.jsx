@@ -69,17 +69,16 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
       <div className="w-full overflow-x-auto">
         <table className="w-full table-fixed border-collapse text-[10px] sm:text-[11px]">
           <thead>
-            <tr style={{ backgroundColor: "#e5e7eb" }}>
+  <tr className="bg-gray-200">
+    <th className="px-2 py-1 text-left">Fecha</th>
+    <th className="px-2 py-1 text-left">Tipo</th>
+    <th className="px-2 py-1 text-left">Ref</th>
+    <th className="px-2 py-1 text-right">Debe</th>
+    <th className="px-2 py-1 text-right">Haber</th>
+    <th className="px-2 py-1 text-right">Saldo</th>
+  </tr>
+</thead>
 
-              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>
-Fecha</th>
-              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Tipo</th>
-              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Ref</th>
-              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Debe</th>
-              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Haber</th>
-              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Saldo</th>
-            </tr>
-          </thead>
 
           <tbody>
             {movimientos.map((m, i) => {
