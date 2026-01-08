@@ -44,30 +44,41 @@ export default function OrdenPrint({ orden }) {
 
             {/* INFO ORDEN */}
             <div style={{ marginBottom: 12 }}>
-                <div>
-                    <strong>Fecha:</strong>{" "}
-                    {new Date(orden.fecha).toLocaleDateString()}
-                </div>
-                <div>
-                    <strong>Comprobante:</strong> {orden.comprobante || "-"}
-                </div>
-                <div>
-                    <strong>Cliente:</strong>{" "}
-                    {orden.cliente
-                        ? `${orden.cliente.nombre} ${
-                              orden.cliente.apellido || ""
-                          }`
-                        : "-"}
-                </div>
-                <div>
-                    <strong>Patente:</strong> {orden.patente}
-                </div>
-                {orden.estado && (
-                    <div>
-                        <strong>Estado:</strong> {orden.estado}
-                    </div>
-                )}
-            </div>
+    <div>
+        <strong>Fecha:</strong>{" "}
+        {new Date(orden.fecha).toLocaleDateString()}
+    </div>
+
+    <div>
+        <strong>Comprobante:</strong> {orden.comprobante || "-"}
+    </div>
+
+    <div>
+        <strong>Cliente:</strong>{" "}
+        {orden.cliente
+            ? `${orden.cliente.nombre} ${orden.cliente.apellido || ""}`
+            : "-"}
+    </div>
+
+    <div>
+        <strong>Patente:</strong> {orden.patente}
+    </div>
+
+    {/* 👇 NUEVO */}
+    <div>
+        <strong>Condición de cobro:</strong>{" "}
+        {orden.condicion_cobro === "contado"
+            ? "Contado"
+            : "Cuenta corriente"}
+    </div>
+
+    {orden.estado && (
+        <div>
+            <strong>Estado:</strong> {orden.estado}
+        </div>
+    )}
+</div>
+
 
             {/* ITEMS */}
             <table

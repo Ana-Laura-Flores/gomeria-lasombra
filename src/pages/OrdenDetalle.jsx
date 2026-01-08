@@ -110,28 +110,44 @@ export default function OrdenDetalle() {
                 </div>
 
                 {/* DATOS */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                        <p className="font-semibold">Cliente</p>
-                        <p>
-                            {orden.cliente
-                                ? `${orden.cliente.nombre} ${
-                                      orden.cliente.apellido || ""
-                                  }`
-                                : "-"}
-                        </p>
-                    </div>
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div>
+        <p className="font-semibold">Cliente</p>
+        <p>
+            {orden.cliente
+                ? `${orden.cliente.nombre} ${orden.cliente.apellido || ""}`
+                : "-"}
+        </p>
+    </div>
 
-                    <div>
-                        <p className="font-semibold">Patente</p>
-                        <p>{orden.patente}</p>
-                    </div>
+    <div>
+        <p className="font-semibold">Patente</p>
+        <p>{orden.patente}</p>
+    </div>
 
-                    {/* <div>
-                        <p className="font-semibold">Estado</p>
-                        <p className="capitalize">{orden.estado}</p>
-                    </div> */}
-                </div>
+    <div>
+        <p className="font-semibold">Condición de cobro</p>
+        <span
+            className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-semibold
+                ${
+                    orden.condicion_cobro === "contado"
+                        ? "bg-green-600 text-white"
+                        : "bg-yellow-500 text-gray-900"
+                }
+            `}
+        >
+            {orden.condicion_cobro === "contado"
+                ? "Contado"
+                : "Cuenta corriente"}
+        </span>
+    </div>
+
+    <div>
+        <p className="font-semibold">Estado</p>
+        <p className="capitalize">{orden.estado}</p>
+    </div>
+</div>
+
 
                 {/* ITEMS */}
                 <table className="w-full border-collapse mb-6">
