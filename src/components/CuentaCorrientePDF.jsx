@@ -6,116 +6,112 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
   return (
     <div
       id="pdf-cuenta-corriente"
-      style={{
-        background: "white",
-        color: "#000",
-        padding: 20,
-        fontFamily: "Arial, sans-serif",
-        fontSize: 11,
-        width: "100%",
-        boxSizing: "border-box",
-      }}
+      className="
+        bg-white text-black 
+        p-4 sm:p-6 
+        font-sans 
+        text-[11px] sm:text-[12px]
+        w-full box-border
+      "
     >
       {/* HEADER */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <img src={logo} alt="Logo" style={{ height: 36 }} />
-        <div style={{ textAlign: "right" }}>
-          <h2 style={{ margin: 0, fontSize: 14 }}>Cuenta Corriente</h2>
-          <small>{new Date().toLocaleDateString("es-AR")}</small>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-9 max-w-full object-contain"
+        />
+
+        <div className="text-right flex-1">
+          <h2 className="m-0 text-sm sm:text-base font-semibold">
+            Cuenta Corriente
+          </h2>
+          <small className="text-gray-600">
+            {new Date().toLocaleDateString("es-AR")}
+          </small>
         </div>
       </div>
 
-      <hr style={{ margin: "10px 0" }} />
+      <hr className="my-3 border-gray-300" />
 
       {/* CLIENTE */}
-      <div style={{ marginBottom: 10 }}>
+      <div className="mb-3 text-xs sm:text-sm">
         <strong>Cliente:</strong> {cliente.nombre}
       </div>
 
       {/* TOTALES */}
       <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 12,
-          padding: 8,
-          border: "1px solid #ccc",
-          borderRadius: 4,
-          fontSize: 11,
-        }}
+        className="
+          mb-4 p-3
+          border border-gray-300 rounded-md
+          flex flex-wrap gap-3
+          text-xs sm:text-sm
+        "
       >
-        <div>
-          <div>Total</div>
+        <div className="flex-1 min-w-[90px]">
+          <div className="text-gray-500">Total</div>
           <strong>${cliente.total}</strong>
         </div>
-        <div>
-          <div>Pagado</div>
+        <div className="flex-1 min-w-[90px]">
+          <div className="text-gray-500">Pagado</div>
           <strong>${cliente.pagado}</strong>
         </div>
-        <div>
-          <div>Saldo</div>
+        <div className="flex-1 min-w-[90px]">
+          <div className="text-gray-500">Saldo</div>
           <strong>${cliente.saldo}</strong>
         </div>
       </div>
 
       {/* TABLA */}
-      <table
-        width="100%"
-        style={{
-          borderCollapse: "collapse",
-          tableLayout: "fixed", // 🔥 CLAVE
-          fontSize: 10,
-        }}
-      >
-        <thead>
-          <tr style={{ background: "#e5e7eb" }}>
-            <th style={th}>Fecha</th>
-            <th style={th}>Tipo</th>
-            <th style={th}>Ref</th>
-            <th style={{ ...th, textAlign: "right", width: "14%" }}>Debe</th>
-            <th style={{ ...th, textAlign: "right", width: "14%" }}>Haber</th>
-            <th style={{ ...th, textAlign: "right", width: "16%" }}>Saldo</th>
-          </tr>
-        </thead>
+      <div className="w-full overflow-x-auto">
+        <table className="w-full table-fixed border-collapse text-[10px] sm:text-[11px]">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="th w-[14%]">Fecha</th>
+              <th className="th w-[18%]">Tipo</th>
+              <th className="th w-[22%]">Ref</th>
+              <th className="th w-[15%] text-right">Debe</th>
+              <th className="th w-[15%] text-right">Haber</th>
+              <th className="th w-[16%] text-right">Saldo</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {movimientos.map((m, i) => {
-            saldoAcumulado += (m.debe || 0) - (m.haber || 0);
+          <tbody>
+            {movimientos.map((m, i) => {
+              saldoAcumulado += (m.debe || 0) - (m.haber || 0);
 
-            return (
-              <tr key={i} style={{ background: i % 2 === 0 ? "#fafafa" : "#fff" }}>
-                <td style={td}>{new Date(m.fecha).toLocaleDateString("es-AR")}</td>
-                <td style={td}>{m.tipo}</td>
-                <td style={td}>{typeof m.referencia === "string" ? m.referencia : ""}</td>
-                <td style={{ ...td, textAlign: "right" }}>{m.debe ? `$${m.debe}` : ""}</td>
-                <td style={{ ...td, textAlign: "right" }}>{m.haber ? `$${m.haber}` : ""}</td>
-                <td style={{ ...td, textAlign: "right", fontWeight: "bold" }}>
-                  ${saldoAcumulado}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+              return (
+                <tr
+                  key={i}
+                  className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                >
+                  <td className="td">
+                    {new Date(m.fecha).toLocaleDateString("es-AR")}
+                  </td>
+                  <td className="td">{m.tipo}</td>
+                  <td className="td">
+                    {typeof m.referencia === "string" ? m.referencia : ""}
+                  </td>
+                  <td className="td text-right">
+                    {m.debe ? `$${m.debe}` : ""}
+                  </td>
+                  <td className="td text-right">
+                    {m.haber ? `$${m.haber}` : ""}
+                  </td>
+                  <td className="td text-right font-bold">
+                    ${saldoAcumulado}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       {/* FOOTER */}
-      <div style={{ marginTop: 14, textAlign: "center", fontSize: 9, color: "#666" }}>
+      <div className="mt-4 text-center text-[9px] sm:text-[10px] text-gray-500">
         Documento generado automáticamente – Sistema Gomería La Sombra
       </div>
     </div>
   );
 }
-
-const th = {
-  padding: "4px",
-  borderBottom: "1px solid #999",
-  textAlign: "left",
-};
-
-const td = {
-  padding: "4px",
-  borderBottom: "1px solid #ddd",
-  overflow: "hidden",
-  whiteSpace: "nowrap",
-  textOverflow: "ellipsis",
-};
