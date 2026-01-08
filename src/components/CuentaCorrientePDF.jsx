@@ -4,16 +4,19 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
   let saldoAcumulado = 0;
 
   return (
-    <div
-      id="pdf-cuenta-corriente"
-      className="
-        bg-white text-black 
-        p-4 sm:p-6 
-        font-sans 
-        text-[11px] sm:text-[12px]
-        w-full box-border
-      "
-    >
+   <div
+  id="pdf-cuenta-corriente"
+  style={{
+    backgroundColor: "#ffffff",
+    color: "#000000",
+    padding: "16px",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "11px",
+    width: "100%",
+    boxSizing: "border-box",
+  }}
+>
+
       {/* HEADER */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <img
@@ -66,13 +69,15 @@ export default function CuentaCorrientePDF({ cliente, movimientos }) {
       <div className="w-full overflow-x-auto">
         <table className="w-full table-fixed border-collapse text-[10px] sm:text-[11px]">
           <thead>
-            <tr className="bg-gray-200">
-              <th className="th w-[14%]">Fecha</th>
-              <th className="th w-[18%]">Tipo</th>
-              <th className="th w-[22%]">Ref</th>
-              <th className="th w-[15%] text-right">Debe</th>
-              <th className="th w-[15%] text-right">Haber</th>
-              <th className="th w-[16%] text-right">Saldo</th>
+            <tr style={{ backgroundColor: "#e5e7eb" }}>
+
+              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>
+Fecha</th>
+              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Tipo</th>
+              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Ref</th>
+              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Debe</th>
+              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Haber</th>
+              <th style={{ backgroundColor: i % 2 === 0 ? "#f9fafb" : "#ffffff" }}>Saldo</th>
             </tr>
           </thead>
 
