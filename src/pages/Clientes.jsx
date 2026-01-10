@@ -68,8 +68,17 @@ export default function Clientes() {
         };
       }
 
-      acc[clienteId].total += Number(o.total || 0);
-      acc[clienteId].ordenes.push(o);
+     const monto = Number(o.total || 0);
+
+acc[clienteId].total += monto;
+
+// Si fue contado, se considera pago automático
+if (o.condicion_cobro === "contado") {
+  acc[clienteId].pagado += monto;
+}
+
+acc[clienteId].ordenes.push(o);
+
     });
 
     // PAGOS

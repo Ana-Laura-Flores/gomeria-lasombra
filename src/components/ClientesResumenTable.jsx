@@ -13,7 +13,7 @@ export default function ClientesResumenTable({ clientes, onVerDetalle }) {
         </thead>
         <tbody>
           {clientes.map((c) => (
-            <tr key={c.id} className="border-t hover:bg-gray-50">
+            <tr key={c.id} className="border-t hover:bg-gray-500">
               <td className="p-2 font-medium">{c.nombre}</td>
               <td className="p-2 text-right">${c.total.toFixed(2)}</td>
               <td className="p-2 text-right text-green-600">
