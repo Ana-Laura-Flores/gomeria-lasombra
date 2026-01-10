@@ -11,6 +11,8 @@ export default function ClienteModal({ clienteId, onClose }) {
     const [pagos, setPagos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cliente, setCliente] = useState(null);
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchData = async () => {
