@@ -110,7 +110,7 @@ export default function ClienteModal({ clienteId, onClose }) {
                             <th className="p-2 text-left">Fecha</th>
                             <th className="p-2 text-left">Orden</th>
                             <th className="p-2 text-left">Condición</th>
-                            <th className="p-2 text-left">Método de Pago</th>
+                            
 
                             <th className="p-2 text-right">Total</th>
                         </tr>
@@ -132,9 +132,7 @@ export default function ClienteModal({ clienteId, onClose }) {
                                 <td className="p-2 capitalize">
                                     {o.condicion_cobro}
                                 </td>
-                                <td className="p-2 capitalize text-gray-300">
-                                    {p.metodo_pago || "—"}
-                                </td>
+                               
 
                                 <td className="p-2 text-right">${o.total}</td>
                             </tr>
@@ -144,30 +142,39 @@ export default function ClienteModal({ clienteId, onClose }) {
 
                 {/* Pagos */}
                 <h3 className="font-bold mb-2">Pagos</h3>
-                <table className="w-full text-sm">
-                    <thead className="bg-gray-700">
-                        <tr>
-                            <th className="p-2 text-left">Fecha</th>
-                            <th className="p-2 text-left">Comprobante</th>
-                            <th className="p-2 text-right">Monto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {pagos.map((p) => (
-                            <tr
-                                key={p.id}
-                                className="border-b border-gray-700 hover:bg-gray-700"
-                            >
-                                <td className="p-2">{formatFecha(p.fecha)}</td>
+<table className="w-full text-sm">
+  <thead className="bg-gray-700">
+    <tr>
+      <th className="p-2 text-left">Fecha</th>
+      <th className="p-2 text-left">Comprobante</th>
+      <th className="p-2 text-left">Método</th>
+      <th className="p-2 text-right">Monto</th>
+    </tr>
+  </thead>
+  <tbody>
+    {pagos.map((p) => (
+      <tr
+        key={p.id}
+        className="border-b border-gray-700 hover:bg-gray-700"
+      >
+        <td className="p-2">{formatFecha(p.fecha)}</td>
 
-                                <td className="p-2">{p.numero_comprobante}</td>
-                                <td className="p-2 text-right text-green-400">
-                                    ${p.monto}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+        <td className="p-2 font-mono">
+          {p.numero_comprobante || `Pago #${p.id}`}
+        </td>
+
+        <td className="p-2 capitalize text-gray-300">
+          {p.metodo_pago || "—"}
+        </td>
+
+        <td className="p-2 text-right text-green-400">
+          ${p.monto}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
             </div>
         </div>
     );
