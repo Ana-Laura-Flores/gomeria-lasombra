@@ -57,6 +57,12 @@ export default function Sidebar() {
                         >
                             Cuentas Corrientes
                         </Link>
+                         <Link
+                            to="/clientes"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Clientes
+                        </Link>
                     </>
                 )}
               

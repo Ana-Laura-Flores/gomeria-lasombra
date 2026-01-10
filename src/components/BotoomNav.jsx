@@ -55,6 +55,14 @@ export default function BottomNav() {
                         📒
                         <span>Cuenta</span>
                     </Link>
+                     {/* 🆕 CLIENTES */}
+          <Link
+            to="/clientes"
+            className={`flex flex-col items-center text-sm ${isActive("/clientes")}`}
+          >
+            👥
+            <span>Clientes</span>
+          </Link>
                     <Link
                         to="/gastos/nuevo"
                         className={`flex flex-col items-center text-sm ${isActive(

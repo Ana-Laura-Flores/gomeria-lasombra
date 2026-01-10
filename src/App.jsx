@@ -18,6 +18,7 @@ import Pagos from "./pages/Pagos";
 import Gastos from "./pages/Gastos";
 import NuevoGasto from "./pages/NuevoGasto";
 import CuentaCorrienteClientePage from "./components/CuentaCorrienteClientePage";
+import Clientes from "./pages/Clientes";
 
 function ProtectedRoute({ children, allowedRoles }) {
     const { isLoggedIn, user } = useAuth();
@@ -88,6 +89,16 @@ export default function App() {
                                 allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
                             >
                                 <CuentaCorrienteClientePage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/clientes"
+                        element={
+                            <ProtectedRoute
+                                allowedRoles={[ROLES.ADMIN, ROLES.EMPLEADO]}
+                            >
+                                <Clientes />
                             </ProtectedRoute>
                         }
                     />
