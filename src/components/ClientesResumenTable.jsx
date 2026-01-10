@@ -2,7 +2,7 @@ export default function ClientesResumenTable({ clientes, onVerDetalle }) {
   return (
     <div className="overflow-auto border rounded">
       <table className="w-full text-sm">
-        <thead className="bg-gray-100">
+        <thead className="bg-gray-500">
           <tr>
             <th className="p-2 text-left">Cliente</th>
             <th className="p-2 text-right">Total</th>

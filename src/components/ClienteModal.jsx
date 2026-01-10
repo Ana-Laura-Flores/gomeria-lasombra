@@ -48,74 +48,86 @@ export default function ClienteModal({ clienteId, onClose }) {
 
   if (loading) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-4 w-[90vw] max-w-4xl max-h-[90vh] overflow-auto">
-        <div className="flex justify-between mb-4">
-          <h2 className="text-xl font-bold">Ficha del Cliente</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
-
-        {/* Resumen */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="p-3 bg-gray-100 rounded">
-            <p className="text-sm">Total facturado</p>
-            <p className="text-xl font-bold">${resumen.total}</p>
-          </div>
-          <div className="p-3 bg-green-100 rounded">
-            <p className="text-sm">Pagado</p>
-            <p className="text-xl font-bold">${resumen.pagado}</p>
-          </div>
-          <div className="p-3 bg-red-100 rounded">
-            <p className="text-sm">Saldo</p>
-            <p className="text-xl font-bold">${resumen.saldo}</p>
-          </div>
-        </div>
-
-        {/* Órdenes */}
-        <h3 className="font-bold mb-2">Órdenes</h3>
-        <table className="w-full text-sm mb-6">
-          <thead>
-            <tr className="border-b">
-              <th>Fecha</th>
-              <th>Orden</th>
-              <th>Condición</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordenes.map((o) => (
-              <tr key={o.id} className="border-b">
-                <td>{o.fecha}</td>
-                <td>{o.numero}</td>
-                <td>{o.condicion_cobro}</td>
-                <td>${o.total}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Pagos */}
-        <h3 className="font-bold mb-2">Pagos</h3>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b">
-              <th>Fecha</th>
-              <th>Comprobante</th>
-              <th>Monto</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagos.map((p) => (
-              <tr key={p.id} className="border-b">
-                <td>{p.fecha}</td>
-                <td>{p.numero_comprobante}</td>
-                <td>${p.monto}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+ return (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="bg-gray-800 text-gray-100 rounded-lg p-4 w-[90vw] max-w-4xl max-h-[90vh] overflow-auto border border-gray-700">
+      <div className="flex justify-between mb-4">
+        <h2 className="text-xl font-bold">Ficha del Cliente</h2>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-white text-xl"
+        >
+          ✕
+        </button>
       </div>
+
+      {/* Resumen */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="p-3 bg-gray-700 rounded">
+          <p className="text-sm text-gray-400">Total facturado</p>
+          <p className="text-xl font-bold">${resumen.total}</p>
+        </div>
+        <div className="p-3 bg-green-900/40 rounded">
+          <p className="text-sm text-gray-400">Pagado</p>
+          <p className="text-xl font-bold text-green-400">
+            ${resumen.pagado}
+          </p>
+        </div>
+        <div className="p-3 bg-red-900/40 rounded">
+          <p className="text-sm text-gray-400">Saldo</p>
+          <p className="text-xl font-bold text-red-400">
+            ${resumen.saldo}
+          </p>
+        </div>
+      </div>
+
+      {/* Órdenes */}
+      <h3 className="font-bold mb-2">Órdenes</h3>
+      <table className="w-full text-sm mb-6">
+        <thead className="bg-gray-700">
+          <tr>
+            <th className="p-2 text-left">Fecha</th>
+            <th className="p-2 text-left">Orden</th>
+            <th className="p-2 text-left">Condición</th>
+            <th className="p-2 text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ordenes.map((o) => (
+            <tr key={o.id} className="border-b border-gray-700 hover:bg-gray-700">
+              <td className="p-2">{o.fecha}</td>
+              <td className="p-2">{o.numero}</td>
+              <td className="p-2 capitalize">{o.condicion_cobro}</td>
+              <td className="p-2 text-right">${o.total}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Pagos */}
+      <h3 className="font-bold mb-2">Pagos</h3>
+      <table className="w-full text-sm">
+        <thead className="bg-gray-700">
+          <tr>
+            <th className="p-2 text-left">Fecha</th>
+            <th className="p-2 text-left">Comprobante</th>
+            <th className="p-2 text-right">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pagos.map((p) => (
+            <tr key={p.id} className="border-b border-gray-700 hover:bg-gray-700">
+              <td className="p-2">{p.fecha}</td>
+              <td className="p-2">{p.numero_comprobante}</td>
+              <td className="p-2 text-right text-green-400">
+                ${p.monto}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  );
+  </div>
+);
+
 }
