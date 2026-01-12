@@ -276,7 +276,8 @@ export const crearPago = async (pago) => {
       numero_cheque: pago.numero_cheque || null,
       fecha_cobro: pago.fecha_cobro || null,
       numero_recibo: pago.numero_recibo,
-      tipo: "pago", 
+    tipo: pago.tipo === "anulacion" ? "anulacion" : "pago",
+
     }),
   });
   // return res.data;
