@@ -155,27 +155,42 @@ export default function ClienteModal({ clienteId, onClose }) {
   </thead>
   <tbody>
     {pagos.map((p) => (
-      <tr
-        key={p.id}
-        className="border-b border-gray-700 hover:bg-gray-700"
+  <tr key={p.id} className="border-b border-gray-700 hover:bg-gray-700">
+    <td className="p-2">{formatFecha(p.fecha)}</td>
+    <td className="p-2 font-mono">
+      <span
+        className="text-blue-400 cursor-pointer hover:underline"
+        onClick={() =>
+          exportarPDFRecibo({
+            elementId: `recibo-${p.id}`,
+            filename: `ReciboPago-${p.numero_comprobante || p.id}.pdf`,
+          })
+        }
       >
-        <td className="p-2">{formatFecha(p.fecha)}</td>
+        {p.numero_comprobante != null && p.numero_comprobante !== ""
+          ? `Pago #${p.numero_comprobante}`
+          : "Pago #—"}
+      </span>
+    </td>
+    <td className="p-2 capitalize text-gray-300">{p.metodo_pago || "—"}</td>
+    <td className="p-2 text-right text-green-400">${p.monto}</td>
+  </tr>
+))}
 
-        <td className="p-2 font-mono">
-          {p.numero_comprobante || `Pago #${p.id}`}
-        </td>
-
-        <td className="p-2 capitalize text-gray-300">
-          {p.metodo_pago || "—"}
-        </td>
-
-        <td className="p-2 text-right text-green-400">
-          ${p.monto}
-        </td>
-      </tr>
-    ))}
   </tbody>
 </table>
+<div className="hidden">
+  {pagos.map((p) => (
+    <div key={p.id} id={`recibo-${p.id}`}>
+      <ReciboPagoPDF
+        pago={p}
+        cliente={cliente}
+        orden={ordenes.find((o) => o.id === p.orden?.id) || {}}
+      />
+    </div>
+  ))}
+</div>
+  
 
             </div>
         </div>
