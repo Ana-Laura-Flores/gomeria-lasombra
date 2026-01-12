@@ -170,8 +170,8 @@ const [showRecibo, setShowRecibo] = useState(false);
       setShowRecibo(true);
     }}
   >
-    {p.numero_comprobante != null && p.numero_comprobante !== ""
-      ? `Pago #${p.numero_comprobante}`
+    {p.numero_recibo != null && p.numero_recibo !== ""
+      ? `Pago #${p.numero_recibo}`
       : "Pago #—"}
   </span>
 </td>
@@ -188,7 +188,7 @@ const [showRecibo, setShowRecibo] = useState(false);
     <div key={p.id} id={`recibo-${p.id}`}>
       <ReciboPagoPDF
         pago={p}
-        cliente={cliente}
+        cliente={cliente.nombre}
         orden={ordenes.find((o) => o.id === p.orden?.id) || {}}
       />
     </div>
