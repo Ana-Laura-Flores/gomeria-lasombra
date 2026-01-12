@@ -19,6 +19,10 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const navigate = useNavigate();
   const [pagoRecibo, setPagoRecibo] = useState(null);
 const [showRecibo, setShowRecibo] = useState(false);
+const [showAnulacionModal, setShowAnulacionModal] = useState(false);
+const [pagoAAnular, setPagoAAnular] = useState(null);
+const [motivoAnulacion, setMotivoAnulacion] = useState("");
+
 
 
   useEffect(() => {
@@ -96,7 +100,25 @@ const [showRecibo, setShowRecibo] = useState(false);
     
   };
 
- 
+ const abrirModalAnulacion = (pago) => {
+  setPagoAAnular(pago);
+  setMotivoAnulacion("");
+  setShowAnulacionModal(true);
+};
+
+const confirmarAnulacion = async () => {
+  if (!motivoAnulacion.trim()) return; // podés agregar un toast si querés
+
+  try {
+    await crearAnulacion(pagoAAnular, motivoAnulacion);
+    const pagosActualizados = await getPagosCliente(clienteId);
+    setPagos(pagosActualizados.data || []);
+    setShowAnulacionModal(false);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
 
 //  const handleSuccessAction = async (accion) => {
@@ -275,6 +297,36 @@ const [showRecibo, setShowRecibo] = useState(false);
     </div>
   </div>
 )}
+
+{showAnulacionModal && pagoAAnular && (
+  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+    <div className="bg-gray-900 p-4 rounded w-96 space-y-4">
+      <h2 className="text-lg font-bold">Anular pago #{pagoAAnular.numero_recibo}</h2>
+      <textarea
+        rows={3}
+        value={motivoAnulacion}
+        onChange={(e) => setMotivoAnulacion(e.target.value)}
+        className="w-full p-2 bg-gray-800 text-white rounded"
+        placeholder="Ingresá el motivo de anulación"
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={confirmarAnulacion}
+          className="bg-red-600 px-4 py-2 rounded text-white w-1/2 hover:bg-red-700"
+        >
+          Confirmar
+        </button>
+        <button
+          onClick={() => setShowAnulacionModal(false)}
+          className="bg-gray-700 px-4 py-2 rounded w-1/2 hover:bg-gray-600"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       </div>
     </div>
