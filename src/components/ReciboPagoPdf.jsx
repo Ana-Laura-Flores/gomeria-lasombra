@@ -62,6 +62,12 @@ export default function ReciboPagoPDF({ pago, cliente, orden }) {
           <strong>N° Cheque:</strong> {pago.numero_cheque}
         </div>
       )}
+      {pago.numero_cheque && (
+        <div style={{ marginBottom: 4 }}>
+          <strong>Fecha Cobro de cheque:</strong> {pago.fecha_cobro}
+        </div>
+      )}
+
 
       {/* FIRMA */}
       <div style={{ marginTop: 40 }}>
