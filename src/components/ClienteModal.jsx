@@ -162,10 +162,10 @@ export default function ClienteModal({ clienteId, onClose }) {
       <span
         className="text-blue-400 cursor-pointer hover:underline"
         onClick={() =>
-          exportarPDFRecibo({
-            elementId: `recibo-${p.id}`,
-            filename: `ReciboPago-${p.numero_comprobante || p.id}.pdf`,
-          })
+                   exportarPDFOrden({
+          elementId: "recibo-pdf",
+          filename: `Recibo-${pagoRecibo.numero_recibo}.pdf`,
+        })
         }
       >
         {p.numero_comprobante != null && p.numero_comprobante !== ""
