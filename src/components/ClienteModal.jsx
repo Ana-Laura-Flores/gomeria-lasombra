@@ -5,6 +5,7 @@ import {
     getPagosConfirmados,
 } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import ReciboPagoPDF from "./ReciboPagoPdf";
 
 export default function ClienteModal({ clienteId, onClose }) {
     const [ordenes, setOrdenes] = useState([]);
@@ -190,7 +191,7 @@ export default function ClienteModal({ clienteId, onClose }) {
     </div>
   ))}
 </div>
-  
+
 
             </div>
         </div>
