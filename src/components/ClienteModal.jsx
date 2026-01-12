@@ -6,6 +6,8 @@ import {
 } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import ReciboPagoPDF from "./ReciboPagoPdf";
+import { exportarPDFOrden } from "../utils/exportarPDFOrden";
+
 
 export default function ClienteModal({ clienteId, onClose }) {
     const [ordenes, setOrdenes] = useState([]);
