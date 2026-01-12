@@ -276,9 +276,10 @@ export const crearPago = async (pago) => {
       numero_cheque: pago.numero_cheque || null,
       fecha_cobro: pago.fecha_cobro || null,
       numero_recibo: pago.numero_recibo,
+      tipo: "pago", 
     }),
   });
-  return res.data;
+  // return res.data;
 };
 
 
