@@ -265,7 +265,7 @@ export const crearPago = async (pago) => {
   return apiFetch("pagos", {
     method: "POST",
     body: JSON.stringify({
-      orden: pago.orden,       // ID
+      orden: pago.orden || null,       // ID
       cliente: pago.cliente,   // ID
       metodo_pago: pago.metodo_pago,
       monto: Number(pago.monto),
@@ -301,11 +301,12 @@ export const getPagosByOrden = async (ordenId) => {
 
 export const getUltimoRecibo = async () => {
   const res = await apiFetch(
-    "pagos?fields=numero_recibo&sort=-numero_recibo&limit=1"
+    "pagos?fields=numero_recibo&filter[numero_recibo][_gt]=0&sort=-numero_recibo&limit=1"
   );
 
-  return res.data[0]?.numero_recibo || null;
+  return res.data[0]?.numero_recibo || 0; // si no hay ninguno, empezamos desde 0
 };
+
 
 export const generarNumeroRecibo = async () => {
   const ultimo = await getUltimoRecibo();
