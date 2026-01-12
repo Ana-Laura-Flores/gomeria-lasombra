@@ -3,7 +3,8 @@ import { useMemo } from "react";
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(Number(value) || 0);
 
-export default function CuentaCorrienteMovimientos({ movimientos }) {
+export default function CuentaCorrienteMovimientos({ movimientos, onVerRecibo }) {
+
   const movimientosConSaldo = useMemo(() => {
     let saldo = 0;
     return movimientos.map(m => {
@@ -39,7 +40,19 @@ export default function CuentaCorrienteMovimientos({ movimientos }) {
                   </div>
                 )}
               </td>
-              <td className="p-2">{m.referencia}</td>
+            <td className="p-2 text-sm">
+  {m.referencia}
+
+  {m.pago && (
+    <button
+      onClick={() => onVerRecibo(m.pago)}
+      className="ml-2 text-blue-400 hover:underline"
+    >
+      Ver
+    </button>
+  )}
+</td>
+
               <td className="p-2 text-right">{m.debe ? formatMoney(m.debe) : ""}</td>
               <td className="p-2 text-right">{m.haber ? formatMoney(m.haber) : ""}</td>
               <td className="p-2 text-right font-bold">{formatMoney(m.saldo)}</td>

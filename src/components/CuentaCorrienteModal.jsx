@@ -68,12 +68,13 @@ const [showRecibo, setShowRecibo] = useState(false);
     const movPagos = pagos.map((p) => ({
       fecha: p.fecha || new Date().toISOString().split("T")[0],
       tipo: p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO",
-      referencia: p.metodo_pago || "Pago",
+      referencia: `Recibo #${p.numero_recibo || "—"}`,
       debe: 0,
       haber: Number(p.monto),
       banco: p.banco || null,
       numero_cheque: p.numero_cheque || null,
       fecha_cobro: p.fecha_cobro || null,
+       pago: p, 
     }));
 
     return [...movOrdenes, ...movPagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
@@ -93,18 +94,7 @@ const [showRecibo, setShowRecibo] = useState(false);
     
   };
 
-  const handleVerRecibo = async (pagoId) => {
-  try {
-    const res = await apiFetch(
-      `pagos/${pagoId}?fields=*,cliente.nombre,orden.id,orden.comprobante`
-    );
-
-    setPagoRecibo(res.data);
-    setShowRecibo(true);
-  } catch (e) {
-    console.error("Error cargando recibo", e);
-  }
-};
+ 
 
 
 //  const handleSuccessAction = async (accion) => {
@@ -147,7 +137,14 @@ const [showRecibo, setShowRecibo] = useState(false);
 
         {/* MOVIMIENTOS */}
         <div className="flex-1 overflow-y-auto p-4">
-          <CuentaCorrienteMovimientos movimientos={movimientos} />
+          <CuentaCorrienteMovimientos
+  movimientos={movimientos}
+  onVerRecibo={(pago) => {
+    setPagoRecibo(pago);
+    setShowRecibo(true);
+  }}
+/>
+
         </div>
 
         {/* PDF OCULTO */}
