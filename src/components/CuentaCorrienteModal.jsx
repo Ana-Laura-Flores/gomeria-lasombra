@@ -139,13 +139,30 @@ const [showRecibo, setShowRecibo] = useState(false);
 
         {/* MOVIMIENTOS */}
         <div className="flex-1 overflow-y-auto p-4">
-          <CuentaCorrienteMovimientos
+         <CuentaCorrienteMovimientos
   movimientos={movimientos}
   onVerRecibo={(pago) => {
     setPagoRecibo(pago);
     setShowRecibo(true);
   }}
+  onAnularPago={async (pago) => {
+    const motivo = prompt("Ingrese el motivo de anulación:");
+    if (!motivo) return;
+
+    try {
+      await crearAnulacion(pago, motivo);
+      alert("Pago anulado correctamente");
+      
+      // Refrescar lista de pagos
+      const pagosActualizados = await getPagosCliente(clienteId);
+      setPagos(pagosActualizados);
+    } catch (err) {
+      console.error(err);
+      alert("Error al anular el pago");
+    }
+  }}
 />
+
 
         </div>
 

@@ -4,12 +4,10 @@ import {
   getCuentaCorrienteByCliente,
   crearCuentaCorriente,
   generarNumeroRecibo,
-   crearAnulacion,
-   getPagosCliente
 } from "../../services/api";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
 
-export default function PagoForm({ cliente, pagosExistentes = [], onPagoRegistrado }) {
+export default function PagoForm({ cliente, onPagoRegistrado }) {
   const metodos = useMetodoPago();
   const clienteId = typeof cliente === "object" ? cliente.id : cliente;
 
@@ -68,23 +66,6 @@ export default function PagoForm({ cliente, pagosExistentes = [], onPagoRegistra
   };
 
   const totalPagosNum = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
-
-  const anularPago = async (pago) => {
-  const motivo = prompt("Ingrese el motivo de anulación:");
-  if (!motivo) return;
-
-  try {
-    await crearAnulacion(pago, motivo);
-    alert("Pago anulado correctamente");
-
-    // Refrescar pagos existentes del cliente
-    const res = await getPagosCliente(clienteId);
-    setPagosActuales(res.data || []);
-  } catch (err) {
-    console.error(err);
-    alert("Error al anular el pago");
-  }
-};
 
   // =========================
   // SUBMIT
@@ -218,30 +199,6 @@ export default function PagoForm({ cliente, pagosExistentes = [], onPagoRegistra
           </p>
         </div>
       )}
-
-      {pagosActuales.length > 0 && (
-  <div className="space-y-2 mt-4">
-    <h3 className="font-semibold text-white">Pagos existentes</h3>
-    {pagosActuales.map((p) => (
-      <div key={p.id} className="flex justify-between bg-gray-700 p-2 rounded">
-        <span>
-          {p.metodo_pago} – {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(p.monto)}
-          {p.anulado && <span className="text-red-400 ml-2">(Anulado)</span>}
-        </span>
-        {!p.anulado && (
-          <button
-            type="button"
-            onClick={() => anularPago(p)}
-            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
-          >
-            Anular
-          </button>
-        )}
-      </div>
-    ))}
-  </div>
-)}
-
 
       <button
         type="submit"

@@ -51,6 +51,15 @@ export default function CuentaCorrienteMovimientos({ movimientos, onVerRecibo })
       Ver
     </button>
   )}
+  {m.pago && !m.pago.anulado && onAnularPago && (
+  <button
+    onClick={() => onAnularPago(m.pago)}
+    className="ml-2 bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
+  >
+    Anular
+  </button>
+)}
+
 </td>
 
               <td className="p-2 text-right">{m.debe ? formatMoney(m.debe) : ""}</td>
