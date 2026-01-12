@@ -57,36 +57,43 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   }, [clienteId]);
 
   // --- Movimientos ---
-  const movimientos = useMemo(() => {
-    const movOrdenes = ordenes.map((o) => ({
-      fecha: o.fecha,
-      tipo: "ORDEN",
-      referencia: <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">#{o.comprobante || o.id}</Link>,
-      debe: Number(o.total),
-      haber: 0,
-    }));
+const movimientos = useMemo(() => {
+  const movOrdenes = ordenes.map(o => ({
+    fecha: o.fecha,
+    tipo: "ORDEN",
+    referencia: <Link to={`/ordenes/${o.id}`} className="text-blue-400 hover:underline">#{o.comprobante || o.id}</Link>,
+    debe: Number(o.total),
+    haber: 0,
+  }));
 
-    const movPagos = pagos.map((p) => ({
-      fecha: p.fecha || new Date().toISOString().split("T")[0],
-      tipo: p.tipo === "anulacion" ? "ANULACIÓN" : (p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO"),
-      referencia: `Recibo #${p.numero_recibo || "—"}`,
-      debe: 0,
-      haber: Number(p.monto),
-      banco: p.banco || null,
-      numero_cheque: p.numero_cheque || null,
-      fecha_cobro: p.fecha_cobro || null,
-      pago: p,
-    }));
+  const movPagos = pagos.map(p => ({
+    fecha: p.fecha || new Date().toISOString().split("T")[0],
+    tipo: p.tipo === "anulacion" ? "ANULACIÓN" : (p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO"),
+    referencia: `Recibo #${p.numero_recibo || "—"}`,
+    debe: 0,
+    haber: Number(p.monto),
+    banco: p.banco || null,
+    numero_cheque: p.numero_cheque || null,
+    fecha_cobro: p.fecha_cobro || null,
+    pago: p,
+  }));
 
-    return [...movOrdenes, ...movPagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-  }, [ordenes, pagos]);
+  return [...movOrdenes, ...movPagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+}, [ordenes, pagos]);
 
-  // --- Resumen ---
-  const resumen = useMemo(() => {
-    const total = ordenes.reduce((a, o) => a + Number(o.total), 0);
-    const pagado = pagos.reduce((a, p) => a + Number(p.monto), 0);
-    return { total, pagado, saldo: total - pagado };
-  }, [ordenes, pagos]);
+// --- Resumen ---
+const resumen = useMemo(() => {
+  const total = ordenes.reduce((a, o) => a + Number(o.total), 0);
+  let saldo = total;
+  pagos.forEach(p => {
+    if (p.tipo === "anulacion") saldo += Number(p.monto); // anulación suma
+    else saldo -= Number(p.monto); // pago resta
+  });
+  const pagado = total - saldo;
+  return { total, pagado, saldo };
+}, [ordenes, pagos]);
+
+
 
   // --- Pago registrado ---
   const handlePagoRegistrado = (pagosNuevos) => {
@@ -101,19 +108,19 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
     setMotivoAnulacion("");
     setShowAnulacionModal(true);
   };
-
+// --- Confirmar Anulación ---
   const confirmarAnulacion = async () => {
-    if (!motivoAnulacion.trim()) return;
-    try {
-      await crearAnulacion(pagoAAnular, motivoAnulacion);
-      const pagosActualizados = await getPagosCliente(clienteId);
-      setPagos(pagosActualizados.data || []);
-      setShowAnulacionModal(false);
-      setShowAnulacionSuccess(true); // ✅ modal éxito anulación
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  if (!motivoAnulacion.trim()) return;
+  try {
+    await crearAnulacion(pagoAAnular, motivoAnulacion);
+    const pagosActualizados = await getPagosCliente(clienteId);
+    setPagos(pagosActualizados.data || []);
+    setShowAnulacionModal(false);
+    setShowAnulacionSuccess(true);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   if (loading) return <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white">Cargando cuenta corriente...</div>;
   if (!cliente) return null;

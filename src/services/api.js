@@ -304,11 +304,11 @@ export const crearAnulacion = async (pagoOriginal, motivo) => {
 
   const numeroRecibo = await generarNumeroRecibo();
 
-  const res = await crearPago({
-    orden: pagoOriginal.orden,           // ID de la orden
-    cliente: pagoOriginal.cliente,       // ID del cliente
+  return crearPago({
+    orden: pagoOriginal.orden,
+    cliente: pagoOriginal.cliente,
     metodo_pago: pagoOriginal.metodo_pago,
-    monto: -Math.abs(pagoOriginal.monto), // negativo para anular
+    monto: Math.abs(pagoOriginal.monto), // positivo
     fecha: new Date().toISOString(),
     observaciones: `Anulación de pago ${pagoOriginal.numero_recibo}`,
     estado: "confirmado",
@@ -316,13 +316,11 @@ export const crearAnulacion = async (pagoOriginal, motivo) => {
     numero_cheque: pagoOriginal.numero_cheque || null,
     fecha_cobro: pagoOriginal.fecha_cobro || null,
     numero_recibo: numeroRecibo,
-    tipo: "anulacion",
+    tipo: "anulacion", // esto es clave
     pago_referencia: pagoOriginal.id,
     anulado: true,
     motivo_anulacion: motivo,
   });
-
-  return res;
 };
 
 export const getUltimoRecibo = async () => {
