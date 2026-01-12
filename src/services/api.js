@@ -299,7 +299,7 @@ export const getPagosByOrden = async (ordenId) => {
   );
 };
 
-export const anularPago = async (pagoOriginal, motivo) => {
+export const crearAnulacion = async (pagoOriginal, motivo) => {
   if (!pagoOriginal) throw new Error("Pago original no definido");
 
   const numeroRecibo = await generarNumeroRecibo();
