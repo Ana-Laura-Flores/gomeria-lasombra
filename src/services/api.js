@@ -299,6 +299,32 @@ export const getPagosByOrden = async (ordenId) => {
   );
 };
 
+export const anularPago = async (pagoOriginal, motivo) => {
+  if (!pagoOriginal) throw new Error("Pago original no definido");
+
+  const numeroRecibo = await generarNumeroRecibo();
+
+  const res = await crearPago({
+    orden: pagoOriginal.orden,           // ID de la orden
+    cliente: pagoOriginal.cliente,       // ID del cliente
+    metodo_pago: pagoOriginal.metodo_pago,
+    monto: -Math.abs(pagoOriginal.monto), // negativo para anular
+    fecha: new Date().toISOString(),
+    observaciones: `Anulación de pago ${pagoOriginal.numero_recibo}`,
+    estado: "confirmado",
+    banco: pagoOriginal.banco || null,
+    numero_cheque: pagoOriginal.numero_cheque || null,
+    fecha_cobro: pagoOriginal.fecha_cobro || null,
+    numero_recibo: numeroRecibo,
+    tipo: "anulacion",
+    pago_referencia: pagoOriginal.id,
+    anulado: true,
+    motivo_anulacion: motivo,
+  });
+
+  return res;
+};
+
 export const getUltimoRecibo = async () => {
   const res = await apiFetch(
     "pagos?fields=numero_recibo&filter[numero_recibo][_gt]=0&sort=-numero_recibo&limit=1"

@@ -194,7 +194,7 @@ export default function OrdenDetalle() {
         {/* ===== BOTONES ===== */}
         <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-3 print:hidden">
           <button
-            onClick={() => navigate("/ordenes")}
+            onClick={() => navigate(-1)}
             className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 w-full md:w-auto"
           >
             Volver
