@@ -7,6 +7,7 @@ import PagosTable from "../components/pagos/PagosTable";
 import EstadoPagosBadge from "../components/pagos/EstadoPagosBadge";
 import Modal from "../components/Modal"
 
+
 const formatMoney = (value) =>
     new Intl.NumberFormat("es-AR", {
         style: "currency",
@@ -23,6 +24,9 @@ export default function Pagos() {
     const [loading, setLoading] = useState(true);
 
     const [showModal, setShowModal] = useState(false); 
+
+    const [ultimoPago, setUltimoPago] = useState(null);
+
 
     const fetchData = async () => {
         try {
@@ -60,7 +64,12 @@ export default function Pagos() {
         );
     }
 
-    const totalPagado = pagos.reduce((acc, p) => acc + Number(p.monto || 0), 0);
+    const totalPagado = pagos.reduce((acc, p) => {
+  if (p.tipo === "pago") return acc + Number(p.monto || 0);
+  if (p.tipo === "anulacion") return acc - Number(p.monto || 0);
+  return acc;
+}, 0);
+
 
     const saldo = Math.max(Number(orden.total) - totalPagado, 0);
 
@@ -108,22 +117,28 @@ export default function Pagos() {
 
                 {/* FORM */}
                 {saldo > 0 && (
-  <PagosForm
+ <PagosForm
   cliente={orden.cliente}
-  onPagoRegistrado={async () => {
-    setShowModal(true);
+  onPagoRegistrado={async (pagosNuevos) => {
+    if (pagosNuevos?.length) {
+      setUltimoPago(pagosNuevos[pagosNuevos.length - 1]); // último recibo
+      setShowModal(true);
+    }
     await fetchData();
   }}
 />
 
+
 )}
 
                 {/* TABLA */}
-                <PagosTable
-                    pagos={pagos}
-                    totalPagado={totalPagado}
-                    saldo={saldo}
-                />
+               <PagosTable
+  pagos={pagos}
+  totalPagado={resumen.pagado}
+  saldo={resumen.saldo}
+  onVerRecibo={handleVerRecibo}
+/>
+
                 
                 <div className="mt-6">
                     <button
@@ -134,24 +149,47 @@ export default function Pagos() {
                     </button>
                 </div>
             </div>
-   <Modal
+
+            {ultimoPago && (
+  <div style={{ display: "none" }}>
+    <ReciboPagoPDF
+      pago={ultimoPago}
+      cliente={orden.cliente}
+      orden={orden}
+    />
+  </div>
+)}
+
+  <Modal
   open={showModal}
   title="Pago registrado"
-  onClose={() => {
-    setShowModal(false);
-  }}
->
-  <div className="flex justify-between items-start">
-    <p>El pago se registró correctamente ✅</p>
+  onClose={() => setShowModal(false)}
+  actions={
+    <>
+      {ultimoPago && (
+        <button
+          onClick={() =>
+            exportarPDFOrden({
+              elementId: "pdf-recibo",
+              filename: `recibo_${ultimoPago.numero_recibo}.pdf`,
+            })
+          }
+          className="bg-green-600 px-4 py-2 rounded"
+        >
+          Descargar recibo
+        </button>
+      )}
 
-    <button
-      onClick={() => setShowModal(false)}
-      className="ml-4 text-xl font-bold text-gray-400 hover:text-white"
-      aria-label="Cerrar"
-    >
-      ✕
-    </button>
-  </div>
+      <button
+        onClick={() => setShowModal(false)}
+        className="bg-gray-700 px-4 py-2 rounded"
+      >
+        Cerrar
+      </button>
+    </>
+  }
+>
+  <p>El pago se registró correctamente.</p>
 </Modal>
 
         </MainLayout>

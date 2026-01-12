@@ -3,6 +3,7 @@ import {
   crearPago,
   getCuentaCorrienteByCliente,
   crearCuentaCorriente,
+  generarNumeroRecibo,
 } from "../../services/api";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
 
@@ -85,17 +86,23 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
       const pagosGuardados = [];
 
-      for (const pago of pagos) {
-        const res = await crearPago({
-          cliente: String(clienteId),
-          metodo_pago: pago.metodo,
-          monto: parseFloat(pago.monto),
-          banco: pago.banco || null,
-          numero_cheque: pago.numero_cheque || null,
-          fecha_cobro: pago.fecha_cobro || null,
-          cuenta_corriente: cc.id,
-          estado: "confirmado",
-        });
+     for (const pago of pagos) {
+  const numero_recibo = await generarNumeroRecibo();
+
+  const res = await crearPago({
+    tipo: "pago",
+    numero_recibo,
+    cliente: String(clienteId),
+    metodo_pago: pago.metodo,
+    monto: parseFloat(pago.monto),
+    banco: pago.banco || null,
+    numero_cheque: pago.numero_cheque || null,
+    fecha_cobro: pago.fecha_cobro || null,
+    cuenta_corriente: cc.id,
+    estado: "confirmado",
+    fecha: new Date().toISOString()
+  });
+
 
         // Normalizar para el modal
         const pagoNormalizado = {

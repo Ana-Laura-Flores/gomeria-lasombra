@@ -6,7 +6,8 @@ const formatMoney = (v) =>
         currency: "ARS",
     }).format(Number(v) || 0);
 
-export default function PagosTable({ pagos, totalPagado, saldo }) {
+export default function PagosTable({ pagos, totalPagado, saldo, onVerRecibo }) {
+
     if (!pagos.length) {
         return <p className="text-gray-400">No hay pagos registrados</p>;
     }
@@ -19,6 +20,7 @@ export default function PagosTable({ pagos, totalPagado, saldo }) {
                     <th className="p-2 text-left">Método</th>
                     <th className="p-2 text-right">Monto</th>
                     <th className="p-2 text-center">Estado</th>
+                     <th className="p-2 text-center">Recibo</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,6 +49,18 @@ export default function PagosTable({ pagos, totalPagado, saldo }) {
                         <td className="p-2 text-center">
                             <EstadoPagosBadge estado={pago.estado} />
                         </td>
+                         <td className="p-2 text-center">
+    {pago.estado === "confirmado" ? (
+      <button
+        onClick={() => onVerRecibo(pago.id)}
+        className="text-blue-400 underline hover:text-blue-300"
+      >
+        Ver
+      </button>
+    ) : (
+      <span className="text-gray-500 text-sm">—</span>
+    )}
+  </td>
                     </tr>
                 ))}
             </tbody>

@@ -281,11 +281,25 @@ export const crearPago = async (pago) => {
 };
 
 
-// Traer pagos de una orden
+// Traer pagos y anulaciones de una orden
 export const getPagosByOrden = async (ordenId) => {
   return apiFetch(
-    `pagos?filter[orden][_eq]=${ordenId}&fields=id,monto,fecha,metodo_pago`
+    `pagos?filter[orden][_eq]=${ordenId}` +
+    `&fields=` +
+    `id,` +
+    `tipo,` +
+    `monto,` +
+    `fecha,` +
+    `numero_recibo,` +
+    `anulado,` +
+    `pago_referencia.id,` +
+    `metodo_pago`
   );
+};
+
+export const getUltimoNumeroRecibo = async () => {
+  const res = await apiFetch("pagos?aggregate[max]=numero_recibo");
+  return res.data?.[0]?.max?.numero_recibo || null;
 };
 
 

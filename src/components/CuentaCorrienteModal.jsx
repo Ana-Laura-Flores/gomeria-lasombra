@@ -15,6 +15,9 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const [showPago, setShowPago] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
+  const [pagoRecibo, setPagoRecibo] = useState(null);
+const [showRecibo, setShowRecibo] = useState(false);
+
 
   useEffect(() => {
     
@@ -89,6 +92,20 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
 
     
   };
+
+  const handleVerRecibo = async (pagoId) => {
+  try {
+    const res = await apiFetch(
+      `pagos/${pagoId}?fields=*,cliente.nombre,orden.id,orden.comprobante`
+    );
+
+    setPagoRecibo(res.data);
+    setShowRecibo(true);
+  } catch (e) {
+    console.error("Error cargando recibo", e);
+  }
+};
+
 
 //  const handleSuccessAction = async (accion) => {
 //   setShowSuccess(false);
