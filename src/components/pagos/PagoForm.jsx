@@ -101,7 +101,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
     cuenta_corriente: cc.id,
     estado: "confirmado",
     fecha: new Date().toISOString(),
-    numero_recibo,
+    
   });
 
 
