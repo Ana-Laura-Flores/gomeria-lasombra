@@ -88,7 +88,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
 
      for (const pago of pagos) {
   const numero_recibo = await generarNumeroRecibo();
-  onsole.log("Numero de recibo generado:", numero_recibo);
+  console.log("Numero de recibo generado:", numero_recibo);
 
   const res = await crearPago({
     tipo: "pago",
