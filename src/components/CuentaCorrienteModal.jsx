@@ -7,8 +7,6 @@ import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import { getOrdenesTrabajo, getPagosCliente, crearAnulacion } from "../services/api";
 import ReciboPagoPDF from "../components/ReciboPagoPdf";
 
-
-
 export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistrado }) {
   const [cliente, setCliente] = useState(null);
   const [ordenes, setOrdenes] = useState([]);
@@ -16,17 +14,15 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const [loading, setLoading] = useState(true);
   const [showPago, setShowPago] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const navigate = useNavigate();
+  const [showAnulacionSuccess, setShowAnulacionSuccess] = useState(false);
   const [pagoRecibo, setPagoRecibo] = useState(null);
-const [showRecibo, setShowRecibo] = useState(false);
-const [showAnulacionModal, setShowAnulacionModal] = useState(false);
-const [pagoAAnular, setPagoAAnular] = useState(null);
-const [motivoAnulacion, setMotivoAnulacion] = useState("");
-
-
+  const [showRecibo, setShowRecibo] = useState(false);
+  const [showAnulacionModal, setShowAnulacionModal] = useState(false);
+  const [pagoAAnular, setPagoAAnular] = useState(null);
+  const [motivoAnulacion, setMotivoAnulacion] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    
     if (!clienteId) return;
 
     const fetchData = async () => {
@@ -60,8 +56,7 @@ const [motivoAnulacion, setMotivoAnulacion] = useState("");
     fetchData();
   }, [clienteId]);
 
-  
-
+  // --- Movimientos ---
   const movimientos = useMemo(() => {
     const movOrdenes = ordenes.map((o) => ({
       fecha: o.fecha,
@@ -73,68 +68,52 @@ const [motivoAnulacion, setMotivoAnulacion] = useState("");
 
     const movPagos = pagos.map((p) => ({
       fecha: p.fecha || new Date().toISOString().split("T")[0],
-      tipo: p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO",
+      tipo: p.tipo === "anulacion" ? "ANULACIÓN" : (p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO"),
       referencia: `Recibo #${p.numero_recibo || "—"}`,
       debe: 0,
       haber: Number(p.monto),
       banco: p.banco || null,
       numero_cheque: p.numero_cheque || null,
       fecha_cobro: p.fecha_cobro || null,
-       pago: p, 
+      pago: p,
     }));
 
     return [...movOrdenes, ...movPagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
   }, [ordenes, pagos]);
 
+  // --- Resumen ---
   const resumen = useMemo(() => {
     const total = ordenes.reduce((a, o) => a + Number(o.total), 0);
     const pagado = pagos.reduce((a, p) => a + Number(p.monto), 0);
     return { total, pagado, saldo: total - pagado };
   }, [ordenes, pagos]);
 
+  // --- Pago registrado ---
   const handlePagoRegistrado = (pagosNuevos) => {
     setPagos((prev) => [...prev, ...pagosNuevos]);
     setShowPago(false);
     setShowSuccess(true);
-
-    
   };
 
- const abrirModalAnulacion = (pago) => {
-  setPagoAAnular(pago);
-  setMotivoAnulacion("");
-  setShowAnulacionModal(true);
-};
+  // --- Modal anulación ---
+  const abrirModalAnulacion = (pago) => {
+    setPagoAAnular(pago);
+    setMotivoAnulacion("");
+    setShowAnulacionModal(true);
+  };
 
-const confirmarAnulacion = async () => {
-  if (!motivoAnulacion.trim()) return; // podés agregar un toast si querés
-
-  try {
-    await crearAnulacion(pagoAAnular, motivoAnulacion);
-    const pagosActualizados = await getPagosCliente(clienteId);
-    setPagos(pagosActualizados.data || []);
-    setShowAnulacionModal(false);
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-
-
-//  const handleSuccessAction = async (accion) => {
-//   setShowSuccess(false);
-
-//   // Refrescar pagos confirmados
-//   const pagosActualizados = await getPagosCliente(clienteId);
-//   const confirmados = (pagosActualizados.data || []).filter(
-//     (p) => p.estado === "confirmado"
-//   );
-
-//   setPagos(confirmados);
-//   onPagoRegistrado?.(confirmados);
-    
-  
-// };
+  const confirmarAnulacion = async () => {
+    if (!motivoAnulacion.trim()) return;
+    try {
+      await crearAnulacion(pagoAAnular, motivoAnulacion);
+      const pagosActualizados = await getPagosCliente(clienteId);
+      setPagos(pagosActualizados.data || []);
+      setShowAnulacionModal(false);
+      setShowAnulacionSuccess(true); // ✅ modal éxito anulación
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   if (loading) return <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white">Cargando cuenta corriente...</div>;
   if (!cliente) return null;
@@ -142,6 +121,7 @@ const confirmarAnulacion = async () => {
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
+
         {/* HEADER */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <h2 className="text-lg font-bold">Cuenta corriente · {cliente.nombre}</h2>
@@ -161,16 +141,14 @@ const confirmarAnulacion = async () => {
 
         {/* MOVIMIENTOS */}
         <div className="flex-1 overflow-y-auto p-4">
-         <CuentaCorrienteMovimientos
-  movimientos={movimientos}
-  onVerRecibo={(pago) => {
-    setPagoRecibo(pago);
-    setShowRecibo(true);
-  }}
-   onAnularPago={abrirModalAnulacion}
-/>
-
-
+          <CuentaCorrienteMovimientos
+            movimientos={movimientos}
+            onVerRecibo={(pago) => {
+              setPagoRecibo(pago);
+              setShowRecibo(true);
+            }}
+            onAnularPago={abrirModalAnulacion}
+          />
         </div>
 
         {/* PDF OCULTO */}
@@ -178,140 +156,77 @@ const confirmarAnulacion = async () => {
           <div id="cc-pdf">
             <CuentaCorrientePDF cliente={{ ...cliente, ...resumen }} movimientos={movimientos} />
           </div>
+          {pagoRecibo && (
+            <div id="recibo-pdf">
+              <ReciboPagoPDF pago={pagoRecibo} cliente={cliente} orden={pagoRecibo.orden || {}} />
+            </div>
+          )}
         </div>
-        <div className="hidden">
-  {pagoRecibo && (
-    <div id="recibo-pdf">
-      <ReciboPagoPDF
-        pago={pagoRecibo}
-        cliente={cliente}
-        orden={pagoRecibo.orden || {}}
-      />
-    </div>
-  )}
-</div>
-
 
         {/* MODAL PAGO */}
         {showPago && (
           <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
             <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
-             <PagoForm
-  cliente={cliente.id}
-  pagosExistentes={pagosDelCliente} // nuevos prop
-  onPagoRegistrado={handlePagoRegistrado}
-/>
-
+              <PagoForm cliente={cliente.id} pagosExistentes={pagos} onPagoRegistrado={handlePagoRegistrado} />
               <button onClick={() => setShowPago(false)} className="mt-3 w-full bg-gray-700 py-2 rounded">Cancelar</button>
             </div>
           </div>
         )}
 
-        {/* MODAL SUCCESS */}
-       {showSuccess && (
-  <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
-    <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
-      <h2 className="text-lg font-bold">
-        Pago creado exitosamente
-      </h2>
-
-      <button
-        onClick={() =>
-          exportarPDFOrden({
-            elementId: "cc-pdf",
-            filename: `CuentaCorriente-${cliente.nombre}.pdf`,
-          })
-        }
-        className="bg-blue-600 py-2 rounded w-full"
-      >
-        Descargar PDF
-      </button>
-
-      <button
-        onClick={() => setShowSuccess(false)}
-        className="bg-green-600 py-2 rounded w-full"
-      >
-        Aceptar
-      </button>
-    </div>
-  </div>
-)}
-
-{showRecibo && pagoRecibo && (
-  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-    <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-3">
-      <h2 className="text-lg font-bold">
-        Recibo #{pagoRecibo.numero_recibo}
-      </h2>
-
-      <div className="text-sm space-y-1">
-        <p><b>Fecha:</b> {new Date(pagoRecibo.fecha).toLocaleDateString("es-AR")}</p>
-        <p><b>Monto:</b> ${pagoRecibo.monto}</p>
-        <p><b>Método:</b> {pagoRecibo.metodo_pago}</p>
-
-        {pagoRecibo.banco && (
-          <p><b>Banco:</b> {pagoRecibo.banco}</p>
+        {/* MODAL SUCCESS PAGO */}
+        {showSuccess && (
+          <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
+            <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
+              <h2 className="text-lg font-bold">Pago creado exitosamente</h2>
+              <button onClick={() => exportarPDFOrden({ elementId: "cc-pdf", filename: `CuentaCorriente-${cliente.nombre}.pdf` })} className="bg-blue-600 py-2 rounded w-full">Descargar PDF</button>
+              <button onClick={() => setShowSuccess(false)} className="bg-green-600 py-2 rounded w-full">Aceptar</button>
+            </div>
+          </div>
         )}
 
-        {pagoRecibo.numero_cheque && (
-          <p><b>Cheque Nº:</b> {pagoRecibo.numero_cheque}</p>
+        {/* MODAL SUCCESS ANULACION */}
+        {showAnulacionSuccess && (
+          <div className="fixed inset-0 bg-black/70 z-60 flex items-center justify-center">
+            <div className="bg-gray-900 p-6 rounded-lg w-80 text-center space-y-4">
+              <h2 className="text-lg font-bold text-red-400">Pago anulado exitosamente</h2>
+              <button onClick={() => setShowAnulacionSuccess(false)} className="bg-green-600 py-2 rounded w-full">Aceptar</button>
+            </div>
+          </div>
         )}
-      </div>
 
-      <div className="flex gap-2 pt-4">
-        <button
-          onClick={() =>
-           exportarPDFOrden({
-  elementId: "recibo-pdf",
-  filename: `Recibo-${pagoRecibo.numero_recibo}.pdf`,
-})
+        {/* MODAL RECIBO */}
+        {showRecibo && pagoRecibo && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+            <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-3">
+              <h2 className="text-lg font-bold">Recibo #{pagoRecibo.numero_recibo}</h2>
+              <div className="text-sm space-y-1">
+                <p><b>Fecha:</b> {new Date(pagoRecibo.fecha).toLocaleDateString("es-AR")}</p>
+                <p><b>Monto:</b> ${pagoRecibo.monto}</p>
+                <p><b>Método:</b> {pagoRecibo.metodo_pago}</p>
+                {pagoRecibo.banco && <p><b>Banco:</b> {pagoRecibo.banco}</p>}
+                {pagoRecibo.numero_cheque && <p><b>Cheque Nº:</b> {pagoRecibo.numero_cheque}</p>}
+              </div>
+              <div className="flex gap-2 pt-4">
+                <button onClick={() => exportarPDFOrden({ elementId: "recibo-pdf", filename: `Recibo-${pagoRecibo.numero_recibo}.pdf` })} className="bg-blue-600 px-4 py-2 rounded w-full">Descargar PDF</button>
+                <button onClick={() => setShowRecibo(false)} className="bg-gray-700 px-4 py-2 rounded w-full">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        )}
 
-          }
-          className="bg-blue-600 px-4 py-2 rounded w-full"
-        >
-          Descargar PDF
-        </button>
-
-        <button
-          onClick={() => setShowRecibo(false)}
-          className="bg-gray-700 px-4 py-2 rounded w-full"
-        >
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-{showAnulacionModal && pagoAAnular && (
-  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-    <div className="bg-gray-900 p-4 rounded w-96 space-y-4">
-      <h2 className="text-lg font-bold">Anular pago #{pagoAAnular.numero_recibo}</h2>
-      <textarea
-        rows={3}
-        value={motivoAnulacion}
-        onChange={(e) => setMotivoAnulacion(e.target.value)}
-        className="w-full p-2 bg-gray-800 text-white rounded"
-        placeholder="Ingresá el motivo de anulación"
-      />
-      <div className="flex gap-2">
-        <button
-          onClick={confirmarAnulacion}
-          className="bg-red-600 px-4 py-2 rounded text-white w-1/2 hover:bg-red-700"
-        >
-          Confirmar
-        </button>
-        <button
-          onClick={() => setShowAnulacionModal(false)}
-          className="bg-gray-700 px-4 py-2 rounded w-1/2 hover:bg-gray-600"
-        >
-          Cancelar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+        {/* MODAL ANULACION */}
+        {showAnulacionModal && pagoAAnular && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+            <div className="bg-gray-900 p-4 rounded w-96 space-y-4">
+              <h2 className="text-lg font-bold">Anular pago #{pagoAAnular.numero_recibo}</h2>
+              <textarea rows={3} value={motivoAnulacion} onChange={(e) => setMotivoAnulacion(e.target.value)} className="w-full p-2 bg-gray-800 text-white rounded" placeholder="Ingresá el motivo de anulación" />
+              <div className="flex gap-2">
+                <button onClick={confirmarAnulacion} className="bg-red-600 px-4 py-2 rounded text-white w-1/2 hover:bg-red-700">Confirmar</button>
+                <button onClick={() => setShowAnulacionModal(false)} className="bg-gray-700 px-4 py-2 rounded w-1/2 hover:bg-gray-600">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
