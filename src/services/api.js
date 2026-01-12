@@ -248,7 +248,7 @@ export const getProductos = async (tipoVehiculo) => {
 
 
 export const getClienteById = async (id) => {
-  return apiFetch(`clientes/${id}?fields=id,saldo_cc`);
+  return apiFetch(`clientes/${id}?fields=id,nombre,saldo_cc`);
 };
 
 export const actualizarCliente = async (id, data) => {

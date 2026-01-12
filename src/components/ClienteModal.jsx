@@ -188,7 +188,7 @@ const [showRecibo, setShowRecibo] = useState(false);
     <div key={p.id} id={`recibo-${p.id}`}>
       <ReciboPagoPDF
         pago={p}
-        cliente={cliente.nombre}
+        cliente={cliente}
         orden={ordenes.find((o) => o.id === p.orden?.id) || {}}
       />
     </div>
@@ -212,7 +212,7 @@ const [showRecibo, setShowRecibo] = useState(false);
   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
     <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-3">
       <h2 className="text-lg font-bold">
-        Recibo #{pagoRecibo.numero_comprobante || pagoRecibo.id}
+        Recibo #{pagoRecibo.numero_recibo || pagoRecibo.id}
       </h2>
 
       <div className="text-sm space-y-1">
@@ -228,7 +228,7 @@ const [showRecibo, setShowRecibo] = useState(false);
           onClick={() =>
             exportarPDFOrden({
               elementId: `recibo-${pagoRecibo.id}`,
-              filename: `Recibo-${pagoRecibo.numero_comprobante || pagoRecibo.id}.pdf`,
+              filename: `Recibo-${pagoRecibo.numero_recibo || pagoRecibo.id}.pdf`,
             })
           }
           className="bg-blue-600 px-4 py-2 rounded w-full"
