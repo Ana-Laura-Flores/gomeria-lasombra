@@ -3,7 +3,7 @@ import { useMemo } from "react";
 const formatMoney = (value) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(Number(value) || 0);
 
-export default function CuentaCorrienteMovimientos({ movimientos, onVerRecibo }) {
+export default function CuentaCorrienteMovimientos({ movimientos, onVerRecibo, onAnularPago }) {
 
   const movimientosConSaldo = useMemo(() => {
     let saldo = 0;
