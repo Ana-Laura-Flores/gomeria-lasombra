@@ -275,6 +275,7 @@ export const crearPago = async (pago) => {
       banco: pago.banco || null,
       numero_cheque: pago.numero_cheque || null,
       fecha_cobro: pago.fecha_cobro || null,
+      numero_recibo,
     }),
   });
   return res.data;
@@ -297,19 +298,25 @@ export const getPagosByOrden = async (ordenId) => {
   );
 };
 
-export const getUltimoNumeroRecibo = async () => {
-  const res = await apiFetch("pagos?aggregate[max]=numero_recibo");
-  return res.data?.[0]?.max?.numero_recibo || null;
-};
+export const getUltimoRecibo = async () => {
+  const res = await apiFetch(
+    "pagos?fields=numero_recibo&sort=-numero_recibo&limit=1"
+  );
 
+  return res.data[0]?.numero_recibo || null;
+};
 
 export const generarNumeroRecibo = async () => {
-  const res = await apiFetch("pagos?aggregate[max]=numero_recibo");
+  const ultimo = await getUltimoRecibo();
 
-  const max = res.data?.[0]?.max?.numero_recibo || 0;
+  let siguiente = 1;
+  if (ultimo) {
+    siguiente = Number(ultimo) + 1;
+  }
 
-  return Number(max) + 1;
+  return String(siguiente).padStart(6, "0"); // 000001, 000002, etc
 };
+
 
 
 export const actualizarOrden = async (id, data) => {
