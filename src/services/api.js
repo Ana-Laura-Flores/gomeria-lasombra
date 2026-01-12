@@ -275,7 +275,7 @@ export const crearPago = async (pago) => {
       banco: pago.banco || null,
       numero_cheque: pago.numero_cheque || null,
       fecha_cobro: pago.fecha_cobro || null,
-      numero_recibo,
+      numero_recibo: pago.numero_recibo,
     }),
   });
   return res.data;
