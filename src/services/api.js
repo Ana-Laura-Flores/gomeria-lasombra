@@ -303,6 +303,14 @@ export const getUltimoNumeroRecibo = async () => {
 };
 
 
+export const generarNumeroRecibo = async () => {
+  const res = await apiFetch("pagos?aggregate[max]=numero_recibo");
+
+  const max = res.data?.[0]?.max?.numero_recibo || 0;
+
+  return Number(max) + 1;
+};
+
 
 export const actualizarOrden = async (id, data) => {
   return apiFetch(`ordenes_trabajo/${id}`, {
