@@ -4,7 +4,7 @@ import PagoForm from "./pagos/PagoForm";
 import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
-import { getOrdenesTrabajo, getPagosCliente } from "../services/api";
+import { getOrdenesTrabajo, getPagosCliente, crearAnulacion } from "../services/api";
 import ReciboPagoPDF from "../components/ReciboPagoPdf";
 
 
