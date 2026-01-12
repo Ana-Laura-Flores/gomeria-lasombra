@@ -167,22 +167,7 @@ const confirmarAnulacion = async () => {
     setPagoRecibo(pago);
     setShowRecibo(true);
   }}
-  onAnularPago={async (pago) => {
-    const motivo = prompt("Ingrese el motivo de anulación:");
-    if (!motivo) return;
-
-    try {
-      await crearAnulacion(pago, motivo);
-      alert("Pago anulado correctamente");
-      
-      // Refrescar lista de pagos
-      const pagosActualizados = await getPagosCliente(clienteId);
-      setPagos(pagosActualizados);
-    } catch (err) {
-      console.error(err);
-      alert("Error al anular el pago");
-    }
-  }}
+   onAnularPago={abrirModalAnulacion}
 />
 
 

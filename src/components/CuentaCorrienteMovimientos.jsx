@@ -51,14 +51,15 @@ export default function CuentaCorrienteMovimientos({ movimientos, onVerRecibo, o
       Ver
     </button>
   )}
-  {m.pago && !m.pago.anulado && (
+ {m.pago && !m.pago.anulado && onAnularPago && (
   <button
-    onClick={() => abrirModalAnulacion(m.pago)}
+    onClick={() => onAnularPago(m.pago)}
     className="ml-2 bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
   >
     Anular
   </button>
 )}
+
 
 
 </td>
