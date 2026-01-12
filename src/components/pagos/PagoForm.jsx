@@ -103,6 +103,7 @@ export default function PagoForm({ cliente, onPagoRegistrado }) {
    
     
   });
+console.log("Payload pago:", res);
 
 
         // Normalizar para el modal
