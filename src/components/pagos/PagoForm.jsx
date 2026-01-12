@@ -7,7 +7,7 @@ import {
 } from "../../services/api";
 import { useMetodoPago } from "../../hooks/useMetodoPago";
 
-export default function PagoForm({ cliente, onPagoRegistrado }) {
+export default function PagoForm({ cliente, onPagoRegistrado, pagosExistentes }) {
   const metodos = useMetodoPago();
   const clienteId = typeof cliente === "object" ? cliente.id : cliente;
 

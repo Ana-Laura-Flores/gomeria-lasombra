@@ -174,7 +174,7 @@ const resumen = useMemo(() => {
         {showPago && (
           <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
             <div className="bg-gray-900 w-full max-w-md p-4 rounded-lg">
-              <PagoForm cliente={cliente.id} pagosExistentes={pagosDelCliente} onPagoRegistrado={handlePagoRegistrado} />
+              <PagoForm cliente={cliente.id} pagosExistentes={pagos} onPagoRegistrado={handlePagoRegistrado} />
               <button onClick={() => setShowPago(false)} className="mt-3 w-full bg-gray-700 py-2 rounded">Cancelar</button>
             </div>
           </div>
