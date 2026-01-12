@@ -30,9 +30,9 @@ export default function ReciboPagoPDF({ pago, cliente, orden }) {
         <strong>Cliente:</strong> {cliente.nombre} {cliente.apellido || ""}
       </div>
 
-      <div style={{ marginBottom: 10 }}>
+      {/* <div style={{ marginBottom: 10 }}>
         <strong>Orden:</strong> #{orden.id}
-      </div>
+      </div> */}
 
       {/* MONTO */}
       <div
