@@ -13,6 +13,8 @@ export default function ClienteModal({ clienteId, onClose }) {
     const [loading, setLoading] = useState(true);
     const [cliente, setCliente] = useState(null);
     const navigate = useNavigate();
+const [pagoRecibo, setPagoRecibo] = useState(null);
+const [showRecibo, setShowRecibo] = useState(false);
 
 
     useEffect(() => {
@@ -159,20 +161,19 @@ export default function ClienteModal({ clienteId, onClose }) {
   <tr key={p.id} className="border-b border-gray-700 hover:bg-gray-700">
     <td className="p-2">{formatFecha(p.fecha)}</td>
     <td className="p-2 font-mono">
-      <span
-        className="text-blue-400 cursor-pointer hover:underline"
-        onClick={() =>
-                   exportarPDFOrden({
-          elementId: "recibo-pdf",
-          filename: `Recibo-${pagoRecibo.numero_recibo}.pdf`,
-        })
-        }
-      >
-        {p.numero_comprobante != null && p.numero_comprobante !== ""
-          ? `Pago #${p.numero_comprobante}`
-          : "Pago #—"}
-      </span>
-    </td>
+  <span
+    className="text-blue-400 cursor-pointer hover:underline"
+    onClick={() => {
+      setPagoRecibo(p);
+      setShowRecibo(true);
+    }}
+  >
+    {p.numero_comprobante != null && p.numero_comprobante !== ""
+      ? `Pago #${p.numero_comprobante}`
+      : "Pago #—"}
+  </span>
+</td>
+
     <td className="p-2 capitalize text-gray-300">{p.metodo_pago || "—"}</td>
     <td className="p-2 text-right text-green-400">${p.monto}</td>
   </tr>
@@ -191,6 +192,58 @@ export default function ClienteModal({ clienteId, onClose }) {
     </div>
   ))}
 </div>
+{/* PDF oculto para descargar */}
+<div className="hidden">
+  {pagos.map((p) => (
+    <div key={p.id} id={`recibo-${p.id}`}>
+      <ReciboPagoPDF
+        pago={p}
+        cliente={cliente}
+        orden={ordenes.find((o) => o.id === p.orden?.id) || {}}
+      />
+    </div>
+  ))}
+</div>
+
+{/* Modal de recibo */}
+{showRecibo && pagoRecibo && (
+  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+    <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-3">
+      <h2 className="text-lg font-bold">
+        Recibo #{pagoRecibo.numero_comprobante || pagoRecibo.id}
+      </h2>
+
+      <div className="text-sm space-y-1">
+        <p><b>Fecha:</b> {new Date(pagoRecibo.fecha).toLocaleDateString("es-AR")}</p>
+        <p><b>Monto:</b> ${pagoRecibo.monto}</p>
+        <p><b>Método:</b> {pagoRecibo.metodo_pago}</p>
+        {pagoRecibo.banco && <p><b>Banco:</b> {pagoRecibo.banco}</p>}
+        {pagoRecibo.numero_cheque && <p><b>Cheque Nº:</b> {pagoRecibo.numero_cheque}</p>}
+      </div>
+
+      <div className="flex gap-2 pt-4">
+        <button
+          onClick={() =>
+            exportarPDFOrden({
+              elementId: `recibo-${pagoRecibo.id}`,
+              filename: `Recibo-${pagoRecibo.numero_comprobante || pagoRecibo.id}.pdf`,
+            })
+          }
+          className="bg-blue-600 px-4 py-2 rounded w-full"
+        >
+          Descargar PDF
+        </button>
+
+        <button
+          onClick={() => setShowRecibo(false)}
+          className="bg-gray-700 px-4 py-2 rounded w-full"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
 
             </div>
