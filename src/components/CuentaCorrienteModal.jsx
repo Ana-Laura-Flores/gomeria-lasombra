@@ -5,6 +5,8 @@ import CuentaCorrienteMovimientos from "./CuentaCorrienteMovimientos";
 import CuentaCorrientePDF from "./CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import { getOrdenesTrabajo, getPagosCliente } from "../services/api";
+import ReciboPagoPDF from "../components/ReciboPagoPdf";
+
 
 
 export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistrado }) {
@@ -153,6 +155,18 @@ const [showRecibo, setShowRecibo] = useState(false);
             <CuentaCorrientePDF cliente={{ ...cliente, ...resumen }} movimientos={movimientos} />
           </div>
         </div>
+        <div className="hidden">
+  {pagoRecibo && (
+    <div id="recibo-pdf">
+      <ReciboPagoPDF
+        pago={pagoRecibo}
+        cliente={cliente}
+        orden={pagoRecibo.orden || {}}
+      />
+    </div>
+  )}
+</div>
+
 
         {/* MODAL PAGO */}
         {showPago && (
@@ -218,10 +232,11 @@ const [showRecibo, setShowRecibo] = useState(false);
       <div className="flex gap-2 pt-4">
         <button
           onClick={() =>
-            exportarPDFOrden({
-              elementId: "cc-pdf",
-              filename: `Recibo-${pagoRecibo.numero_recibo}.pdf`,
-            })
+           exportarPDFOrden({
+  elementId: "recibo-pdf",
+  filename: `Recibo-${pagoRecibo.numero_recibo}.pdf`,
+})
+
           }
           className="bg-blue-600 px-4 py-2 rounded w-full"
         >
