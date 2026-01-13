@@ -411,3 +411,16 @@ export const getCuentaCorriente = async () =>
 
 
 
+export const getServiciosConTarifas = async () => {
+  return fetch(`${API_URL}/items/servicios?fields=id,nombre,tarifas.tipo_vehiculo,tarifas.precio`, {
+    headers: authHeaders(),
+  }).then(r => r.json());
+};
+
+export const getPreciosProductos = async () => {
+  return fetch(`${API_URL}/items/productos?fields=id,nombre,precio,stock`, {
+    headers: authHeaders(),
+  }).then(r => r.json());
+};
+
+ 

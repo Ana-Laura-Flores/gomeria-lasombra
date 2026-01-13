@@ -72,6 +72,14 @@ export default function BottomNav() {
                         💸
                         <span>Nuevo gasto</span>
                     </Link>
+                    <Link
+  to="/precios"
+  className={`flex flex-col items-center text-sm ${isActive("/precios")}`}
+>
+  🏷️
+  <span>Precios</span>
+</Link>
+
                 </>
             )}
 

@@ -63,6 +63,12 @@ export default function Sidebar() {
                         >
                             Clientes
                         </Link>
+                          <Link
+                            to="/precios"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Precios
+                        </Link>
                     </>
                 )}
               
