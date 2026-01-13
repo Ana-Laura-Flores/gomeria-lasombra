@@ -34,8 +34,39 @@ return (
             <td className="p-2 font-semibold">{m.tipo}</td>
             <td className="p-2 text-sm">
               {m.referencia}
-              {m.pago && <button onClick={() => onVerRecibo(m.pago)} className="ml-2 text-blue-400 hover:underline">Ver</button>}
-              {m.pago && !m.pago.anulado && onAnularPago && <button onClick={() => onAnularPago(m.pago)} className="ml-2 bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700">Anular</button>}
+             {m.pago && m.pago.tipo === "pago" && !m.pago.anulado && (
+  <>
+    <button
+      onClick={() => onVerRecibo(m.pago)}
+      className="ml-2 text-blue-400 hover:underline"
+    >
+      Ver
+    </button>
+
+    <button
+      onClick={() => onAnularPago(m.pago)}
+      className="ml-2 bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
+    >
+      Anular
+    </button>
+  </>
+)}
+
+{m.pago && m.pago.tipo === "pago" && m.pago.anulado && (
+  <span className="ml-2 text-red-400 font-semibold text-sm">
+    Anulado
+  </span>
+)}
+
+{m.pago && m.pago.tipo === "anulacion" && (
+  <button
+    onClick={() => onVerRecibo(m.pago)}
+    className="ml-2 text-yellow-400 hover:underline text-sm"
+  >
+    Ver recibo de anulación
+  </button>
+)}
+
             </td>
             <td className="p-2 text-right">{m.debe ? formatMoney(m.debe) : ""}</td>
             <td className="p-2 text-right">{m.haber ? formatMoney(m.haber) : ""}</td>

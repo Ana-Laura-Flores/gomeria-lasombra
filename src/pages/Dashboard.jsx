@@ -100,7 +100,15 @@ export default function Dashboard() {
 
   const totalOrdenes = ordenes.length;
   const totalFacturado = ordenes.reduce((a, o) => a + Number(o.total || 0), 0);
-  const totalCobrado = pagos.reduce((a, p) => a + Number(p.monto || 0), 0);
+  const pagosValidos = pagos.filter(
+  (p) => (p.tipo === "pago" && !p.anulado) || p.tipo === "anulacion"
+);
+
+const totalCobrado = pagosValidos.reduce(
+  (a, p) => a + Number(p.monto || 0),
+  0
+);
+
   const saldoPendiente = totalFacturado - totalCobrado;
 
   const ordenesConDeuda = ordenes.filter((o) => Number(o.saldo) > 0).length;
@@ -111,13 +119,12 @@ export default function Dashboard() {
   const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
   const resultadoMes = totalCobrado - totalGastos;
 
-  const pagosPorMetodo = pagos
-    .filter((p) => Number(p.monto) > 0)
-    .reduce((acc, p) => {
-      const metodo = normalizarMetodo(p.metodo_pago);
-      acc[metodo] = (acc[metodo] || 0) + Number(p.monto);
-      return acc;
-    }, {});
+  const pagosPorMetodo = pagosValidos.reduce((acc, p) => {
+  const metodo = normalizarMetodo(p.metodo_pago);
+  acc[metodo] = (acc[metodo] || 0) + Number(p.monto);
+  return acc;
+}, {});
+
 
   const gastosPorMetodo = gastos.reduce((acc, g) => {
     const metodo = normalizarMetodo(g.metodo_pago);
