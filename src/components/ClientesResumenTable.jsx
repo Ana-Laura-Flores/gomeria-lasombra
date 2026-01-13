@@ -3,51 +3,54 @@ export default function ClientesResumenTable({ clientes, onVerDetalle }) {
     <>
       {/* ===== DESKTOP (tabla) ===== */}
       <div className="hidden md:block overflow-auto border rounded">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-500">
-            <tr>
-              <th className="p-2 text-left">Cliente</th>
-              <th className="p-2 text-right">Total</th>
-              <th className="p-2 text-right">Pagado</th>
-              <th className="p-2 text-right">Saldo</th>
-              <th className="p-2 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {clientes.map((c) => (
-              <tr key={c.id} className="border-t hover:bg-gray-500/50 ">
-                <td className="p-2 font-medium">{c.nombre}</td>
-                <td className="p-2 text-right">${c.total.toFixed(2)}</td>
-                <td className="p-2 text-right text-green-600">
-                  ${c.pagado.toFixed(2)}
-                </td>
-                <td
-                  className={`p-2 text-right font-bold ${
-                    c.saldo > 0 ? "text-red-600" : "text-gray-500"
-                  }`}
-                >
-                  ${c.saldo.toFixed(2)}
-                </td>
-                <td className="p-2 text-center">
-                  <button
-                    onClick={() => onVerDetalle(c)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Ver ficha
-                  </button>
-                </td>
-              </tr>
-            ))}
+        <table className="min-w-full bg-gray-800 text-gray-100 rounded-lg overflow-hidden">
+  <thead className="bg-gray-700 sticky top-0 z-10">
+    <tr>
+      <th className="p-3 text-left">Cliente</th>
+      <th className="p-3 text-right">Total</th>
+      <th className="p-3 text-right">Pagado</th>
+      <th className="p-3 text-right">Saldo</th>
+      <th className="p-3 text-center">Acciones</th>
+    </tr>
+  </thead>
 
-            {clientes.length === 0 && (
-              <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">
-                  No hay clientes para mostrar
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+  <tbody>
+    {clientes.map((c) => (
+      <tr
+        key={c.id}
+        className="border-b border-gray-700 hover:bg-gray-700 transition cursor-pointer"
+      >
+        <td className="p-3 font-medium">{c.nombre}</td>
+
+        <td className="p-3 text-right">
+          {formatMoney(c.total)}
+        </td>
+
+        <td className="p-3 text-right text-green-400">
+          {formatMoney(c.pagado)}
+        </td>
+
+        <td
+          className={`p-3 text-right font-bold ${
+            c.saldo > 0 ? "text-red-400" : "text-green-400"
+          }`}
+        >
+          {formatMoney(c.saldo)}
+        </td>
+
+        <td className="p-3 text-center">
+          <button
+            onClick={() => onVerDetalle(c)}
+            className="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-500 transition"
+          >
+            Ver cuenta
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
       </div>
 
       {/* ===== MOBILE (cards) ===== */}
