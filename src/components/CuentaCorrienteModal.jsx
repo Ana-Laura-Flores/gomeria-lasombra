@@ -66,17 +66,33 @@ const movimientos = useMemo(() => {
     haber: 0,
   }));
 
-  const movPagos = pagos.map(p => ({
+  const movPagos = pagos.map(p => {
+  const esAnulacion = p.tipo === "anulacion";
+
+  return {
     fecha: p.fecha || new Date().toISOString().split("T")[0],
-    tipo: p.tipo === "anulacion" ? "ANULACIÓN" : (p.metodo_pago === "cheque" ? "CHEQUE" : "PAGO"),
+
+    tipo: esAnulacion
+      ? "ANULACIÓN"
+      : p.metodo_pago === "cheque"
+        ? "CHEQUE"
+        : "PAGO",
+
     referencia: `Recibo #${p.numero_recibo || "—"}`,
-    debe: 0,
-    haber: Number(p.monto),
+
+    // 🔴 CLAVE CONTABLE
+    debe: esAnulacion ? Number(p.monto) : 0,
+    haber: esAnulacion ? 0 : Number(p.monto),
+
+    // Datos del cheque (no afectan el saldo)
     banco: p.banco || null,
     numero_cheque: p.numero_cheque || null,
     fecha_cobro: p.fecha_cobro || null,
+
     pago: p,
-  }));
+  };
+});
+
 
   return [...movOrdenes, ...movPagos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 }, [ordenes, pagos]);
@@ -111,16 +127,23 @@ const resumen = useMemo(() => {
 // --- Confirmar Anulación ---
   const confirmarAnulacion = async () => {
   if (!motivoAnulacion.trim()) return;
+
   try {
-    await crearAnulacion(pagoAAnular, motivoAnulacion);
-    const pagosActualizados = await getPagosCliente(clienteId);
-    setPagos(pagosActualizados.data || []);
+    // Crear anulación en la DB
+    const nuevaAnulacion = await crearAnulacion(pagoAAnular, motivoAnulacion);
+
+    // --- Actualizamos el estado local de pagos ---
+    // Esto hace que el modal muestre la anulación inmediatamente
+    setPagos(prev => [...prev, nuevaAnulacion]);
+
+    // Cerramos modal de anulación y mostramos éxito
     setShowAnulacionModal(false);
     setShowAnulacionSuccess(true);
   } catch (err) {
-    console.error(err);
+    console.error("Error al anular el pago:", err);
   }
 };
+
 
   if (loading) return <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white">Cargando cuenta corriente...</div>;
   if (!cliente) return null;
