@@ -309,26 +309,38 @@ export const crearAnulacion = async (pagoOriginal, motivo) => {
 
   const numeroRecibo = await generarNumeroRecibo();
 
-  const anulacion = await crearPago({
-    orden: pagoOriginal.orden,
-    cliente: pagoOriginal.cliente,
-    metodo_pago: pagoOriginal.metodo_pago,
+  const anulacionPayload = {
+    tipo: "anulacion",
+    numero_recibo: numeroRecibo,
+
+    // 🔴 claves estructurales
+    cliente: pagoOriginal.cliente?.id || pagoOriginal.cliente,
+    cuenta_corriente: pagoOriginal.cuenta_corriente?.id || pagoOriginal.cuenta_corriente,
+    estado: "confirmado",
+
+    // contabilidad
     monto: Math.abs(pagoOriginal.monto),
-    fecha: new Date().toISOString(),
+
+    // referencia
+    pago_referencia: pagoOriginal.id,
+
+    // info extra
+    metodo_pago: "anulacion",
     observaciones: `Anulación de pago ${pagoOriginal.numero_recibo}`,
+    motivo_anulacion: motivo,
+
+    // copia datos cheque si existían
     banco: pagoOriginal.banco || null,
     numero_cheque: pagoOriginal.numero_cheque || null,
     fecha_cobro: pagoOriginal.fecha_cobro || null,
-    numero_recibo: numeroRecibo,
-    tipo: "anulacion",
-    pago_referencia: pagoOriginal.id,
-    anulado: true,
-    motivo_anulacion: motivo,
-  });
 
-  return anulacion; // 🔥 devolver el objeto real
+    fecha: new Date().toISOString(),
+  };
+
+  const res = await crearPago(anulacionPayload);
+
+  return res.data || res;
 };
-
 
 export const getUltimoRecibo = async () => {
   const res = await apiFetch(
