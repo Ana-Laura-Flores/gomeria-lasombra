@@ -51,39 +51,42 @@ export default function PagosTable({ pagos, totalPagado, saldo, onVerRecibo, onA
                             <EstadoPagosBadge estado={pago.estado} />
                         </td>
                         <td className="p-2 text-center">
-                            {pago.estado === "confirmado" ? (
-                                <button
-                                    onClick={() => onVerRecibo(pago.id)}
-                                    className="text-blue-400 underline hover:text-blue-300"
-                                >
-                                    Ver
-                                </button>
-                            ) : (
-                                <span className="text-gray-500 text-sm">—</span>
-                            )}
-                        </td>
+  <div className="flex items-center justify-center gap-2">
 
-                      <td className="p-2 text-center">
-  {pago.tipo === "pago" && !pago.anulado ? (
-    <button
-      onClick={() => onAnularPago(pago)}
-      className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
-    >
-      Anular
-    </button>
-  ) : pago.tipo === "anulacion" ? (
-    <button
-      onClick={() => onVerRecibo(pago.id)}
-      className="text-yellow-400 underline hover:text-yellow-300 text-sm"
-    >
-      Ver recibo de anulación
-    </button>
-  ) : pago.anulado ? (
-    <span className="text-red-400 font-semibold text-sm">Anulado</span>
-  ) : (
-    <span className="text-gray-400 text-sm">—</span>
-  )}
+    {/* VER RECIBO (pago o anulación) */}
+    {pago.estado === "confirmado" && (
+      <button
+        onClick={() => onVerRecibo(pago.id)}
+        className={`underline text-sm ${
+          pago.tipo === "anulacion"
+            ? "text-yellow-400 hover:text-yellow-300"
+            : "text-blue-400 hover:text-blue-300"
+        }`}
+      >
+        Ver
+      </button>
+    )}
+
+    {/* BOTÓN ANULAR (solo pagos válidos) */}
+    {pago.tipo === "pago" && !pago.anulado && (
+      <button
+        onClick={() => onAnularPago(pago)}
+        className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
+      >
+        Anular
+      </button>
+    )}
+
+    {/* ESTADO ANULADO */}
+    {pago.anulado && (
+      <span className="text-red-400 text-xs font-semibold">
+        Anulado
+      </span>
+    )}
+
+  </div>
 </td>
+
 
                     </tr>
                 ))}
