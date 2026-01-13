@@ -71,63 +71,55 @@ export default function PagoForm({ cliente, onPagoRegistrado, pagosExistentes })
   // SUBMIT
   // =========================
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!pagos.length) return alert("No hay pagos cargados");
+  e.preventDefault();
+  if (!pagos.length) return alert("No hay pagos cargados");
 
-    setLoading(true);
-    try {
-      let cc = cuentaCorriente;
+  setLoading(true);
+  try {
+    let cc = cuentaCorriente;
 
-      // Crear cuenta corriente si no existe
-      if (!cc) {
-        const res = await crearCuentaCorriente({ cliente: clienteId });
-        cc = res?.data || res;
-        setCuentaCorriente(cc);
-      }
-
-      const pagosGuardados = [];
-
-     for (const pago of pagos) {
-  const numero_recibo = await generarNumeroRecibo();
-  console.log("Numero de recibo generado:", numero_recibo);
-
-  const res = await crearPago({
-    tipo: "pago",
-    numero_recibo,
-    cliente: String(clienteId),
-    metodo_pago: pago.metodo,
-    monto: parseFloat(pago.monto),
-    banco: pago.banco || null,
-    numero_cheque: pago.numero_cheque || null,
-    fecha_cobro: pago.fecha_cobro || null,
-    cuenta_corriente: cc.id,
-    estado: "confirmado",
-   
-    
-  });
-
-
-
-        // Normalizar para el modal
-        const pagoNormalizado = {
-          ...(res?.data || res),
-          fecha: (res?.data?.fecha || new Date().toISOString().split("T")[0]),
-        };
-
-        pagosGuardados.push(pagoNormalizado);
-      
-      }
-  onPagoRegistrado?.(pagosGuardados); // REFRESCA MODAL + TABLA
-      // Limpiar lista local
-      setPagos([]);
-      
-    } catch (err) {
-      console.error(err);
-      alert("Error al registrar el pago");
-    } finally {
-      setLoading(false);
+    // Crear cuenta corriente si no existe
+    if (!cc) {
+      const res = await crearCuentaCorriente({ cliente: clienteId });
+      cc = res?.data || res;
+      setCuentaCorriente(cc);
     }
-  };
+
+    const pagosGuardados = [];
+
+    for (const pago of pagos) {
+      const numero_recibo = await generarNumeroRecibo();
+
+      const pagoCreado = await crearPago({
+        tipo: "pago",
+        numero_recibo,
+        cliente: String(clienteId),
+        metodo_pago: pago.metodo,
+        monto: parseFloat(pago.monto),
+        banco: pago.banco || null,
+        numero_cheque: pago.numero_cheque || null,
+        fecha_cobro: pago.fecha_cobro || null,
+        cuenta_corriente: cc.id,
+        estado: "confirmado",
+      });
+
+      pagosGuardados.push(pagoCreado);
+    }
+
+    // 🔥 este es el punto clave
+    onPagoRegistrado?.(pagosGuardados);
+
+    // limpiar el form
+    setPagos([]);
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al registrar el pago");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // =========================
   // RENDER

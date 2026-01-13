@@ -262,11 +262,11 @@ export const actualizarCliente = async (id, data) => {
 
 // --------------------
 export const crearPago = async (pago) => {
-  return apiFetch("pagos", {
+  const res = await apiFetch("pagos", {
     method: "POST",
     body: JSON.stringify({
-      orden: pago.orden || null,       // ID
-      cliente: pago.cliente,   // ID
+      orden: pago.orden || null,
+      cliente: pago.cliente,
       metodo_pago: pago.metodo_pago,
       monto: Number(pago.monto),
       fecha: pago.fecha || new Date().toISOString(),
@@ -276,12 +276,16 @@ export const crearPago = async (pago) => {
       numero_cheque: pago.numero_cheque || null,
       fecha_cobro: pago.fecha_cobro || null,
       numero_recibo: pago.numero_recibo,
-    tipo: pago.tipo === "anulacion" ? "anulacion" : "pago",
-
+      tipo: pago.tipo === "anulacion" ? "anulacion" : "pago",
+      pago_referencia: pago.pago_referencia || null,
+      anulado: pago.anulado || false,
+      motivo_anulacion: pago.motivo_anulacion || null,
     }),
   });
-  // return res.data;
+
+  return res.data;   // 🔥 ESTE ES EL PAGO REAL
 };
+
 
 
 // Traer pagos y anulaciones de una orden
@@ -305,24 +309,26 @@ export const crearAnulacion = async (pagoOriginal, motivo) => {
 
   const numeroRecibo = await generarNumeroRecibo();
 
-  return crearPago({
+  const anulacion = await crearPago({
     orden: pagoOriginal.orden,
     cliente: pagoOriginal.cliente,
     metodo_pago: pagoOriginal.metodo_pago,
-    monto: Math.abs(pagoOriginal.monto), // positivo
+    monto: Math.abs(pagoOriginal.monto),
     fecha: new Date().toISOString(),
     observaciones: `Anulación de pago ${pagoOriginal.numero_recibo}`,
-    estado: "confirmado",
     banco: pagoOriginal.banco || null,
     numero_cheque: pagoOriginal.numero_cheque || null,
     fecha_cobro: pagoOriginal.fecha_cobro || null,
     numero_recibo: numeroRecibo,
-    tipo: "anulacion", // esto es clave
+    tipo: "anulacion",
     pago_referencia: pagoOriginal.id,
     anulado: true,
     motivo_anulacion: motivo,
   });
+
+  return anulacion; // 🔥 devolver el objeto real
 };
+
 
 export const getUltimoRecibo = async () => {
   const res = await apiFetch(
