@@ -17,7 +17,16 @@ export default function ReciboPagoPDF({ pago, cliente, orden }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img src={logo} alt="Logo" style={{ height: 36 }} />
         <div style={{ textAlign: "right" }}>
-          <h2 style={{ margin: 0, fontSize: 14 }}>RECIBO DE PAGO</h2>
+          <h2 style={{ margin: 0, fontSize: 14 }}>
+  {pago.tipo === "anulacion" ? "COMPROBANTE DE ANULACIÓN" : "RECIBO DE PAGO"}
+</h2>
+
+<div>
+  <strong>
+    Nº {pago.numero_recibo || pago.id}
+  </strong>
+</div>
+
           <div><strong>Nº {pago.numero_recibo}</strong></div>
           <small>{new Date(pago.fecha).toLocaleDateString("es-AR")}</small>
         </div>
@@ -43,7 +52,11 @@ export default function ReciboPagoPDF({ pago, cliente, orden }) {
           marginBottom: 12,
         }}
       >
-        <strong>Monto recibido:</strong> ${Number(pago.monto).toLocaleString("es-AR")}
+        <strong>
+  {pago.tipo === "anulacion" ? "Monto anulado:" : "Monto recibido:"}
+</strong>
+${Number(pago.monto).toLocaleString("es-AR")}
+
       </div>
 
       {/* METODO */}

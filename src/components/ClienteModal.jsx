@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
     getOrdenesTrabajo,
     getClienteById,
-    getPagosConfirmados,
+    getPagosCliente,
 } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import ReciboPagoPDF from "./ReciboPagoPdf";
@@ -26,7 +26,7 @@ const [showRecibo, setShowRecibo] = useState(false);
                 const [resCliente, resOrdenes, resPagos] = await Promise.all([
                     getClienteById(clienteId),
                     getOrdenesTrabajo(),
-                    getPagosConfirmados(),
+                    getPagosCliente(clienteId),
                 ]);
 
                 setCliente(resCliente.data);
@@ -53,14 +53,28 @@ const [showRecibo, setShowRecibo] = useState(false);
     }, [clienteId]);
 
     const resumen = useMemo(() => {
-        const total = ordenes.reduce((a, o) => a + Number(o.total || 0), 0);
-        const pagado = pagos.reduce((a, p) => a + Number(p.monto || 0), 0);
-        return {
-            total,
-            pagado,
-            saldo: total - pagado,
-        };
-    }, [ordenes, pagos]);
+  const total = ordenes.reduce((a, o) => a + Number(o.total || 0), 0);
+
+  let debe = 0;
+  let haber = 0;
+
+  pagos.forEach(p => {
+    if (p.tipo === "anulacion") {
+      debe += Number(p.monto);
+    } else {
+      haber += Number(p.monto);
+    }
+  });
+
+  const pagado = haber - debe;
+
+  return {
+    total,
+    pagado,
+    saldo: total - pagado,
+  };
+}, [ordenes, pagos]);
+
 
     if (loading) return null;
 
@@ -171,13 +185,21 @@ const [showRecibo, setShowRecibo] = useState(false);
     }}
   >
     {p.numero_recibo != null && p.numero_recibo !== ""
-      ? `Pago #${p.numero_recibo}`
-      : "Pago #—"}
+  ? `${p.tipo === "anulacion" ? "Anulación" : "Pago"} #${p.numero_recibo}`
+  : p.tipo === "anulacion" ? "Anulación #—" : "Pago #—"}
+
   </span>
 </td>
 
     <td className="p-2 capitalize text-gray-300">{p.metodo_pago || "—"}</td>
-    <td className="p-2 text-right text-green-400">${p.monto}</td>
+    <td
+  className={`p-2 text-right font-semibold ${
+    p.tipo === "anulacion" ? "text-red-400" : "text-green-400"
+  }`}
+>
+  {p.tipo === "anulacion" ? "− " : ""}${p.monto}
+</td>
+
   </tr>
 ))}
 
@@ -211,9 +233,10 @@ const [showRecibo, setShowRecibo] = useState(false);
 {showRecibo && pagoRecibo && (
   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
     <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-3">
-      <h2 className="text-lg font-bold">
-        Recibo #{pagoRecibo.numero_recibo || pagoRecibo.id}
-      </h2>
+     <h2 className="text-lg font-bold">
+  {pagoRecibo.tipo === "anulacion" ? "Comprobante de Anulación" : "Recibo de Pago"} #{pagoRecibo.numero_recibo || pagoRecibo.id}
+</h2>
+
 
       <div className="text-sm space-y-1">
         <p><b>Fecha:</b> {new Date(pagoRecibo.fecha).toLocaleDateString("es-AR")}</p>
