@@ -412,16 +412,16 @@ export const getCuentaCorriente = async () =>
 
 
 export const getServiciosConTarifas = async () => {
-  return fetch(`${API_URL}items/tarifas?fields=id,precio,tipo_vehiculo,servicio.id,servicio.nombre`, {
-    headers: authHeaders(),
-  }).then(r => r.json());
+  return apiFetch(
+    "tarifas?fields=id,precio,tipo_vehiculo,servicio.id,servicio.nombre"
+  );
 };
 
+
 export const getPreciosProductos = async () => {
-  return fetch(
-    `${API_URL}/items/productos?fields=id,nombre,precio_unitario,tipo_vehiculo`,
-    { headers: authHeaders() }
-  ).then(r => r.json());
+  return apiFetch(
+    `productos?fields=id,nombre,precio_unitario,tipo_vehiculo`
+  );
 };
 
 
