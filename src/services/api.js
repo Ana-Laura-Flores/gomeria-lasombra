@@ -342,26 +342,32 @@ export const crearAnulacion = async (pagoOriginal, motivo) => {
   return res.data || res;
 };
 
+// --- Manejamos el último número en memoria ---
+let ultimoReciboLocal = null;
+
+// Obtener el último número del backend (igual que antes)
 export const getUltimoRecibo = async () => {
   const res = await apiFetch(
     "pagos?fields=numero_recibo&filter[numero_recibo][_gt]=0&sort=-numero_recibo&limit=1"
   );
 
-  return res.data[0]?.numero_recibo || 0; // si no hay ninguno, empezamos desde 0
+  return res.data[0]?.numero_recibo || "000000"; // si no hay ninguno, empezamos desde 000000
 };
 
-
+// Generar número de recibo, usando memoria para evitar duplicados
 export const generarNumeroRecibo = async () => {
-  const ultimo = await getUltimoRecibo();
-
-  let siguiente = 1;
-  if (ultimo) {
-    siguiente = Number(ultimo) + 1;
+  if (ultimoReciboLocal === null) {
+    // Si es la primera vez, pedimos al backend
+    const ultimo = await getUltimoRecibo();
+    ultimoReciboLocal = Number(ultimo);
   }
 
-  return String(siguiente).padStart(6, "0"); // 000001, 000002, etc
-};
+  // Incrementamos localmente
+  ultimoReciboLocal += 1;
 
+  // Devolvemos con ceros a la izquierda
+  return String(ultimoReciboLocal).padStart(6, "0");
+};
 
 
 export const actualizarOrden = async (id, data) => {
