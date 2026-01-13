@@ -418,9 +418,11 @@ export const getServiciosConTarifas = async () => {
 };
 
 export const getPreciosProductos = async () => {
-  return fetch(`${API_URL}/items/productos?fields=id,nombre,precio,stock`, {
-    headers: authHeaders(),
-  }).then(r => r.json());
+  return fetch(
+    `${API_URL}/items/productos?fields=id,nombre,precio_unitario,tipo_vehiculo`,
+    { headers: authHeaders() }
+  ).then(r => r.json());
 };
+
 
  

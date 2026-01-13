@@ -15,20 +15,25 @@ export function normalizarServicios(servicios) {
 }
 
 export function normalizarProductos(productos) {
-  return productos.map(p => {
-    const fila = {
-      id: `producto-${p.id}`,
-      nombre: p.nombre,
-      tipo: "Producto",
-    };
+  const mapa = {};
 
-    p.tarifas?.forEach(t => {
-      fila[t.tipo_vehiculo] = Number(t.precio);
-    });
+  productos.forEach(p => {
+    const key = p.nombre;
 
-    return fila;
+    if (!mapa[key]) {
+      mapa[key] = {
+        id: `producto-${p.id}`,
+        nombre: p.nombre,
+        tipo: "Producto",
+      };
+    }
+
+    mapa[key][p.tipo_vehiculo] = Number(p.precio_unitario);
   });
+
+  return Object.values(mapa);
 }
+
 
 export function unirPrecios(servicios, productos) {
   return [
