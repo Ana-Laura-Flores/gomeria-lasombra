@@ -1,18 +1,26 @@
-export function normalizarServicios(servicios) {
-  return servicios.map(s => {
-    const fila = {
-      id: `servicio-${s.id}`,
-      nombre: s.nombre,
-      tipo: "Servicio",
-    };
+export function normalizarTarifas(tarifas) {
+  const mapa = {};
 
-    s.tarifas?.forEach(t => {
-      fila[t.tipo_vehiculo] = Number(t.precio);
-    });
+  tarifas.forEach(t => {
+    const servicio = t.servicio;
+    if (!servicio) return;
 
-    return fila;
+    const key = servicio.id;
+
+    if (!mapa[key]) {
+      mapa[key] = {
+        id: `servicio-${servicio.id}`,
+        nombre: servicio.nombre,
+        tipo: "Servicio",
+      };
+    }
+
+    mapa[key][t.tipo_vehiculo] = Number(t.precio);
   });
+
+  return Object.values(mapa);
 }
+
 
 export function normalizarProductos(productos) {
   const mapa = {};
@@ -34,10 +42,10 @@ export function normalizarProductos(productos) {
   return Object.values(mapa);
 }
 
-
-export function unirPrecios(servicios, productos) {
+export function unirPrecios(tarifas, productos) {
   return [
-    ...normalizarServicios(servicios),
+    ...normalizarTarifas(tarifas),
     ...normalizarProductos(productos),
   ];
 }
+
