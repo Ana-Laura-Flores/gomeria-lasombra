@@ -63,6 +63,7 @@ export default function Precios() {
               <th className="p-2 text-right">Moto</th>
               <th className="p-2 text-right">Camión</th>
               <th className="p-2 text-right">Camión chico</th>
+              <th className="p-2 text-right">Ducato</th>
             </tr>
           </thead>
           <tbody>
@@ -87,6 +88,8 @@ export default function Precios() {
                 <Precio value={p.moto} />
                 <Precio value={p.camion} />
                 <Precio value={p.camion_chico} />
+                <Precio value={p.ducato} />
+
               </tr>
             ))}
 
