@@ -112,37 +112,24 @@ const resumen = useMemo(() => {
 
 
   // --- Pago registrado ---
-  const handlePagoRegistrado = (pagosNuevos) => {
-    setPagos((prev) => [...prev, ...pagosNuevos]);
-    setShowPago(false);
-    setShowSuccess(true);
-  };
+const handlePagoRegistrado = (pagosNuevos) => {
+  setPagos((prev) => [...prev, ...pagosNuevos]);
+  setShowPago(false);
+  setShowSuccess(true);
+};
 
-  // --- Modal anulación ---
-  const abrirModalAnulacion = (pago) => {
-    setPagoAAnular(pago);
-    setMotivoAnulacion("");
-    setShowAnulacionModal(true);
-  };
-// --- Confirmar Anulación ---
-  const confirmarAnulacion = async () => {
+const confirmarAnulacion = async () => {
   if (!motivoAnulacion.trim()) return;
-
   try {
-    // Crear anulación en la DB
     const nuevaAnulacion = await crearAnulacion(pagoAAnular, motivoAnulacion);
-
-    // --- Actualizamos el estado local de pagos ---
-    // Esto hace que el modal muestre la anulación inmediatamente
-    setPagos(prev => [...prev, nuevaAnulacion]);
-
-    // Cerramos modal de anulación y mostramos éxito
+    setPagos(prev => [...prev, nuevaAnulacion]); // 🔥 al toque se ve en movimientos y resumen
     setShowAnulacionModal(false);
     setShowAnulacionSuccess(true);
   } catch (err) {
     console.error("Error al anular el pago:", err);
   }
 };
+
 
 
   if (loading) return <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white">Cargando cuenta corriente...</div>;
