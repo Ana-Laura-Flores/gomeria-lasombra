@@ -3,7 +3,7 @@ export default function ClientesResumenTable({ clientes, onVerDetalle }) {
     <>
       {/* ===== DESKTOP (tabla) ===== */}
       <div className="hidden md:block overflow-auto border rounded">
-        <table className="min-w-full bg-gray-800 text-gray-100 rounded-lg overflow-hidden">
+        <table className="min-w-full bg-gray-800 text-gray-100 rounded-lg overflow-hidden text-sm">
   <thead className="bg-gray-700 sticky top-0 z-10">
     <tr>
       <th className="p-3 text-left">Cliente</th>
@@ -18,16 +18,16 @@ export default function ClientesResumenTable({ clientes, onVerDetalle }) {
     {clientes.map((c) => (
       <tr
         key={c.id}
-        className="border-b border-gray-700 hover:bg-gray-700 transition cursor-pointer"
+        className="border-b border-gray-700 hover:bg-gray-700 transition"
       >
         <td className="p-3 font-medium">{c.nombre}</td>
 
         <td className="p-3 text-right">
-          {formatMoney(c.total)}
+          ${c.total.toFixed(2)}
         </td>
 
         <td className="p-3 text-right text-green-400">
-          {formatMoney(c.pagado)}
+          ${c.pagado.toFixed(2)}
         </td>
 
         <td
@@ -35,19 +35,27 @@ export default function ClientesResumenTable({ clientes, onVerDetalle }) {
             c.saldo > 0 ? "text-red-400" : "text-green-400"
           }`}
         >
-          {formatMoney(c.saldo)}
+          ${c.saldo.toFixed(2)}
         </td>
 
         <td className="p-3 text-center">
           <button
             onClick={() => onVerDetalle(c)}
-            className="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-500 transition"
+            className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 transition text-sm"
           >
-            Ver cuenta
+            Ver ficha
           </button>
         </td>
       </tr>
     ))}
+
+    {clientes.length === 0 && (
+      <tr>
+        <td colSpan={5} className="p-6 text-center text-gray-400">
+          No hay clientes para mostrar
+        </td>
+      </tr>
+    )}
   </tbody>
 </table>
 
