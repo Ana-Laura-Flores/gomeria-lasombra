@@ -109,6 +109,11 @@ const resumen = useMemo(() => {
   return { total, pagado, saldo };
 }, [ordenes, pagos]);
 
+const abrirModalAnulacion = (pago) => {
+  setPagoAAnular(pago);
+  setMotivoAnulacion("");
+  setShowAnulacionModal(true);
+};
 
 
   // --- Pago registrado ---
