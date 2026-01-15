@@ -109,11 +109,6 @@ const resumen = useMemo(() => {
   return { total, pagado, saldo };
 }, [ordenes, pagos]);
 
-const abrirModalAnulacion = (pago) => {
-  setPagoAAnular(pago);
-  setMotivoAnulacion("");
-  setShowAnulacionModal(true);
-};
 
 
   // --- Pago registrado ---
@@ -122,6 +117,12 @@ const handlePagoRegistrado = (pagosNuevos) => {
   setShowPago(false);
   setShowSuccess(true);
 };
+const abrirModalAnulacion = (pago) => {
+  setPagoAAnular(pago);
+  setMotivoAnulacion("");
+  setShowAnulacionModal(true);
+};
+
 
 const confirmarAnulacion = async () => {
   if (!motivoAnulacion.trim()) return;
