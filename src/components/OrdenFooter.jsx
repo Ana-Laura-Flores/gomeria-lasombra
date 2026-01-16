@@ -78,53 +78,52 @@ export default function OrdenFooter({
       }
 
     // --- NUEVA LÓGICA DE CONSECUTIVO CON SDK (CORREGIDA) ---// --- LÓGICA DE CONSECUTIVO CON "CACHE BUSTER" ---
-const respuesta = await client.request(
-  readItems('ordenes_trabajo', {
-    sort: ['-comprobante'],
-    limit: 1,
-    fields: ['comprobante'],
-    // 💡 Esto obliga a traer datos frescos de la DB
-    query: {
-       "_": Date.now() 
-    }
-  })
-);
+      // --- LÓGICA DE CONSECUTIVO REFORZADA (CORREGIDA) ---
+      // Traemos los últimos 10 para saltar cualquier error de caché o de ordenamiento
+      const ultimos = await client.request(
+        readItems('ordenes_trabajo', {
+          limit: 10,
+          fields: ['comprobante'],
+          params: { 't': Date.now(), 'cache': 'false' }
+        })
+      );
 
-let ultimoNum = 0;
-if (respuesta && respuesta.length > 0) {
-  // Usamos [0] para el primer elemento
-  ultimoNum = parseInt(respuesta[0].comprobante) || 0;
-}
+      // Buscamos el número más alto de forma manual en el array para estar 100% seguros
+      const numeros = ultimos.map(o => parseInt(o.comprobante) || 0);
+      const maxActual = numeros.length > 0 ? Math.max(...numeros) : 0;
 
-const siguienteComprobante = ultimoNum + 1;
-const comprobanteFormateado = siguienteComprobante.toString().padStart(6, '0');
+      const siguienteComprobanteInt = maxActual + 1;
+      const comprobanteFormateado = siguienteComprobanteInt.toString().padStart(6, '0');
 
+      console.log("Máximo en DB:", maxActual, "Generando:", comprobanteFormateado);
+      // -------------------------------------------------------
 
-console.log("Generando comprobante:", comprobanteFormateado); // Verás "000020"
-console.log("Último en DB:", ultimoNum, "Generando:", siguienteComprobante);
-// -------------------------------------------------------
-
-
-      // --------------------------------------------
-
-      // 1️⃣ Crear ORDEN (Usando tus nombres de campos: condicion_cobro, comprobante, etc.)
+      // 1️⃣ Crear ORDEN
       const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({
           fecha: snapshot.fecha,
           cliente: clienteId,
-          comprobante: comprobanteFormateado, // Inyectamos el nuevo número
+          comprobante: comprobanteFormateado, // <--- Usamos la variable correcta
           patente: snapshot.patente,
           condicion_cobro: snapshot.condicionCobro,
           estado: snapshot.condicionCobro === "contado" ? "pagado" : "pendiente",
           total: snapshot.total,
-          items: snapshot.items // Asegúrate que Directus acepte el formato de tus items
+          items: snapshot.items 
         }),
       });
 
       const dataOrden = await ordenRes.json();
+
+      // Validación de seguridad para el ID
+      if (!dataOrden.data || !dataOrden.data.id) {
+        console.error("Respuesta error Directus:", dataOrden);
+        throw new Error(dataOrden.errors?.[0]?.message || "Error al crear la orden");
+      }
+
       const nuevaOrdenId = dataOrden.data.id;
+
 
       // 2️⃣ Lógica de Pagos y Cta Corriente (Exactamente como la tenías)
       if (snapshot.condicionCobro === "contado") {
