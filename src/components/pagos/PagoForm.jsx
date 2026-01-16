@@ -56,10 +56,14 @@ export default function PagoForm({ cliente, onPagoRegistrado, pagosExistentes })
       let cc = cuentaCorriente;
 
       if (!cc) {
-        const res = await crearCuentaCorriente({ cliente: clienteId });
-        cc = res?.data || res;
-        setCuentaCorriente(cc);
+             const res = await crearCuentaCorriente({ cliente: clienteId, saldo: 0 });
+      // 💡 BLINDAJE: Detectar si el objeto viene dentro de .data o directo
+      cc = res.data ? res.data : res;
+      setCuentaCorriente(cc);
       }
+    // 💡 BLINDAJE: Obtener el ID de forma segura
+    const ccId = cc.id || (Array.isArray(cc) ? cc[0]?.id : null);
+    if (!ccId) throw new Error("No se pudo identificar el ID de la cuenta corriente");
 
       const pagosGuardados = [];
 
@@ -75,7 +79,7 @@ export default function PagoForm({ cliente, onPagoRegistrado, pagosExistentes })
           banco: pago.banco || null,
           numero_cheque: pago.numero_cheque || null,
           fecha_cobro: pago.fecha_cobro || null,
-          cuenta_corriente: cc.id,
+          cuenta_corriente: ccId,
           estado: "confirmado",
         });
 
