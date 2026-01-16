@@ -151,14 +151,12 @@ export const getOrdenesCuentaCorriente = async (clienteId) => {
 };
 
 
-// En services/api.js
 export const getPagosCliente = async (clienteId) => {
-  // Quitamos filtros complejos y traemos los últimos 50 del sistema para asegurar que el nuevo esté ahí
+  // 💡 Agregamos &ts=${Date.now()} para romper el caché del VPS/Nginx
   return apiFetch(
-    `pagos?sort=-id&limit=50&fields=*,cliente.id,cliente.nombre`
+    `pagos?filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado&sort=fecha&fields=*,cliente.*&ts=${Date.now()}`
   );
 };
-
 
 export const getPagosConfirmados = async () => {
   return apiFetch(
