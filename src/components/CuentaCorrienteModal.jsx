@@ -113,36 +113,40 @@ const resumen = useMemo(() => {
 }, [ordenes, pagos]);
 
 
+// --- Pago registrado ---
+  const handlePagoRegistrado = (pagosNuevos) => {
+    // 1. Actualiza la lista interna del modal
+    setPagos((prev) => [...prev, ...pagosNuevos]);
+    
+    // 💡 2. AVISA a la tabla general que hay nuevos pagos
+    if (onPagoRegistrado) {
+      onPagoRegistrado(pagosNuevos);
+    }
+    
+    setShowPago(false);
+    setShowSuccess(true);
+  };
 
-  // --- Pago registrado ---
-const handlePagoRegistrado = (pagosNuevos) => {
-  setPagos((prev) => [...prev, ...pagosNuevos]);
-  setShowPago(false);
-  setShowSuccess(true);
-};
-const abrirModalAnulacion = (pago) => {
-  setPagoAAnular(pago);
-  setMotivoAnulacion("");
-  setShowAnulacionModal(true);
-};
+  const confirmarAnulacion = async () => {
+    if (!motivoAnulacion.trim()) return;
+    try {
+      const nuevaAnulacion = await crearAnulacion(pagoAAnular, motivoAnulacion);
+      
+      // 1. Actualiza la lista interna del modal
+      setPagos(prev => [...prev, nuevaAnulacion]);
 
+      // 💡 2. AVISA a la tabla general que hay una anulación
+      if (onPagoRegistrado) {
+        onPagoRegistrado([nuevaAnulacion]); // Envuelto en array para consistencia
+      }
 
-const confirmarAnulacion = async () => {
-  if (!motivoAnulacion.trim()) return;
-  try {
-    const nuevaAnulacion = await crearAnulacion(pagoAAnular, motivoAnulacion);
-    setPagos(prev => [...prev, nuevaAnulacion]); // 🔥 al toque se ve en movimientos y resumen
-    setShowAnulacionModal(false);
-    setShowAnulacionSuccess(true);
-  } catch (err) {
-    console.error("Error al anular el pago:", err);
-  }
-};
-
-
-
-  if (loading) return <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white">Cargando cuenta corriente...</div>;
-  if (!cliente) return null;
+      setShowAnulacionModal(false);
+      setShowAnulacionSuccess(true);
+    } catch (err) {
+      console.error("Error al anular el pago:", err);
+    }
+  };
+  
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">

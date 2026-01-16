@@ -63,23 +63,34 @@ export default function CuentaCorriente() {
       acc[id].ordenes.push(o);
     });
 
-    // PAGOS
-    pagos.forEach((p) => {
-      const clienteId = p.cliente?.id ?? p.cliente;
-      if (!clienteId) return;
+   // PAGOS (Ajustado para manejar anulaciones confirmadas)
+  pagos.forEach((p) => {
+    const clienteId = p.cliente?.id ?? p.cliente;
+    if (!clienteId || p.estado !== "confirmado") return; // Solo procesamos lo confirmado
 
-      if (!acc[clienteId]) acc[clienteId] = { id: clienteId, nombre: p.cliente?.nombre || "Cliente", total: 0, pagado: 0, saldo: 0, ordenes: [], pagos: [] };
+    if (!acc[clienteId]) {
+      acc[clienteId] = { id: clienteId, nombre: p.cliente?.nombre || "Cliente", total: 0, pagado: 0, saldo: 0, ordenes: [], pagos: [] };
+    }
 
+    // 🔴 LÓGICA CONTABLE CLAVE:
+    if (p.tipo === "anulacion") {
+      // Si es anulación, RESTA de lo pagado (lo que hace que el saldo suba)
+      acc[clienteId].pagado -= Number(p.monto || 0);
+    } else {
+      // Si es un pago normal, SUMA a lo pagado
       acc[clienteId].pagado += Number(p.monto || 0);
-      acc[clienteId].pagos.push(p);
-    });
+    }
+    
+    acc[clienteId].pagos.push(p);
+  });
 
-    Object.values(acc).forEach((c) => {
-      c.saldo = c.total - c.pagado;
-    });
+  Object.values(acc).forEach((c) => {
+    // Saldo = Total de Órdenes - (Pagos - Anulaciones)
+    c.saldo = c.total - c.pagado;
+  });
 
-    return Object.values(acc);
-  }, [ordenes, pagos, fechaDesde, fechaHasta]);
+  return Object.values(acc);
+}, [ordenes, pagos, fechaDesde, fechaHasta]);
 
   const clientesFiltrados = useMemo(() => {
     let res = filtroDeuda ? clientesCC.filter((c) => c.saldo > 0) : clientesCC;
@@ -108,8 +119,9 @@ export default function CuentaCorriente() {
   <CuentaCorrienteModal
     clienteId={clienteDetalleId}
     onClose={() => setClienteDetalleId(null)}
-    onPagoRegistrado={() => {
-      // opcional: refrescar listado general
+   onPagoRegistrado={(nuevosItems) => {
+      // 💡 Esto se ejecuta cuando el Modal avisa. Actualiza el estado local.
+      setPagos((prev) => [...prev, ...nuevosItems]);
     }}
   />
 )}
