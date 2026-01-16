@@ -147,28 +147,31 @@ const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
           fecha: snapshot.fecha,
         });
       } else {
-        // Cuenta Corriente
-        let cc = await getCuentaCorrienteByCliente(clienteId);
         
-        // 💡 SI NO EXISTE, LA CREAMOS AQUÍ
-        if (!cc) {
-          console.log("No existe CC, creando una nueva...");
-          const nuevaCCRes = await fetch(`${API_URL}/items/cuenta_corriente`, {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify({ cliente: clienteId, saldo: 0 }),
-          });
-          const nuevaCCData = await nuevaCCRes.json();
-          cc = nuevaCCData.data; // Asignamos la nueva CC para usarla abajo
-        }
+  // Cuenta Corriente
+  const resCC = await getCuentaCorrienteByCliente(clienteId);
+  
+  // 💡 CORRECCIÓN AQUÍ: Extraer el primer objeto si viene en un array
+  let cc = (resCC && resCC.data && resCC.data.length > 0) ? resCC.data[0] : null;
+  
+  if (!cc) {
+    console.log("No existe CC, creando una nueva...");
+    const nuevaCCRes = await fetch(`${API_URL}/items/cuenta_corriente`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ cliente: clienteId, saldo: 0 }),
+    });
+    const nuevaCCData = await nuevaCCRes.json();
+    cc = nuevaCCData.data; 
+  }
 
-        // Ahora que estamos seguros que existe (o se creó), actualizamos el saldo
-        if (cc) {
-          await actualizarCuentaCorriente(cc.id, {
-            saldo: parseFloat(cc.saldo || 0) + parseFloat(snapshot.total),
-          });
-        }
-      }
+  if (cc && cc.id) {
+    await actualizarCuentaCorriente(cc.id, {
+      // 💡 CORRECCIÓN: Usar parseFloat para evitar concatenación de strings
+      saldo: parseFloat(cc.saldo || 0) + parseFloat(snapshot.total),
+    });
+  }
+}
 
 
       // Finalizar con éxito
