@@ -27,33 +27,42 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   if (!clienteId) return;
 
   const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [resOrdenes, resPagos] = await Promise.all([
-        getOrdenesTrabajo(),
-        getPagosCliente(clienteId),
-      ]);
+  setLoading(true);
+  try {
+    const idBuscado = String(clienteId?.id || clienteId);
+    
+    const [resOrdenes, resPagos] = await Promise.all([
+      getOrdenesTrabajo(),
+      getPagosCliente(idBuscado), 
+    ]);
 
-      const ordenesCC = (resOrdenes.data || []).filter(
-        (o) => o.condicion_cobro === "cuenta_corriente" && String(o.cliente?.id) === String(clienteId)
-      );
+    // FILTRO MANUAL DE ÓRDENES
+    const ordenesFiltradas = (resOrdenes.data || []).filter(o => 
+      String(o.cliente?.id || o.cliente) === idBuscado &&
+      o.condicion_cobro === "cuenta_corriente"
+    );
 
-      // Mantenemos tu filtro de confirmados
-      const pagosConfirmados = (resPagos.data || []).filter((p) => p.estado === "confirmado");
+    // FILTRO MANUAL DE PAGOS (Aquí está la clave)
+    const pagosFiltrados = (resPagos.data || []).filter(p => 
+      String(p.cliente?.id || p.cliente) === idBuscado &&
+      p.estado === "confirmado"
+    );
 
-      setOrdenes(ordenesCC);
-      setPagos(pagosConfirmados);
+    console.log("Pagos encontrados para este cliente:", pagosFiltrados.length);
 
-      setCliente({
-        id: clienteId,
-        nombre: ordenesCC[0]?.cliente?.nombre || pagosConfirmados[0]?.cliente?.nombre || "Cliente",
-      });
-    } catch (e) {
-      console.error("Error cargando cuenta corriente", e);
-    } finally {
-      setLoading(false);
+    setOrdenes(ordenesFiltradas);
+    setPagos(pagosFiltrados);
+
+    // Seteamos el cliente con los datos que ya tenemos
+    if (ordenesFiltradas.length > 0) {
+      setCliente(ordenesFiltradas[0].cliente);
     }
-  };
+  } catch (e) {
+    console.error(e);
+  } finally {
+    setLoading(false);
+  }
+};
 
   fetchData();
 }, [clienteId]);
