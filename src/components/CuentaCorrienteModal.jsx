@@ -6,6 +6,7 @@ import CuentaCorrientePDF from "./CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import { getOrdenesTrabajo, getPagosCliente, crearAnulacion } from "../services/api";
 import ReciboPagoPDF from "../components/ReciboPagoPdf";
+import { getDirectusClient } from "../lib/directus";
 
 export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistrado }) {
   const [cliente, setCliente] = useState(null);
@@ -22,39 +23,84 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   const [motivoAnulacion, setMotivoAnulacion] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!clienteId) return;
+ useEffect(() => {
+  if (!clienteId) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [resOrdenes, resPagos] = await Promise.all([
-          getOrdenesTrabajo(),
-          getPagosCliente(clienteId),
-        ]);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [resOrdenes, resPagos] = await Promise.all([
+        getOrdenesTrabajo(),
+        getPagosCliente(clienteId),
+      ]);
 
-        const ordenesCC = (resOrdenes.data || []).filter(
-          (o) => o.condicion_cobro === "cuenta_corriente" && String(o.cliente?.id) === String(clienteId)
-        );
+      const ordenesCC = (resOrdenes.data || []).filter(
+        (o) => o.condicion_cobro === "cuenta_corriente" && String(o.cliente?.id) === String(clienteId)
+      );
 
-        const pagosConfirmados = (resPagos.data || []).filter((p) => p.estado === "confirmado");
+      // Mantenemos tu filtro de confirmados
+      const pagosConfirmados = (resPagos.data || []).filter((p) => p.estado === "confirmado");
 
-        setOrdenes(ordenesCC);
-        setPagos(pagosConfirmados);
+      setOrdenes(ordenesCC);
+      setPagos(pagosConfirmados);
 
-        setCliente({
-          id: clienteId,
-          nombre: ordenesCC[0]?.cliente?.nombre || pagosConfirmados[0]?.cliente?.nombre || "Cliente",
-        });
-      } catch (e) {
-        console.error("Error cargando cuenta corriente", e);
-      } finally {
-        setLoading(false);
+      setCliente({
+        id: clienteId,
+        nombre: ordenesCC[0]?.cliente?.nombre || pagosConfirmados[0]?.cliente?.nombre || "Cliente",
+      });
+    } catch (e) {
+      console.error("Error cargando cuenta corriente", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [clienteId]);
+
+
+useEffect(() => {
+  if (!clienteId) return;
+
+  let stopSubscription;
+
+  const iniciarTiempoReal = async () => {
+    // 1. Obtener el cliente actualizado (con el token fresco)
+    const client = getDirectusClient();
+
+    // 2. Iniciar la suscripción
+    const { subscription, stop } = await client.subscribe('pagos', {
+      query: { 
+        filter: { cliente: { _eq: clienteId } },
+        fields: ['*', 'cliente.nombre'] 
       }
-    };
+    });
 
-    fetchData();
-  }, [clienteId]);
+    stopSubscription = stop;
+
+    // 3. Escuchar eventos en vivo
+    for await (const event of subscription) {
+      if (event.event === 'create' && event.data.estado === 'confirmado') {
+        setPagos((prev) => {
+          const existe = prev.find(p => p.id === event.data.id);
+          if (existe) return prev;
+          return [event.data, ...prev];
+        });
+      }
+      
+      if (event.event === 'update' && event.data.estado === 'anulado') {
+        // Si se anula, lo quitamos de la vista activa
+        setPagos((prev) => prev.filter(p => p.id !== event.data.id));
+      }
+    }
+  };
+
+  iniciarTiempoReal();
+
+  return () => {
+    if (stopSubscription) stopSubscription();
+  };
+}, [clienteId]);
 
   // --- Movimientos ---
 const movimientos = useMemo(() => {

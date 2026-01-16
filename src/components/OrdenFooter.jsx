@@ -166,10 +166,14 @@ const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
   }
 
   if (cc && cc.id) {
-    await actualizarCuentaCorriente(cc.id, {
-      // 💡 CORRECCIÓN: Usar parseFloat para evitar concatenación de strings
-      saldo: parseFloat(cc.saldo || 0) + parseFloat(snapshot.total),
-    });
+  // Calculamos el nuevo saldo ANTES de enviarlo
+  const nuevoSaldo = Number(cc.saldo || 0) + Number(snapshot.total);
+  
+  console.log("Actualizando CC ID:", cc.id, "Nuevo Saldo:", nuevoSaldo);
+
+  await actualizarCuentaCorriente(cc.id, {
+    saldo: nuevoSaldo // Enviamos el número puro
+  });
   }
 }
 
