@@ -80,39 +80,42 @@ export default function OrdenFooter({
     // --- NUEVA LÓGICA DE CONSECUTIVO CON SDK (CORREGIDA) ---// --- LÓGICA DE CONSECUTIVO CON "CACHE BUSTER" ---
       // --- LÓGICA DE CONSECUTIVO REFORZADA (CORREGIDA) ---
       // Traemos los últimos 10 para saltar cualquier error de caché o de ordenamiento
-      const ultimos = await client.request(
-        readItems('ordenes_trabajo', {
-          limit: 10,
-          fields: ['comprobante'],
-          params: { 't': Date.now(), 'cache': 'false' }
-        })
-      );
+     // --- LÓGICA DE CONSECUTIVO REFORZADA (CORREGIDA V2) ---
+// --- LÓGICA DE CONSECUTIVO REFORZADA (MANTENIENDO TUS NOMBRES) ---
+const ultimos = await client.request(
+  readItems('ordenes_trabajo', {
+    sort: ['-id'], // 👈 Trae las últimas creadas primero
+    limit: 15,
+    fields: ['comprobante'],
+    params: { 't': Date.now(), 'cache': 'false' }
+  })
+);
 
-      // Buscamos el número más alto de forma manual en el array para estar 100% seguros
-      const numeros = ultimos.map(o => parseInt(o.comprobante) || 0);
-      const maxActual = numeros.length > 0 ? Math.max(...numeros) : 0;
+// Usamos tus nombres de constantes
+const numeros = ultimos.map(o => parseInt(o.comprobante) || 0);
+const maxActual = numeros.length > 0 ? Math.max(...numeros) : 0;
 
-      const siguienteComprobanteInt = maxActual + 1;
-      const comprobanteFormateado = siguienteComprobanteInt.toString().padStart(6, '0');
+const siguienteComprobanteInt = maxActual + 1;
+const comprobanteFormateado = siguienteComprobanteInt.toString().padStart(6, '0');
 
-      console.log("Máximo en DB:", maxActual, "Generando:", comprobanteFormateado);
-      // -------------------------------------------------------
+console.log("Máximo detectado:", maxActual, "Generando:", comprobanteFormateado);
+// -------------------------------------------------------
 
-      // 1️⃣ Crear ORDEN
-      const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          fecha: snapshot.fecha,
-          cliente: clienteId,
-          comprobante: comprobanteFormateado, // <--- Usamos la variable correcta
-          patente: snapshot.patente,
-          condicion_cobro: snapshot.condicionCobro,
-          estado: snapshot.condicionCobro === "contado" ? "pagado" : "pendiente",
-          total: snapshot.total,
-          items: snapshot.items 
-        }),
-      });
+// 1️⃣ Crear ORDEN (Sigue usando tus variables)
+const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
+  method: "POST",
+  headers: authHeaders(),
+  body: JSON.stringify({
+    fecha: snapshot.fecha,
+    cliente: clienteId,
+    comprobante: comprobanteFormateado, // Tu variable
+    patente: snapshot.patente,
+    condicion_cobro: snapshot.condicionCobro,
+    estado: snapshot.condicionCobro === "contado" ? "pagado" : "pendiente",
+    total: snapshot.total,
+    items: snapshot.items 
+  }),
+});
 
       const dataOrden = await ordenRes.json();
 
