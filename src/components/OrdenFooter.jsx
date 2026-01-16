@@ -9,6 +9,8 @@ import {
   actualizarCuentaCorriente 
 } from "../services/api";
 
+
+let ultimoNumeroLocal = 0; 
 export default function OrdenFooter({
   total,
   fecha,
@@ -82,23 +84,30 @@ export default function OrdenFooter({
       // Traemos los últimos 10 para saltar cualquier error de caché o de ordenamiento
      // --- LÓGICA DE CONSECUTIVO REFORZADA (CORREGIDA V2) ---
 // --- LÓGICA DE CONSECUTIVO REFORZADA (MANTENIENDO TUS NOMBRES) ---
-const ultimos = await client.request(
-  readItems('ordenes_trabajo', {
-    sort: ['-id'], // 👈 Trae las últimas creadas primero
-    limit: 15,
-    fields: ['comprobante'],
-    params: { 't': Date.now(), 'cache': 'false' }
-  })
-);
+ // 2. CONSULTA AL SERVIDOR
+      const ultimos = await client.request(
+        readItems('ordenes_trabajo', {
+          sort: ['-id'], 
+          limit: 5,
+          fields: ['comprobante'],
+          params: { 't': Date.now() }
+        })
+      );
 
-// Usamos tus nombres de constantes
-const numeros = ultimos.map(o => parseInt(o.comprobante) || 0);
-const maxActual = numeros.length > 0 ? Math.max(...numeros) : 0;
+      const numeros = ultimos.map(o => parseInt(o.comprobante) || 0);
+      const maxServidor = numeros.length > 0 ? Math.max(...numeros) : 0;
 
-const siguienteComprobanteInt = maxActual + 1;
-const comprobanteFormateado = siguienteComprobanteInt.toString().padStart(6, '0');
+      // 3. COMPARAR CON MEMORIA LOCAL
+      // Si el servidor dice 21, pero nuestra memoria local dice 22, usamos 22.
+      const maxReal = Math.max(maxServidor, ultimoNumeroLocal);
+      
+      const siguienteComprobanteInt = maxReal + 1;
+      const comprobanteFormateado = siguienteComprobanteInt.toString().padStart(6, '0');
 
-console.log("Máximo detectado:", maxActual, "Generando:", comprobanteFormateado);
+      // 4. ACTUALIZAR MEMORIA LOCAL PARA LA PRÓXIMA ORDEN
+      ultimoNumeroLocal = siguienteComprobanteInt;
+
+      console.log("Servidor:", maxServidor, "Local:", ultimoNumeroLocal, "Generando:", comprobanteFormateado);
 // -------------------------------------------------------
 
 // 1️⃣ Crear ORDEN (Sigue usando tus variables)
