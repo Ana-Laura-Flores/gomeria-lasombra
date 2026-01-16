@@ -126,6 +126,11 @@ const resumen = useMemo(() => {
     setShowPago(false);
     setShowSuccess(true);
   };
+  const abrirModalAnulacion = (pago) => {
+  setPagoAAnular(pago);
+  setMotivoAnulacion("");
+  setShowAnulacionModal(true);
+};
 
   const confirmarAnulacion = async () => {
     if (!motivoAnulacion.trim()) return;
