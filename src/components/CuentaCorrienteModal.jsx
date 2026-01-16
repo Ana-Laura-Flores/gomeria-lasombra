@@ -28,6 +28,7 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
 
   const fetchData = async () => {
   setLoading(true);
+  const t = Date.now();
   try {
     const idBuscado = String(clienteId?.id || clienteId);
     
