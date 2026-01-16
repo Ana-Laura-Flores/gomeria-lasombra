@@ -6,7 +6,7 @@ import CuentaCorrientePDF from "./CuentaCorrientePDF";
 import { exportarPDFOrden } from "../utils/exportarPDFOrden";
 import { getOrdenesTrabajo, getPagosCliente, crearAnulacion } from "../services/api";
 import ReciboPagoPDF from "../components/ReciboPagoPdf";
-import { getDirectusClient } from "../lib/directus";
+
 
 export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistrado }) {
   const [cliente, setCliente] = useState(null);
@@ -58,49 +58,6 @@ export default function CuentaCorrienteModal({ clienteId, onClose, onPagoRegistr
   fetchData();
 }, [clienteId]);
 
-
-useEffect(() => {
-  if (!clienteId) return;
-
-  let stopSubscription;
-
-  const iniciarTiempoReal = async () => {
-    // 1. Obtener el cliente actualizado (con el token fresco)
-    const client = getDirectusClient();
-
-    // 2. Iniciar la suscripción
-    const { subscription, stop } = await client.subscribe('pagos', {
-      query: { 
-        filter: { cliente: { _eq: clienteId } },
-        fields: ['*', 'cliente.nombre'] 
-      }
-    });
-
-    stopSubscription = stop;
-
-    // 3. Escuchar eventos en vivo
-    for await (const event of subscription) {
-      if (event.event === 'create' && event.data.estado === 'confirmado') {
-        setPagos((prev) => {
-          const existe = prev.find(p => p.id === event.data.id);
-          if (existe) return prev;
-          return [event.data, ...prev];
-        });
-      }
-      
-      if (event.event === 'update' && event.data.estado === 'anulado') {
-        // Si se anula, lo quitamos de la vista activa
-        setPagos((prev) => prev.filter(p => p.id !== event.data.id));
-      }
-    }
-  };
-
-  iniciarTiempoReal();
-
-  return () => {
-    if (stopSubscription) stopSubscription();
-  };
-}, [clienteId]);
 
   // --- Movimientos ---
 const movimientos = useMemo(() => {
