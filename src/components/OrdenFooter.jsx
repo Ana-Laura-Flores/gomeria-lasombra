@@ -1,6 +1,6 @@
 import { useState } from "react";
-import client from "../lib/directus"; // Tu cliente SDK
-import { createItem, readItems } from '@directus/sdk';
+import { getDirectusClient } from "../lib/directus"; // Cambia la importación
+import { readItems } from '@directus/sdk';
 import { 
   authHeaders, 
   API_URL, 
@@ -39,6 +39,7 @@ export default function OrdenFooter({
     setLoading(true);
 
     try {
+       const client = getDirectusClient(); 
       // 🔒 SNAPSHOT SEGURO (Tal cual lo tenías)
       const snapshot = {
         fecha,
@@ -77,15 +78,22 @@ export default function OrdenFooter({
       }
 
       // --- NUEVA LÓGICA DE CONSECUTIVO CON SDK ---
-      const ultimo = await client.request(
-        readItems('ordenes_trabajo', {
-          sort: ['-comprobante'],
-          limit: 1,
-          fields: ['comprobante'],
-        })
-      );
-      const ultimoNum = ultimo.length > 0 ? (parseInt(ultimo[0].comprobante) || 0) : 0;
-      const siguienteComprobante = ultimoNum + 1;
+const ultimo = await client.request(
+  readItems('ordenes_trabajo', {
+    sort: ['-comprobante'],
+    limit: 1,
+    fields: ['comprobante'],
+  })
+);
+
+// Verificamos si existe el primer elemento del array
+const ultimoNum = (ultimo && ultimo.length > 0) 
+  ? (parseInt(ultimo[0].comprobante) || 0) 
+  : 0;
+
+const siguienteComprobante = ultimoNum + 1;
+// --------------------------------------------
+
       // --------------------------------------------
 
       // 1️⃣ Crear ORDEN (Usando tus nombres de campos: condicion_cobro, comprobante, etc.)
