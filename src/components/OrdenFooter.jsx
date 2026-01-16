@@ -138,6 +138,7 @@ const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
 
 
       // 2️⃣ Lógica de Pagos y Cta Corriente (Exactamente como la tenías)
+            // 2️⃣ Lógica de Pagos y Cta Corriente
       if (snapshot.condicionCobro === "contado") {
         await crearPago({
           orden: nuevaOrdenId,
@@ -147,13 +148,28 @@ const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
         });
       } else {
         // Cuenta Corriente
-        const cc = await getCuentaCorrienteByCliente(clienteId);
+        let cc = await getCuentaCorrienteByCliente(clienteId);
+        
+        // 💡 SI NO EXISTE, LA CREAMOS AQUÍ
+        if (!cc) {
+          console.log("No existe CC, creando una nueva...");
+          const nuevaCCRes = await fetch(`${API_URL}/items/cuenta_corriente`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ cliente: clienteId, saldo: 0 }),
+          });
+          const nuevaCCData = await nuevaCCRes.json();
+          cc = nuevaCCData.data; // Asignamos la nueva CC para usarla abajo
+        }
+
+        // Ahora que estamos seguros que existe (o se creó), actualizamos el saldo
         if (cc) {
           await actualizarCuentaCorriente(cc.id, {
-            saldo: parseFloat(cc.saldo) + parseFloat(snapshot.total),
+            saldo: parseFloat(cc.saldo || 0) + parseFloat(snapshot.total),
           });
         }
       }
+
 
       // Finalizar con éxito
       onSuccess(nuevaOrdenId);
