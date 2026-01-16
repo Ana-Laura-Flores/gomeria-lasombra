@@ -147,7 +147,15 @@ const resumen = useMemo(() => {
     }
   };
   
+if (loading) {
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center text-white font-bold">
+      Cargando cuenta corriente...
+    </div>
+  );
+}
 
+if (!cliente) return null;
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center md:justify-center">
       <div className="bg-gray-900 w-full h-[100dvh] md:h-auto md:max-w-3xl md:rounded-lg flex flex-col">
