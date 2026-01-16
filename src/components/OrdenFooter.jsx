@@ -77,22 +77,32 @@ export default function OrdenFooter({
         return;
       }
 
-      // --- NUEVA LÓGICA DE CONSECUTIVO CON SDK ---
-const ultimo = await client.request(
+    // --- NUEVA LÓGICA DE CONSECUTIVO CON SDK (CORREGIDA) ---
+const respuesta = await client.request(
   readItems('ordenes_trabajo', {
-    sort: ['-comprobante'],
-    limit: 1,
+    sort: ['-comprobante'], // Ordena de mayor a menor
+    limit: 1,               // Solo trae el más grande
     fields: ['comprobante'],
   })
 );
 
-// Verificamos si existe el primer elemento del array
-const ultimoNum = (ultimo && ultimo.length > 0) 
-  ? (parseInt(ultimo[0].comprobante) || 0) 
-  : 0;
+// IMPORTANTE: El SDK devuelve un ARRAY. 
+// Para acceder al valor hay que usar respuesta[0]
+let ultimoNum = 0;
+
+if (respuesta && respuesta.length > 0) {
+  // Accedemos al primer elemento del array y luego a la propiedad comprobante
+  ultimoNum = parseInt(respuesta[0].comprobante) || 0;
+}
 
 const siguienteComprobante = ultimoNum + 1;
-// --------------------------------------------
+// Convertimos a texto y rellenamos con ceros hasta tener 6 dígitos
+const comprobanteFormateado = siguienteComprobante.toString().padStart(6, '0');
+
+console.log("Generando comprobante:", comprobanteFormateado); // Verás "000020"
+console.log("Último en DB:", ultimoNum, "Generando:", siguienteComprobante);
+// -------------------------------------------------------
+
 
       // --------------------------------------------
 
@@ -103,7 +113,7 @@ const siguienteComprobante = ultimoNum + 1;
         body: JSON.stringify({
           fecha: snapshot.fecha,
           cliente: clienteId,
-          comprobante: siguienteComprobante, // Inyectamos el nuevo número
+          comprobante: comprobanteFormateado, // Inyectamos el nuevo número
           patente: snapshot.patente,
           condicion_cobro: snapshot.condicionCobro,
           estado: snapshot.condicionCobro === "contado" ? "pagado" : "pendiente",
