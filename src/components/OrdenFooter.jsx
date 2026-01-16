@@ -77,27 +77,28 @@ export default function OrdenFooter({
         return;
       }
 
-    // --- NUEVA LÓGICA DE CONSECUTIVO CON SDK (CORREGIDA) ---
+    // --- NUEVA LÓGICA DE CONSECUTIVO CON SDK (CORREGIDA) ---// --- LÓGICA DE CONSECUTIVO CON "CACHE BUSTER" ---
 const respuesta = await client.request(
   readItems('ordenes_trabajo', {
-    sort: ['-comprobante'], // Ordena de mayor a menor
-    limit: 1,               // Solo trae el más grande
+    sort: ['-comprobante'],
+    limit: 1,
     fields: ['comprobante'],
+    // 💡 Esto obliga a traer datos frescos de la DB
+    query: {
+       "_": Date.now() 
+    }
   })
 );
 
-// IMPORTANTE: El SDK devuelve un ARRAY. 
-// Para acceder al valor hay que usar respuesta[0]
 let ultimoNum = 0;
-
 if (respuesta && respuesta.length > 0) {
-  // Accedemos al primer elemento del array y luego a la propiedad comprobante
+  // Usamos [0] para el primer elemento
   ultimoNum = parseInt(respuesta[0].comprobante) || 0;
 }
 
 const siguienteComprobante = ultimoNum + 1;
-// Convertimos a texto y rellenamos con ceros hasta tener 6 dígitos
 const comprobanteFormateado = siguienteComprobante.toString().padStart(6, '0');
+
 
 console.log("Generando comprobante:", comprobanteFormateado); // Verás "000020"
 console.log("Último en DB:", ultimoNum, "Generando:", siguienteComprobante);
