@@ -133,28 +133,51 @@ export default function OrdenFooter({
       // -------------------------------------------------------
       // 5. STOCK Y MOVIMIENTOS
       // -------------------------------------------------------
-      const productosEnOrden = snapshot.items.filter(item => item.tipo_item === "producto");
-      if (productosEnOrden.length > 0) {
-        await Promise.all(productosEnOrden.map(async (item) => {
-          await fetch(`${API_URL}/items/productos/${item.producto}`, {
-            method: "PATCH",
-            headers: authHeaders(),
-            body: JSON.stringify({ stock: { _sub: Number(item.cantidad) } }),
-          });
+      // =========================================================
+// 🟢 LÓGICA DE STOCK CORREGIDA Y CON DEBUG
+// =========================================================
+try {
+  const productosEnOrden = snapshot.items.filter(item => item.tipo_item === "producto");
 
-          await fetch(`${API_URL}/items/movimientos_stock`, {
-            method: "POST",
-            headers: authHeaders(),
-            body: JSON.stringify({
-              producto: item.producto,
-              tipo: "egreso",
-              cantidad: Number(item.cantidad),
-              motivo: `Venta - Orden #${nuevaOrdenId}`,
-              orden: nuevaOrdenId
-            }),
-          });
-        }));
+  if (productosEnOrden.length > 0) {
+    for (const item of productosEnOrden) {
+      console.log(`Intentando descontar ${item.cantidad} del producto ID: ${item.producto}`);
+
+      // A. Actualizar el stock
+      const resStock = await fetch(`${API_URL}/items/productos/${item.producto}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          // Asegúrate que 'stock' es el nombre exacto del campo en Directus
+          stock: { _sub: Number(item.cantidad) } 
+        }),
+      });
+
+      if (!resStock.ok) {
+        const errorBody = await resStock.json();
+        console.error(`❌ Error en Producto ${item.producto}:`, errorBody);
+        // Esto te dirá en la consola exactamente qué campo falta o qué falló
+      } else {
+        console.log(`✅ Stock actualizado para producto ${item.producto}`);
       }
+
+      // B. Crear el movimiento (Esto ayuda a auditar si el PATCH falló pero el registro se creó)
+      await fetch(`${API_URL}/items/movimientos_stock`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          producto: item.producto,
+          tipo: "egreso",
+          cantidad: Number(item.cantidad),
+          motivo: `Venta - Orden #${nuevaOrdenId}`,
+          orden: nuevaOrdenId
+        }),
+      });
+    }
+  }
+} catch (stockError) {
+  console.error("💥 Error crítico en el proceso de stock:", stockError);
+}
 
       // -------------------------------------------------------
       // 6. PAGOS Y CUENTA CORRIENTE
