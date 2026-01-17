@@ -12,20 +12,10 @@ import {
 
 let ultimoNumeroLocal = 0; 
 export default function OrdenFooter({
-  total,
-  fecha,
-  cliente,
-  modoClienteNuevo,
-  clienteNuevoNombre,
-  patente,
-  condicionCobro,
-  metodoPago,
-  items,
-  onSuccess,
+  total, fecha, cliente, modoClienteNuevo, clienteNuevoNombre, patente, condicionCobro, metodoPago, items, onSuccess,
 }) {
   const [loading, setLoading] = useState(false);
 
-  // Mantenemos tu función de crear cliente exactamente igual
   const crearClienteNuevo = async (nombre) => {
     const res = await fetch(`${API_URL}/items/clientes`, {
       method: "POST",
@@ -41,18 +31,10 @@ export default function OrdenFooter({
     setLoading(true);
 
     try {
-       const client = getDirectusClient(); 
-      // 🔒 SNAPSHOT SEGURO (Tal cual lo tenías)
+      const client = getDirectusClient();
       const snapshot = {
-        fecha,
-        cliente,
-        modoClienteNuevo,
-        clienteNuevoNombre,
-        patente,
-        condicionCobro,
-        metodoPago,
-        items: [...items],
-        total,
+        fecha, cliente, modoClienteNuevo, clienteNuevoNombre,
+        patente, condicionCobro, metodoPago, items: [...items], total,
       };
 
       if (!snapshot.items.length) {
@@ -60,10 +42,8 @@ export default function OrdenFooter({
         return;
       }
 
-      let clienteId = typeof snapshot.cliente === "object"
-          ? snapshot.cliente?.id
-          : snapshot.cliente;
-
+      // 1. Identificar o Crear Cliente
+      let clienteId = typeof snapshot.cliente === "object" ? snapshot.cliente?.id : snapshot.cliente;
       if (snapshot.modoClienteNuevo) {
         if (!snapshot.clienteNuevoNombre) {
           alert("Ingresá el nombre del cliente");
@@ -79,106 +59,106 @@ export default function OrdenFooter({
         return;
       }
 
-    // --- NUEVA LÓGICA DE CONSECUTIVO CON SDK (CORREGIDA) ---// --- LÓGICA DE CONSECUTIVO CON "CACHE BUSTER" ---
-      // --- LÓGICA DE CONSECUTIVO REFORZADA (CORREGIDA) ---
-      // Traemos los últimos 10 para saltar cualquier error de caché o de ordenamiento
-     // --- LÓGICA DE CONSECUTIVO REFORZADA (CORREGIDA V2) ---
-// --- LÓGICA DE CONSECUTIVO REFORZADA (MANTENIENDO TUS NOMBRES) ---
- // 2. CONSULTA AL SERVIDOR
+      // 2. Lógica de Consecutivo (Tu lógica actual)
       const ultimos = await client.request(
         readItems('ordenes_trabajo', {
-          sort: ['-id'], 
+          sort: ['-id'],
           limit: 5,
           fields: ['comprobante'],
           params: { 't': Date.now() }
         })
       );
-
       const numeros = ultimos.map(o => parseInt(o.comprobante) || 0);
       const maxServidor = numeros.length > 0 ? Math.max(...numeros) : 0;
-
-      // 3. COMPARAR CON MEMORIA LOCAL
-      // Si el servidor dice 21, pero nuestra memoria local dice 22, usamos 22.
       const maxReal = Math.max(maxServidor, ultimoNumeroLocal);
-      
       const siguienteComprobanteInt = maxReal + 1;
       const comprobanteFormateado = siguienteComprobanteInt.toString().padStart(6, '0');
-
-      // 4. ACTUALIZAR MEMORIA LOCAL PARA LA PRÓXIMA ORDEN
       ultimoNumeroLocal = siguienteComprobanteInt;
 
-      console.log("Servidor:", maxServidor, "Local:", ultimoNumeroLocal, "Generando:", comprobanteFormateado);
-// -------------------------------------------------------
-
-// 1️⃣ Crear ORDEN (Sigue usando tus variables)
-const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
-  method: "POST",
-  headers: authHeaders(),
-  body: JSON.stringify({
-    fecha: snapshot.fecha,
-    cliente: clienteId,
-    comprobante: comprobanteFormateado, // Tu variable
-    patente: snapshot.patente,
-    condicion_cobro: snapshot.condicionCobro,
-    estado: snapshot.condicionCobro === "contado" ? "pagado" : "pendiente",
-    total: snapshot.total,
-    items: snapshot.items 
-  }),
-});
+      // -------------------------------------------------------
+      // 3. CREAR LA ORDEN PRIMERO
+      // -------------------------------------------------------
+      const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          fecha: snapshot.fecha,
+          cliente: clienteId,
+          comprobante: comprobanteFormateado,
+          patente: snapshot.patente,
+          condicion_cobro: snapshot.condicionCobro,
+          estado: snapshot.condicionCobro === "contado" ? "pagado" : "pendiente",
+          total: snapshot.total,
+          // No enviamos items aquí para evitar conflictos, los mandaremos abajo
+        }),
+      });
 
       const dataOrden = await ordenRes.json();
-
-      // Validación de seguridad para el ID
       if (!dataOrden.data || !dataOrden.data.id) {
-        console.error("Respuesta error Directus:", dataOrden);
         throw new Error(dataOrden.errors?.[0]?.message || "Error al crear la orden");
       }
 
       const nuevaOrdenId = dataOrden.data.id;
-     // =========================================================
-// 🟢 NUEVA LÓGICA DE STOCK Y MOVIMIENTOS
-// =========================================================
-try {
-  // 1. Filtramos solo los productos (ignoramos servicios)
-  const productosEnOrden = snapshot.items.filter(item => item.tipo_item === "producto");
+      console.log("✅ Orden creada con ID:", nuevaOrdenId);
 
-  if (productosEnOrden.length > 0) {
-    // 2. Procesamos cada producto
-    await Promise.all(productosEnOrden.map(async (item) => {
-      
-      // A. Actualizar el stock del producto (Resta atómica)
-      await fetch(`${API_URL}/items/productos/${item.producto}`, {
-        method: "PATCH",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          stock: { _sub: Number(item.cantidad) } 
-        }),
-      });
+      // -------------------------------------------------------
+      // 4. GUARDAR LOS ITEMS (Ahora que ya tenemos nuevaOrdenId)
+      // -------------------------------------------------------
+      for (const item of snapshot.items) {
+        if (
+          (item.tipo_item === "servicio" && !item.tarifa) ||
+          (item.tipo_item === "producto" && !item.producto)
+        ) continue;
 
-      // B. Crear el registro en movimientos_stock para la auditoría
-      await fetch(`${API_URL}/items/movimientos_stock`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          producto: item.producto,
-          tipo: "egreso",
-          cantidad: Number(item.cantidad),
-          motivo: `Venta - Orden #${nuevaOrdenId}`,
-          orden: nuevaOrdenId // Vinculamos el movimiento a la orden
-        }),
-      });
-    }));
-  }
-} catch (stockError) {
-  // Logueamos el error pero permitimos que el flujo continúe (o podés manejarlo como prefieras)
-  console.error("Error en el proceso de stock:", stockError);
-}
-// =========================================================
+        const resItem = await fetch(`${API_URL}/items/items_orden`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            orden: nuevaOrdenId, // <--- Usamos el ID recién creado
+            tipo_item: item.tipo_item,
+            tarifa: item.tipo_item === "servicio" ? item.tarifa : null,
+            producto: item.tipo_item === "producto" ? item.producto : null,
+            cantidad: item.cantidad,
+            precio_unitario: item.precio_unitario,
+            subtotal: item.subtotal,
+            nombre: item.nombre || "",
+          }),
+        });
 
+        if (!resItem.ok) {
+           console.error("Error guardando item:", await resItem.json());
+        }
+      }
 
+      // -------------------------------------------------------
+      // 5. STOCK Y MOVIMIENTOS
+      // -------------------------------------------------------
+      const productosEnOrden = snapshot.items.filter(item => item.tipo_item === "producto");
+      if (productosEnOrden.length > 0) {
+        await Promise.all(productosEnOrden.map(async (item) => {
+          await fetch(`${API_URL}/items/productos/${item.producto}`, {
+            method: "PATCH",
+            headers: authHeaders(),
+            body: JSON.stringify({ stock: { _sub: Number(item.cantidad) } }),
+          });
 
-      // 2️⃣ Lógica de Pagos y Cta Corriente (Exactamente como la tenías)
-            // 2️⃣ Lógica de Pagos y Cta Corriente
+          await fetch(`${API_URL}/items/movimientos_stock`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({
+              producto: item.producto,
+              tipo: "egreso",
+              cantidad: Number(item.cantidad),
+              motivo: `Venta - Orden #${nuevaOrdenId}`,
+              orden: nuevaOrdenId
+            }),
+          });
+        }));
+      }
+
+      // -------------------------------------------------------
+      // 6. PAGOS Y CUENTA CORRIENTE
+      // -------------------------------------------------------
       if (snapshot.condicionCobro === "contado") {
         await crearPago({
           orden: nuevaOrdenId,
@@ -187,43 +167,30 @@ try {
           fecha: snapshot.fecha,
         });
       } else {
-        
-  // Cuenta Corriente
-  const resCC = await getCuentaCorrienteByCliente(clienteId);
-  
-  // 💡 CORRECCIÓN AQUÍ: Extraer el primer objeto si viene en un array
-  let cc = (resCC && resCC.data && resCC.data.length > 0) ? resCC.data[0] : null;
-  
-  if (!cc) {
-    console.log("No existe CC, creando una nueva...");
-    const nuevaCCRes = await fetch(`${API_URL}/items/cuenta_corriente`, {
-      method: "POST",
-      headers: authHeaders(),
-      body: JSON.stringify({ cliente: clienteId, saldo: 0 }),
-    });
-    const nuevaCCData = await nuevaCCRes.json();
-    cc = nuevaCCData.data; 
-  }
+        const resCC = await getCuentaCorrienteByCliente(clienteId);
+        let cc = (resCC?.data?.length > 0) ? resCC.data[0] : null;
 
-  if (cc && cc.id) {
-  // Calculamos el nuevo saldo ANTES de enviarlo
-  const nuevoSaldo = Number(cc.saldo || 0) + Number(snapshot.total);
-  
-  console.log("Actualizando CC ID:", cc.id, "Nuevo Saldo:", nuevoSaldo);
+        if (!cc) {
+          const nuevaCCRes = await fetch(`${API_URL}/items/cuenta_corriente`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ cliente: clienteId, saldo: 0 }),
+          });
+          const nuevaCCData = await nuevaCCRes.json();
+          cc = nuevaCCData.data;
+        }
 
-  await actualizarCuentaCorriente(cc.id, {
-    saldo: nuevoSaldo // Enviamos el número puro
-  });
-  }
-}
+        if (cc?.id) {
+          const nuevoSaldo = Number(cc.saldo || 0) + Number(snapshot.total);
+          await actualizarCuentaCorriente(cc.id, { saldo: nuevoSaldo });
+        }
+      }
 
-
-      // Finalizar con éxito
       onSuccess(nuevaOrdenId);
 
     } catch (error) {
-      console.error("Error al guardar la orden:", error);
-      alert("Error al guardar la orden");
+      console.error("Error crítico:", error);
+      alert("Error al procesar la operación");
     } finally {
       setLoading(false);
     }
