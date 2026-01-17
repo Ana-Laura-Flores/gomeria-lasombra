@@ -152,12 +152,10 @@ export const getOrdenesCuentaCorriente = async (clienteId) => {
 
 
 export const getPagosCliente = async (clienteId) => {
-  // 💡 Agregamos &ts=${Date.now()} para romper el caché del VPS/Nginx
   return apiFetch(
-    `pagos?filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado&sort=fecha&fields=*,cliente.*&ts=${Date.now()}`
+    `pagos?filter[cliente][_eq]=${clienteId}&filter[estado][_eq]=confirmado&sort=fecha&nocache=1&fields=*,cliente.*`
   );
 };
-
 export const getPagosConfirmados = async () => {
   return apiFetch(
     "pagos?filter[estado][_eq]=confirmado&fields=*,cliente.*"
@@ -451,4 +449,76 @@ export const getPreciosProductos = async () => {
 };
 
 
- 
+ // --------------------
+// LÓGICA DE ANULACIÓN Y STOCK
+// --------------------
+
+export const anularOrdenCompleta = async (orden) => {
+  if (!orden) throw new Error("No se proporcionó la orden");
+
+  // 1. Cambiar estado de la orden
+  await actualizarOrden(orden.id, { estado: "anulado" });
+
+  // 2. Procesar ítems para devolver stock
+  // Usamos items_orden que es el nombre del campo en tu GET
+  const productosADevolver = orden.items_orden?.filter(
+    (item) => item.tipo_item === "producto" && item.producto
+  ) || [];
+
+  if (productosADevolver.length > 0) {
+    // ... dentro de anularOrdenCompleta en api.js
+await Promise.all(
+  productosADevolver.map(async (item) => {
+    // 🛡️ VALIDACIÓN DE SEGURIDAD:
+    // Si item.producto es un objeto, tomamos el .id
+    // Si item.producto ya es el ID (string/number), lo usamos directo
+    const productoId = (item.producto && typeof item.producto === 'object') 
+      ? item.producto.id 
+      : item.producto;
+
+    if (!productoId) {
+      console.warn("Item de producto sin ID válido:", item);
+      return; // Salteamos si no hay ID
+    }
+
+    // A. Sumar stock
+    await apiFetch(`productos/${productoId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        stock: { _sum: Number(item.cantidad) },
+      }),
+    });
+
+    // B. Registrar movimiento
+    await apiFetch("movimientos_stock", {
+      method: "POST",
+      body: JSON.stringify({
+        producto: productoId,
+        tipo: "ingreso",
+        cantidad: Number(item.cantidad),
+        motivo: `Anulación - Orden #${orden.id}`,
+        orden: orden.id,
+      }),
+    });
+  })
+);
+  }
+
+  // 3. Revertir impacto en Cuenta Corriente (si no fue contado)
+  if (orden.condicion_cobro !== "contado" && orden.cliente) {
+    const clienteId = typeof orden.cliente === "object" ? orden.cliente.id : orden.cliente;
+    const ccRes = await getCuentaCorrienteByCliente(clienteId);
+    const cc = ccRes.data[0];
+
+    if (cc) {
+      // Al anular, restamos el total de la orden del saldo deudor
+      await actualizarCuentaCorriente(cc.id, {
+        total_ordenes: Number(cc.total_ordenes || 0) - Number(orden.total),
+        saldo: Number(cc.saldo || 0) - Number(orden.total),
+        saldo_actualizado: Number(cc.saldo_actualizado || 0) - Number(orden.total),
+      });
+    }
+  }
+
+  return { success: true };
+};

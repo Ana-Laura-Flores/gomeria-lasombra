@@ -135,6 +135,46 @@ const ordenRes = await fetch(`${API_URL}/items/ordenes_trabajo`, {
       }
 
       const nuevaOrdenId = dataOrden.data.id;
+     // =========================================================
+// 🟢 NUEVA LÓGICA DE STOCK Y MOVIMIENTOS
+// =========================================================
+try {
+  // 1. Filtramos solo los productos (ignoramos servicios)
+  const productosEnOrden = snapshot.items.filter(item => item.tipo_item === "producto");
+
+  if (productosEnOrden.length > 0) {
+    // 2. Procesamos cada producto
+    await Promise.all(productosEnOrden.map(async (item) => {
+      
+      // A. Actualizar el stock del producto (Resta atómica)
+      await fetch(`${API_URL}/items/productos/${item.producto}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          stock: { _sub: Number(item.cantidad) } 
+        }),
+      });
+
+      // B. Crear el registro en movimientos_stock para la auditoría
+      await fetch(`${API_URL}/items/movimientos_stock`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          producto: item.producto,
+          tipo: "egreso",
+          cantidad: Number(item.cantidad),
+          motivo: `Venta - Orden #${nuevaOrdenId}`,
+          orden: nuevaOrdenId // Vinculamos el movimiento a la orden
+        }),
+      });
+    }));
+  }
+} catch (stockError) {
+  // Logueamos el error pero permitimos que el flujo continúe (o podés manejarlo como prefieras)
+  console.error("Error en el proceso de stock:", stockError);
+}
+// =========================================================
+
 
 
       // 2️⃣ Lógica de Pagos y Cta Corriente (Exactamente como la tenías)
