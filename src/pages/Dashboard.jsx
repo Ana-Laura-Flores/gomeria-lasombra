@@ -183,19 +183,37 @@ export default function Dashboard() {
             {/* Gráfico y Detalle Métodos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                    <h2 className="text-white font-bold mb-6 border-l-4 border-purple-500 pl-3">Ventas: Productos vs Servicios</h2>
-                    <div className="h-[280px] w-full"> 
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie data={dataGrafico} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={5} dataKey="value" isAnimationActive={false}>
-                                    {dataGrafico.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="none" />)}
-                                </Pie>
-                                <Tooltip contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '8px', color: '#fff' }} formatter={(v) => formatMoney(v)} />
-                                <Legend iconType="circle" />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+    <h2 className="text-white font-bold mb-6 border-l-4 border-purple-500 pl-3">
+        Ventas: Productos vs Servicios
+    </h2>
+    
+    {/* Contenedor con altura explícita para evitar el error de width/height -1 */}
+    <div className="w-full h-[300px] min-h-[300px] relative"> 
+        <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+                <Pie 
+                    data={dataGrafico} 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={60} 
+                    outerRadius={85} 
+                    paddingAngle={5} 
+                    dataKey="value"
+                    isAnimationActive={false} // Desactivar si el error persiste
+                >
+                    {dataGrafico.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                    ))}
+                </Pie>
+                <Tooltip 
+                    contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '8px', color: '#fff' }} 
+                    formatter={(v) => formatMoney(v)} 
+                />
+                <Legend iconType="circle" />
+            </PieChart>
+        </ResponsiveContainer>
+    </div>
+</div>
 
                 <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
                     <h2 className="text-white font-bold mb-6 border-l-4 border-green-500 pl-3">Cobros por Método</h2>
