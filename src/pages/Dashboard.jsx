@@ -159,21 +159,37 @@ export default function Dashboard() {
             </div>
 
             {/* Gráfico y Métodos */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                    <h2 className="text-white font-bold mb-4">Ventas: Productos vs Servicios</h2>
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie data={dataGrafico} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value">
-                                    {dataGrafico.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                                </Pie>
-                                <Tooltip formatter={(v) => formatMoney(v)} />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+           <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+    <h2 className="text-white font-bold mb-4">Ventas: Productos vs Servicios</h2>
+    {/* Agregamos una altura mínima fija al div padre para que ResponsiveContainer no falle */}
+    <div className="w-full h-[260px] min-h-[260px]"> 
+        <ResponsiveContainer width="100%" height="100%">
+            {/* Si dataGrafico no tiene valores, Recharts puede quejarse. 
+                Aseguramos que siempre haya algo que renderizar. */}
+            <PieChart>
+                <Pie 
+                    data={dataGrafico} 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={60} 
+                    outerRadius={80} 
+                    dataKey="value"
+                    isAnimationActive={false} // Desactivar animación ayuda a depurar el error de tamaño inicial
+                >
+                    {dataGrafico.map((_, i) => (
+                        <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                </Pie>
+                <Tooltip 
+                    contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '8px' }} 
+                    itemStyle={{ color: '#fff' }} 
+                    formatter={(v) => formatMoney(v)} 
+                />
+                <Legend />
+            </PieChart>
+        </ResponsiveContainer>
+    </div>
+
 
                 <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 text-white">
                     <h2 className="font-bold mb-4">Ingresos por Medio</h2>
