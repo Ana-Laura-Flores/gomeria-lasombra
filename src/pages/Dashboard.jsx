@@ -86,22 +86,37 @@ export default function Dashboard() {
 
     if (loading) return <MainLayout><div className="p-10 text-white">Cargando métricas...</div></MainLayout>;
 
-    /* --- LÓGICA DE FILTRADO (SIN ANULADAS) --- */
-    const ordenesActivas = ordenes.filter(o => o.estado !== 'anulado');
-    
-    // AQUÍ DEFINIMOS LA VARIABLE QUE FALTABA
-    const totalOrdenes = ordenesActivas.length; 
-    
-    const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
+   /* --- LÓGICA DE FILTRADO (SIN ANULADAS) --- */
 
-    const pagosValidos = pagos.filter((p) => {
-        const pagoAnulado = p.anulado === true || p.anulado === 1;
-        const ordenAnulada = p.orden_trabajo?.estado === 'anulado';
-        return !pagoAnulado && !ordenAnulada;
-    });
+// 1. Primero filtramos las órdenes para que SOLO queden las que NO están anuladas
+const ordenesActivas = ordenes.filter(o => {
+    // Forzamos a minúsculas y quitamos espacios por si acaso
+    const estadoStr = String(o.estado || "").toLowerCase().trim();
+    return estadoStr !== 'anulado' && estadoStr !== 'anulada';
+});
 
-    const totalCobrado = pagosValidos.reduce((a, p) => a + Number(p.monto || 0), 0);
-    const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
+// 2. Ahora sí, contamos sobre el resultado filtrado
+const totalOrdenes = ordenesActivas.length; 
+
+// 3. Sumamos el total facturado solo de las activas
+const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
+
+// 4. Filtrado de pagos (también quitamos los que pertenecen a órdenes anuladas)
+const pagosValidos = pagos.filter((p) => {
+    const pagoAnulado = p.anulado === true || p.anulado === 1;
+    // IMPORTANTE: Revisamos el estado de la orden relacionada
+    const estadoOrdenRelacionada = String(p.orden_trabajo?.estado || "").toLowerCase().trim();
+    const ordenAnulada = estadoOrdenRelacionada === 'anulado' || estadoOrdenRelacionada === 'anulada';
+    
+    return !pagoAnulado && !ordenAnulada;
+});
+
+const totalCobrado = pagosValidos.reduce((a, p) => a + Number(p.monto || 0), 0);
+const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
+
+// Debug para que veas en la consola qué está pasando:
+console.log("Total Órdenes RAW:", ordenes.length);
+console.log("Órdenes Activas detectadas:", totalOrdenes);
 
     const pagosPorMetodo = pagosValidos.reduce((acc, p) => {
         const metodo = normalizarMetodo(p.metodo_pago);
