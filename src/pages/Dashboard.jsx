@@ -9,7 +9,7 @@ import {
 import Card from "../components/Card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
-/* HELPERS */
+/* HELPERS (Fuera del componente) */
 const formatMoney = (v) =>
     new Intl.NumberFormat("es-AR", {
         style: "currency",
@@ -35,26 +35,6 @@ const formatMetodoPago = (m) => {
     return m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
-/* --- CÁLCULOS PARA EL GRÁFICO --- */
-const dataGrafico = ordenesActivas.reduce((acc, orden) => {
-    // Recorremos los items de cada orden
-    (orden.items || []).forEach(item => {
-        const tipo = item.tipo === 'producto' ? 'Productos' : 'Servicios';
-        const monto = Number(item.precio_total || 0);
-        
-        const index = acc.findIndex(d => d.name === tipo);
-        if (index > -1) {
-            acc[index].value += monto;
-        } else {
-            acc.push({ name: tipo, value: monto });
-        }
-    });
-    return acc;
-}, [
-    { name: 'Productos', value: 0 },
-    { name: 'Servicios', value: 0 }
-]);
-
 export default function Dashboard() {
     const [ordenes, setOrdenes] = useState([]);
     const [gastos, setGastos] = useState([]);
@@ -64,10 +44,11 @@ export default function Dashboard() {
 
     const [modoFiltro, setModoFiltro] = useState("mes");
     const [fechaDia, setFechaDia] = useState("");
-    const [mes, setMes] = useState("2026-01"); // Ajusta al mes actual
+    const [mes, setMes] = useState("2026-01"); 
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
-    const COLORS = ['#10b981', '#3b82f6']; // Verde para productos, Azul para servicios
+    
+    const COLORS = ['#10b981', '#3b82f6'];
 
     const getRango = () => {
         if (modoFiltro === "dia" && fechaDia) return { desde: fechaDia, hasta: fechaDia };
@@ -80,7 +61,6 @@ export default function Dashboard() {
         const cargar = async () => {
             setLoading(true);
             const { desde, hasta } = getRango();
-
             try {
                 const [oRes, gRes, pRes, prodRes] = await Promise.all([
                     getDashboardOrdenes(desde, hasta),
@@ -93,14 +73,9 @@ export default function Dashboard() {
                 setGastos(gRes.data || []);
                 setPagos(pRes.data || []);
 
-                // Ajuste para capturar array de productos correctamente
                 const listaProd = prodRes.data?.data || prodRes.data || [];
-                const bajoStock = listaProd.filter(p => {
-                    const s = Number(p.stock);
-                    return s <= 5 && s >= 0;
-                });
+                const bajoStock = listaProd.filter(p => Number(p.stock) <= 5 && Number(p.stock) >= 0);
                 setProductosBajoStock(bajoStock);
-
             } catch (e) {
                 console.error("Error cargando dashboard:", e);
             } finally {
@@ -112,17 +87,11 @@ export default function Dashboard() {
 
     if (loading) return <MainLayout><div className="p-10 text-white">Cargando métricas...</div></MainLayout>;
 
-    /* =====================
-       CÁLCULOS FILTRADOS
-    ===================== */
-    
-    // 1. Solo órdenes que NO estén anuladas
+    /* --- CÁLCULOS FILTRADOS --- */
     const ordenesActivas = ordenes.filter(o => o.estado !== 'anulado');
-    
     const totalOrdenes = ordenesActivas.length;
     const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
 
-    // 2. Pagos que NO estén anulados y que NO pertenezcan a una orden anulada
     const pagosValidos = pagos.filter((p) => {
         const pagoAnulado = p.anulado === true || p.anulado === 1;
         const ordenAnulada = p.orden_trabajo?.estado === 'anulado';
@@ -131,9 +100,22 @@ export default function Dashboard() {
 
     const totalCobrado = pagosValidos.reduce((a, p) => a + Number(p.monto || 0), 0);
     const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
-    
     const saldoPendiente = totalFacturado - totalCobrado;
     const resultadoReal = totalCobrado - totalGastos;
+
+    /* --- LÓGICA DEL GRÁFICO (Dentro del componente) --- */
+    const dataGrafico = ordenesActivas.reduce((acc, orden) => {
+        (orden.items || []).forEach(item => {
+            const tipo = item.tipo === 'producto' ? 'Productos' : 'Servicios';
+            const monto = Number(item.precio_total || item.subtotal || 0);
+            const target = acc.find(d => d.name === tipo);
+            if (target) target.value += monto;
+        });
+        return acc;
+    }, [
+        { name: 'Productos', value: 0 },
+        { name: 'Servicios', value: 0 }
+    ]);
 
     const pagosPorMetodo = pagosValidos.reduce((acc, p) => {
         const metodo = normalizarMetodo(p.metodo_pago);
@@ -147,18 +129,10 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-white">Resumen de Negocio</h1>
                 <div className="flex gap-2 bg-gray-800 p-2 rounded-lg border border-gray-700">
-                    <select
-                        value={modoFiltro}
-                        onChange={(e) => setModoFiltro(e.target.value)}
-                        className="bg-gray-900 text-white border-none rounded px-2 py-1 text-sm outline-none"
-                    >
+                    <select value={modoFiltro} onChange={(e) => setModoFiltro(e.target.value)} className="bg-gray-900 text-white border-none rounded px-2 py-1 text-sm outline-none">
                         <option value="dia">Hoy</option>
                         <option value="mes">Mes</option>
-                        <option value="rango">Rango</option>
                     </select>
-                    {modoFiltro === "dia" && (
-                        <input type="date" value={fechaDia} onChange={(e) => setFechaDia(e.target.value)} className="bg-gray-900 text-white text-sm border-none rounded outline-none px-2" />
-                    )}
                     {modoFiltro === "mes" && (
                         <input type="month" value={mes} onChange={(e) => setMes(e.target.value)} className="bg-gray-900 text-white text-sm border-none rounded outline-none px-2" />
                     )}
@@ -182,15 +156,36 @@ export default function Dashboard() {
                 </div>
             )}
 
-            {/* 📊 CARDS */}
+            {/* 📊 CARDS PRINCIPALES */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-                <Card title="Caja Real (Cobrado)" value={formatMoney(totalCobrado)} color="text-green-400" />
+                <Card title="Caja Real" value={formatMoney(totalCobrado)} color="text-green-400" />
                 <Card title="Gastos" value={formatMoney(totalGastos)} color="text-red-400" />
-                <Card title="Utilidad (Caja - Gastos)" value={formatMoney(resultadoReal)} color={resultadoReal >= 0 ? "text-blue-400" : "text-orange-500"} />
-                <Card title="Cta. Cte. Pendiente" value={formatMoney(saldoPendiente)} color="text-yellow-500" />
+                <Card title="Utilidad" value={formatMoney(resultadoReal)} color={resultadoReal >= 0 ? "text-blue-400" : "text-orange-500"} />
+                <Card title="Pendiente" value={formatMoney(saldoPendiente)} color="text-yellow-500" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* SECCIÓN INTERMEDIA: GRÁFICO Y MÉTODOS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                {/* GRÁFICO DE TORTA */}
+                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                    <h2 className="text-lg font-bold text-white mb-6 border-l-4 border-purple-500 pl-3">
+                        Ventas: Productos vs Servicios
+                    </h2>
+                    <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie data={dataGrafico} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                    {dataGrafico.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} formatter={(v) => formatMoney(v)} />
+                                <Legend verticalAlign="bottom" height={36}/>
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
                 {/* INGRESOS POR MÉTODO */}
                 <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
                     <h2 className="text-lg font-bold text-white mb-4 border-l-4 border-green-500 pl-3">Ingresos por Método</h2>
@@ -203,48 +198,19 @@ export default function Dashboard() {
                         ))}
                     </div>
                 </div>
-                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 mb-8">
-    <h2 className="text-lg font-bold text-white mb-6 border-l-4 border-purple-500 pl-3">
-        Distribución de Ventas: Productos vs Servicios
-    </h2>
-    <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-                <Pie
-                    data={dataGrafico}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                >
-                    {dataGrafico.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                </Pie>
-                <Tooltip 
-                    contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#fff' }}
-                    formatter={(value) => formatMoney(value)}
-                />
-                <Legend verticalAlign="bottom" height={36}/>
-            </PieChart>
-        </ResponsiveContainer>
-    </div>
-</div>
+            </div>
 
-                {/* RESUMEN OPERATIVO */}
-                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                    <h2 className="text-lg font-bold text-white mb-4 border-l-4 border-blue-500 pl-3">Ventas Totales</h2>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-gray-800 rounded-lg text-center">
-                            <p className="text-gray-400 text-xs">Cant. Órdenes</p>
-                            <p className="text-2xl font-bold text-white">{totalOrdenes}</p>
-                        </div>
-                        <div className="p-4 bg-gray-800 rounded-lg text-center">
-                            <p className="text-gray-400 text-xs">Monto Facturado</p>
-                            <p className="text-xl font-bold text-white">{formatMoney(totalFacturado)}</p>
-                        </div>
+            {/* RESUMEN OPERATIVO FINAL */}
+            <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                <h2 className="text-lg font-bold text-white mb-4 border-l-4 border-blue-500 pl-3">Ventas Totales (Auditadas)</h2>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-800 rounded-lg text-center">
+                        <p className="text-gray-400 text-xs uppercase tracking-wider">Órdenes Activas</p>
+                        <p className="text-2xl font-bold text-white">{totalOrdenes}</p>
+                    </div>
+                    <div className="p-4 bg-gray-800 rounded-lg text-center">
+                        <p className="text-gray-400 text-xs uppercase tracking-wider">Total Facturado</p>
+                        <p className="text-xl font-bold text-white">{formatMoney(totalFacturado)}</p>
                     </div>
                 </div>
             </div>
