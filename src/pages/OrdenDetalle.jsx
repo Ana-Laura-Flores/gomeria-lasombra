@@ -126,17 +126,31 @@ return (
             </tr>
         </thead>
         <tbody className="divide-y divide-gray-800 text-gray-200">
-            {orden.items && orden.items.length > 0 ? (
-                orden.items.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-gray-800/30 transition-colors">
-                        <td className="p-4 font-medium">{item.descripcion || item.nombre}</td>
-                        <td className="p-4 text-center font-mono">{item.cantidad}</td>
-                        <td className="p-4 text-right font-mono">{formatMoney(item.precio_unitario || item.precio)}</td>
-                        <td className="p-4 text-right font-mono text-white">
-                            {formatMoney((item.cantidad || 0) * (item.precio_unitario || item.precio || 0))}
-                        </td>
-                    </tr>
-                ))
+            {orden.items_orden && orden.items_orden.length > 0 ? (
+    orden.items_orden.map((item, idx) => {
+        // Lógica para determinar el nombre:
+        // 1. Si tiene producto, usamos nombre del producto
+        // 2. Si tiene tarifa/servicio, usamos nombre del servicio
+        // 3. Si no, usamos la descripción manual si existe
+        const nombreDisplay = 
+            item.producto?.nombre || 
+            item.tarifa?.servicio?.nombre || 
+            item.descripcion || 
+            "Sin nombre";
+
+        return (
+            <tr key={idx} className="hover:bg-gray-800/30 transition-colors">
+                <td className="p-4 font-medium">{nombreDisplay}</td>
+                <td className="p-4 text-center font-mono">{item.cantidad || 0}</td>
+                <td className="p-4 text-right font-mono">
+                    {formatMoney(item.precio_unitario || 0)}
+                </td>
+                <td className="p-4 text-right font-mono text-white">
+                    {formatMoney((item.cantidad || 0) * (item.precio_unitario || 0))}
+                </td>
+            </tr>
+        );
+    })
             ) : (
                 <tr>
                     <td colSpan="4" className="p-10 text-center text-gray-500 italic">
