@@ -90,11 +90,21 @@ export default function Dashboard() {
 
 // 1. Primero filtramos las órdenes para que SOLO queden las que NO están anuladas
 const ordenesActivas = ordenes.filter(o => {
-    // Forzamos a minúsculas y quitamos espacios por si acaso
-    const estadoStr = String(o.estado || "").toLowerCase().trim();
-    return estadoStr !== 'anulado' && estadoStr !== 'anulada';
-});
+    // 1. Si es nulo o vacío, asumimos que está activa
+    if (!o.estado) return true;
 
+    // 2. Si es un string (palabra)
+    const estadoStr = String(o.estado).toLowerCase().trim();
+    if (estadoStr === 'anulado' || estadoStr === 'anulada' || estadoStr === 'cancelado') return false;
+
+    // 3. Si es un número (ej: 0 es anulado)
+    if (o.estado === 0) return false;
+
+    // 4. Si es un booleano (ej: anulado: true)
+    if (o.anulado === true || o.anulado === 1) return false;
+
+    return true;
+});
 // 2. Ahora sí, contamos sobre el resultado filtrado
 const totalOrdenes = ordenesActivas.length; 
 
@@ -117,6 +127,10 @@ const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
 // Debug para que veas en la consola qué está pasando:
 console.log("Total Órdenes RAW:", ordenes.length);
 console.log("Órdenes Activas detectadas:", totalOrdenes);
+if (ordenes.length > 0) {
+    console.log("EJEMPLO DE ORDEN:", ordenes[0]);
+    console.log("ESTADO DE LA PRIMERA:", ordenes[0].estado);
+}
 
     const pagosPorMetodo = pagosValidos.reduce((acc, p) => {
         const metodo = normalizarMetodo(p.metodo_pago);
