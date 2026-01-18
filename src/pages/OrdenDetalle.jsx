@@ -24,7 +24,8 @@ export default function OrdenDetalle() {
 
     const [orden, setOrden] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [anulando, setAnulando] = useState(false); // Estado para el spinner del botón
+    const [anulando, setAnulando] = useState(false);
+    const [mostrarModal, setMostrarModal] = useState(false); // Estado para el modal pro
 
     const fetchOrden = async () => {
         try {
@@ -43,22 +44,28 @@ export default function OrdenDetalle() {
         fetchOrden();
     }, [id]);
 
-    const handleAnular = async () => {
-        const confirmar = window.confirm(
-            "¿Estás seguro de anular esta orden? El stock de los productos será devuelto al inventario y se ajustará la cuenta corriente."
-        );
-        
-        if (!confirmar) return;
+    // Esta función ahora solo abre el modal
+    const solicitarAnulacion = () => {
+        setMostrarModal(true);
+    };
 
+    // Esta es la función que ejecuta la acción real
+    const confirmarAnulacion = async () => {
         try {
-            setAnulando(true); // Bloqueamos el botón inmediatamente
+            setAnulando(true);
+            
+            // 1. Llamada a la API
             await anularOrdenCompleta(orden);
             
-            // Actualización optimista: cambiamos el estado local antes de re-consultar
+            // 2. Update Optimista (Cambiamos el estado en pantalla al instante)
             setOrden(prev => ({ ...prev, estado: 'anulado' }));
             
-            alert("Orden anulada con éxito");
-            await fetchOrden(); // Refrescamos datos reales del servidor
+            // 3. Cerramos el modal y avisamos
+            setMostrarModal(false);
+            alert("La orden ha sido anulada y el stock actualizado.");
+            
+            // 4. Refrescamos datos del servidor
+            await fetchOrden(); 
         } catch (error) {
             console.error("Error al anular:", error);
             alert("No se pudo anular la orden: " + error.message);
@@ -70,7 +77,7 @@ export default function OrdenDetalle() {
     const handleExportarPDF = () => {
         exportarPDFOrden({
             elementId: "orden-print",
-            filename: `orden-${orden.id}.pdf`,
+            filename: `orden-${orden.comprobante || orden.id}-ANULADA.pdf`,
         });
     };
 
@@ -102,11 +109,11 @@ export default function OrdenDetalle() {
 
     return (
         <MainLayout>
-            <div className={`max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg relative shadow-xl transition-opacity ${orden.estado === 'anulado' ? 'opacity-90' : ''}`}>
+            <div className={`max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg relative shadow-xl transition-all duration-500 ${orden.estado === 'anulado' ? 'border-2 border-red-900/50' : ''}`}>
                 
-                {/* Sello visual si la orden está anulada */}
+                {/* Sello visual en pantalla */}
                 {orden.estado === "anulado" && (
-                    <div className="absolute top-40 left-1/2 -translate-x-1/2 -translate-y-1/2 border-8 border-red-600 text-red-600 px-10 py-4 text-6xl font-black uppercase -rotate-12 opacity-40 pointer-events-none z-50">
+                    <div className="absolute top-40 left-1/2 -translate-x-1/2 -translate-y-1/2 border-8 border-red-600 text-red-600 px-10 py-4 text-6xl font-black uppercase -rotate-12 opacity-30 pointer-events-none z-50">
                         Anulada
                     </div>
                 )}
@@ -120,7 +127,6 @@ export default function OrdenDetalle() {
                             <p className="text-sm text-gray-400">Orden de trabajo #{orden.id}</p>
                         </div>
                     </div>
-
                     <div className="text-left md:text-right text-white">
                         <p><strong>Fecha:</strong> {new Date(orden.fecha).toLocaleDateString()}</p>
                         <p><strong>Comprobante:</strong> {orden.comprobante || "-"}</p>
@@ -151,12 +157,12 @@ export default function OrdenDetalle() {
                     </div>
                 </div>
 
-                {/* ===== ITEMS ===== */}
+                {/* ===== TABLA DE ITEMS ===== */}
                 <div className="overflow-x-auto">
                     <table className="w-full table-auto border-collapse mb-6 text-sm text-white">
                         <thead>
-                            <tr className="border-b border-gray-700 text-gray-400">
-                                <th className="px-4 py-2 text-left">Descripción</th>
+                            <tr className="border-b border-gray-700 text-gray-400 text-left">
+                                <th className="px-4 py-2">Descripción</th>
                                 <th className="px-4 py-2 text-right">Cant.</th>
                                 <th className="px-4 py-2 text-right">Unitario</th>
                                 <th className="px-4 py-2 text-right">Subtotal</th>
@@ -164,7 +170,7 @@ export default function OrdenDetalle() {
                         </thead>
                         <tbody>
                             {Array.isArray(orden.items_orden) && orden.items_orden.map((item) => (
-                                <tr key={item.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                                <tr key={item.id} className={`border-b border-gray-800 hover:bg-gray-800/50 ${orden.estado === 'anulado' ? 'text-gray-500' : ''}`}>
                                     <td className="px-4 py-2">
                                         {item.tipo_item === "servicio"
                                             ? item.tarifa?.servicio?.nombre || "Servicio"
@@ -182,10 +188,12 @@ export default function OrdenDetalle() {
                 {/* ===== TOTALES ===== */}
                 <div className="mt-4 text-right space-y-1 text-lg font-semibold text-white">
                     <p className="text-gray-400 text-sm font-normal">Monto Final</p>
-                    <p className="text-2xl text-green-400">{formatMoney(orden.total)}</p>
+                    <p className={`text-2xl ${orden.estado === 'anulado' ? 'text-gray-500 line-through' : 'text-green-400'}`}>
+                        {formatMoney(orden.total)}
+                    </p>
                 </div>
 
-                {/* ===== BOTONES DE ACCIÓN ===== */}
+                {/* ===== ACCIONES ===== */}
                 <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-gray-800 pt-6 print:hidden">
                     <div className="flex gap-2">
                         <button
@@ -195,40 +203,75 @@ export default function OrdenDetalle() {
                             Volver
                         </button>
                         
-                        {/* Botón de Anular mejorado */}
                         {orden.estado !== "anulado" ? (
                             <button
-                                onClick={handleAnular}
+                                onClick={solicitarAnulacion}
                                 disabled={anulando}
-                                className={`px-4 py-2 rounded text-white font-bold transition ${
-                                    anulando ? "bg-red-900 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
-                                }`}
+                                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition font-bold"
                             >
-                                {anulando ? "Anulando..." : "Anular Orden"}
+                                Anular Orden
                             </button>
                         ) : (
-                            <span className="px-4 py-2 bg-gray-800 text-red-500 rounded border border-red-900 font-bold">
-                                ORDEN ANULADA
+                            <span className="px-4 py-2 bg-red-900/20 text-red-500 rounded border border-red-900/50 font-bold flex items-center gap-2">
+                                🚫 ORDEN ANULADA
                             </span>
                         )}
                     </div>
 
                     <button
                         onClick={handleExportarPDF}
-                        disabled={orden.estado === "anulado"}
-                        className={`px-4 py-2 bg-green-600 text-white rounded transition flex items-center gap-2 ${
-                            orden.estado === "anulado" ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
-                        }`}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2"
                     >
-                        <span>Descargar PDF</span>
+                        <span>{orden.estado === 'anulado' ? 'Descargar PDF (Anulado)' : 'Descargar PDF'}</span>
                     </button>
                 </div>
             </div>
 
-            {/* Componente oculto para impresión */}
+            {/* Modal de Confirmación Pro */}
+            <ModalConfirmacion 
+                abierto={mostrarModal}
+                alCerrar={() => setMostrarModal(false)}
+                alConfirmar={confirmarAnulacion}
+                titulo="¿Confirmar Anulación de Orden?"
+                mensaje="Esta acción devolverá los productos al stock y descontará el saldo de la cuenta corriente si corresponde. Esta operación es irreversible."
+                cargando={anulando}
+            />
+
+            {/* Componente oculto para impresión - Le pasamos la orden para que detecte el estado anulado */}
             <div style={{ position: "absolute", top: "-9999px", left: "-9999px", visibility: "hidden" }}>
                 <OrdenPrint orden={orden} />
             </div>
         </MainLayout>
     );
 }
+
+// Sub-componente Modal
+const ModalConfirmacion = ({ abierto, alConfirmar, alCerrar, titulo, mensaje, cargando }) => {
+    if (!abierto) return null;
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="p-6">
+                    <h3 className="text-xl font-bold text-white mb-2">{titulo}</h3>
+                    <p className="text-gray-400 leading-relaxed">{mensaje}</p>
+                </div>
+                <div className="bg-gray-800/50 p-4 flex justify-end gap-3">
+                    <button
+                        onClick={alCerrar}
+                        disabled={cargando}
+                        className="px-4 py-2 text-gray-400 hover:text-white transition disabled:opacity-50"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={alConfirmar}
+                        disabled={cargando}
+                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition disabled:opacity-50 flex items-center gap-2"
+                    >
+                        {cargando ? "Procesando..." : "Sí, Anular"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
