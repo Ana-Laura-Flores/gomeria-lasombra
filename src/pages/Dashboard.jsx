@@ -76,7 +76,7 @@ export default function Dashboard() {
                 const listaProd = prodRes.data?.data || prodRes.data || [];
                 setProductosBajoStock(listaProd.filter(p => Number(p.stock) <= 5));
             } catch (e) {
-                console.error("Error:", e);
+                console.error("Error cargando Dashboard:", e);
             } finally {
                 setLoading(false);
             }
@@ -84,10 +84,14 @@ export default function Dashboard() {
         cargar();
     }, [modoFiltro, fechaDia, mes, fechaDesde, fechaHasta]);
 
-    if (loading) return <MainLayout><div className="p-10 text-white">Cargando...</div></MainLayout>;
+    if (loading) return <MainLayout><div className="p-10 text-white">Cargando métricas...</div></MainLayout>;
 
     /* --- LÓGICA DE FILTRADO (SIN ANULADAS) --- */
     const ordenesActivas = ordenes.filter(o => o.estado !== 'anulado');
+    
+    // AQUÍ DEFINIMOS LA VARIABLE QUE FALTABA
+    const totalOrdenes = ordenesActivas.length; 
+    
     const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
 
     const pagosValidos = pagos.filter((p) => {
@@ -107,9 +111,9 @@ export default function Dashboard() {
 
     return (
         <MainLayout>
-            {/* Header y Filtros (ESTILO ORIGINAL) */}
+            {/* Header y Filtros */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                <h1 className="text-3xl font-bold text-white">Resumen de Negocio</h1>
+                <h1 className="text-3xl font-bold text-white uppercase tracking-tight">Dashboard de Gestión</h1>
                 
                 <div className="flex flex-wrap gap-2 bg-gray-800 p-2 rounded-lg border border-gray-700">
                     <select
@@ -143,6 +147,20 @@ export default function Dashboard() {
                 </div>
             </div>
 
+            {/* Alerta de Stock (Agregada para mayor utilidad) */}
+            {productosBajoStock.length > 0 && (
+                <div className="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-xl">
+                    <h2 className="text-red-500 font-bold text-xs uppercase mb-2 tracking-widest">⚠️ Alerta de Reposición</h2>
+                    <div className="flex flex-wrap gap-2">
+                        {productosBajoStock.map(p => (
+                            <span key={p.id} className="bg-gray-900 text-white text-[10px] px-2 py-1 rounded border border-red-900">
+                                {p.nombre}: <b className="text-red-500">{p.stock}</b>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Cards Métricas Principales */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <Card title="Ingresos (Caja)" value={formatMoney(totalCobrado)} color="text-green-400" />
@@ -162,6 +180,9 @@ export default function Dashboard() {
                                 <span className="text-white font-bold font-mono">{formatMoney(total)}</span>
                             </div>
                         ))}
+                        {Object.keys(pagosPorMetodo).length === 0 && (
+                             <p className="text-gray-500 text-sm italic text-center py-4">Sin movimientos registrados</p>
+                        )}
                     </div>
                 </div>
 
@@ -175,7 +196,7 @@ export default function Dashboard() {
                         </div>
                         <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex justify-between items-center">
                             <span className="text-gray-400">Monto Total Facturado</span>
-                            <span className="text-xl font-bold text-white">{formatMoney(totalFacturado)}</span>
+                            <span className="text-xl font-bold text-white font-mono">{formatMoney(totalFacturado)}</span>
                         </div>
                     </div>
                 </div>
