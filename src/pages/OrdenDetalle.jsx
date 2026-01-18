@@ -24,8 +24,8 @@ export default function OrdenDetalle() {
 
     const [orden, setOrden] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [anulando, setAnulando] = useState(false); // Estado para el spinner del botón
 
-    // Función para cargar los datos de la orden
     const fetchOrden = async () => {
         try {
             setLoading(true);
@@ -43,7 +43,6 @@ export default function OrdenDetalle() {
         fetchOrden();
     }, [id]);
 
-    // Función para manejar la anulación
     const handleAnular = async () => {
         const confirmar = window.confirm(
             "¿Estás seguro de anular esta orden? El stock de los productos será devuelto al inventario y se ajustará la cuenta corriente."
@@ -52,16 +51,19 @@ export default function OrdenDetalle() {
         if (!confirmar) return;
 
         try {
-            setLoading(true);
+            setAnulando(true); // Bloqueamos el botón inmediatamente
             await anularOrdenCompleta(orden);
+            
+            // Actualización optimista: cambiamos el estado local antes de re-consultar
+            setOrden(prev => ({ ...prev, estado: 'anulado' }));
+            
             alert("Orden anulada con éxito");
-            // Recargamos los datos para ver el estado actualizado
-            await fetchOrden(); 
+            await fetchOrden(); // Refrescamos datos reales del servidor
         } catch (error) {
             console.error("Error al anular:", error);
             alert("No se pudo anular la orden: " + error.message);
         } finally {
-            setLoading(false);
+            setAnulando(false);
         }
     };
 
@@ -72,7 +74,7 @@ export default function OrdenDetalle() {
         });
     };
 
-    if (loading) {
+    if (loading && !orden) {
         return (
             <MainLayout>
                 <div className="flex justify-center items-center h-64">
@@ -100,11 +102,11 @@ export default function OrdenDetalle() {
 
     return (
         <MainLayout>
-            <div className="max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg relative shadow-xl">
+            <div className={`max-w-4xl mx-auto bg-gray-900 p-6 rounded-lg relative shadow-xl transition-opacity ${orden.estado === 'anulado' ? 'opacity-90' : ''}`}>
                 
                 {/* Sello visual si la orden está anulada */}
                 {orden.estado === "anulado" && (
-                    <div className="absolute top-20 right-10 border-8 border-red-600 text-red-600 px-6 py-2 text-4xl font-black uppercase rotate-12 opacity-30 pointer-events-none z-10">
+                    <div className="absolute top-40 left-1/2 -translate-x-1/2 -translate-y-1/2 border-8 border-red-600 text-red-600 px-10 py-4 text-6xl font-black uppercase -rotate-12 opacity-40 pointer-events-none z-50">
                         Anulada
                     </div>
                 )}
@@ -193,20 +195,30 @@ export default function OrdenDetalle() {
                             Volver
                         </button>
                         
-                        {/* Botón de Anular - Solo si NO está anulada */}
-                        {orden.estado !== "anulado" && (
+                        {/* Botón de Anular mejorado */}
+                        {orden.estado !== "anulado" ? (
                             <button
                                 onClick={handleAnular}
-                                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition font-bold"
+                                disabled={anulando}
+                                className={`px-4 py-2 rounded text-white font-bold transition ${
+                                    anulando ? "bg-red-900 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
+                                }`}
                             >
-                                Anular Orden
+                                {anulando ? "Anulando..." : "Anular Orden"}
                             </button>
+                        ) : (
+                            <span className="px-4 py-2 bg-gray-800 text-red-500 rounded border border-red-900 font-bold">
+                                ORDEN ANULADA
+                            </span>
                         )}
                     </div>
 
                     <button
                         onClick={handleExportarPDF}
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2"
+                        disabled={orden.estado === "anulado"}
+                        className={`px-4 py-2 bg-green-600 text-white rounded transition flex items-center gap-2 ${
+                            orden.estado === "anulado" ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
+                        }`}
                     >
                         <span>Descargar PDF</span>
                     </button>
