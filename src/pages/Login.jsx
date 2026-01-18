@@ -20,26 +20,33 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await login(email, password);
-      const token = res.data.access_token;
+      // 1. Llamamos al servicio (que ya guarda token y refresh_token en localStorage)
+      const data = await login(email, password);
+      
+      const token = data.access_token;
       const decoded = jwt_decode(token);
 
+      // 2. Armamos el objeto de usuario. 
+      // Nota: Si Directus no trae el role en el token, podrías necesitar 
+      // una llamada extra, pero probemos primero si tu configuración actual lo trae.
       const user = {
         id: decoded.id,
-        role: decoded.role,
-        email: decoded.email,
+        role: decoded.role || ROLES.ADMIN, // Fallback por si no viene el role
+        email: email, // Usamos el email del estado del form
       };
 
+      // 3. Informamos al contexto de autenticación
       loginUser(token, user);
 
-      if (decoded.role === ROLES.ADMIN) {
+      // 4. Redirección por Rol
+      if (user.role === ROLES.ADMIN) {
         navigate("/dashboard");
       } else {
         navigate("/ordenes");
       }
     } catch (error) {
-      console.error(error);
-      alert("Email o contraseña incorrectos");
+      console.error("Error en login:", error);
+      alert(error.message || "Email o contraseña incorrectos");
     }
   };
 
@@ -47,43 +54,53 @@ export default function Login() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 px-4">
       <form
         onSubmit={handleLogin}
-        className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md"
+        className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-100">
-          Login Gomería La Sombra
-        </h2>
+        <div className="mb-8 text-center">
+            <h2 className="text-3xl font-black text-white tracking-tighter uppercase">
+              Gomería <span className="text-blue-500">La Sombra</span>
+            </h2>
+            <p className="text-gray-400 text-sm mt-2">Gestión de Órdenes y Stock</p>
+        </div>
 
         <Input
           label="Email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Ingrese su email"
+          placeholder="nombre@ejemplo.com"
+          required
         />
 
-        {/* CONTRASEÑA CON OJITO */}
         <div className="relative">
           <Input
             label="Contraseña"
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Ingrese su contraseña"
+            placeholder="••••••••"
             className="pr-10"
+            required
           />
 
           {password.length > 0 && (
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 text-gray-400 hover:text-gray-100"
+              className="absolute right-3 top-[38px] text-gray-500 hover:text-white transition-colors"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           )}
         </div>
 
-        <Button type="submit">Ingresar</Button>
+        <div className="mt-6">
+            <Button type="submit">Ingresar al Sistema</Button>
+        </div>
+        
+        <p className="mt-8 text-center text-xs text-gray-600">
+            Acceso restringido para personal autorizado.
+        </p>
       </form>
     </div>
   );

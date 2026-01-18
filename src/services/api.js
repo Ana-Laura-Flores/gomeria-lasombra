@@ -3,13 +3,43 @@ export const API_URL = import.meta.env.VITE_API_URL;
 // --------------------
 // Headers de autenticación
 // --------------------
-export const authHeaders = () => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${localStorage.getItem("token")}`,
-});
+export const authHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
 
 // --------------------
-// Fetch genérico
+// Función para refrescar el token (Directus)
+// --------------------
+const refrescarToken = async () => {
+  try {
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (!refreshToken) return false;
+
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken, mode: 'json' }),
+    });
+
+    if (res.ok) {
+      const { data } = await res.json();
+      // Guardamos los nuevos tokens
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("refresh_token", data.refresh_token);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+};
+
+// --------------------
+// Fetch genérico con AUTO-REFRESH
 // --------------------
 export const apiFetch = async (endpoint, options = {}) => {
   let url = endpoint.startsWith("http")
@@ -18,21 +48,42 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   const method = options.method ? options.method.toUpperCase() : "GET";
 
-  // Si es GET, agregamos parámetro único para romper cache
   if (method === "GET") {
     const separator = url.includes("?") ? "&" : "?";
     url = `${url}${separator}_=${Date.now()}`;
   }
 
-  const res = await fetch(url, {
+  // PRIMER INTENTO
+  let res = await fetch(url, {
     ...options,
     method,
     headers: {
       ...authHeaders(),
       ...(options.headers || {}),
     },
-    cache: "no-store", // esto sí lo podés dejar
   });
+
+  // SI EL TOKEN VENCIÓ (Error 401)
+  if (res.status === 401) {
+    const exito = await refrescarToken();
+    
+    if (exito) {
+      // SEGUNDO INTENTO (Con el nuevo token)
+      res = await fetch(url, {
+        ...options,
+        method,
+        headers: {
+          ...authHeaders(),
+          ...(options.headers || {}),
+        },
+      });
+    } else {
+      // Si el refresh también falla, al login
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+    }
+  }
 
   if (!res.ok) {
     throw new Error(`Error al llamar a API: ${res.status} ${res.statusText}`);
@@ -40,7 +91,6 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   return res.json();
 };
-
 
 // --------------------
 // Tarifas (para tipos de vehículo y precios)
