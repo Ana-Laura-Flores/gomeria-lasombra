@@ -4,18 +4,12 @@ import {
   getDashboardOrdenes,
   getGastosPorMes,
   getPagosPorMes,
+  getProductos, // Necesitamos esto para el stock
 } from "../services/api";
 import Card from "../components/Card";
 
-/* =====================
-   HELPERS
-===================== */
-
-const formatMoney = (v) =>
-  new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(Number(v) || 0);
+/* HELPERS (Se mantienen iguales) */
+const formatMoney = (v) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(Number(v) || 0);
 
 const getRangoMes = (mes) => {
   const [y, m] = mes.split("-");
@@ -26,9 +20,7 @@ const getRangoMes = (mes) => {
 };
 
 const normalizarMetodo = (m) => {
-  if (Array.isArray(m)) {
-    return m[0]?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
-  }
+  if (Array.isArray(m)) return m[0]?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
   return m?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
 };
 
@@ -37,34 +29,24 @@ const formatMetodoPago = (m) => {
   return m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
-/* =====================
-   DASHBOARD
-===================== */
-
 export default function Dashboard() {
   const [ordenes, setOrdenes] = useState([]);
   const [gastos, setGastos] = useState([]);
   const [pagos, setPagos] = useState([]);
+  const [productosBajoStock, setProductosBajoStock] = useState([]); // Nuevo estado
   const [loading, setLoading] = useState(true);
 
-  // 🔑 Filtros
-  const [modoFiltro, setModoFiltro] = useState("mes"); // "dia" | "mes" | "rango"
+  const [modoFiltro, setModoFiltro] = useState("mes");
   const [fechaDia, setFechaDia] = useState("");
-  const [mes, setMes] = useState("2026-01"); // por defecto mes actual
+  const [mes, setMes] = useState("2026-01");
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
 
   const getRango = () => {
-    if (modoFiltro === "dia" && fechaDia) {
-      return { desde: fechaDia, hasta: fechaDia };
-    }
-    if (modoFiltro === "mes" && mes) {
-      return getRangoMes(mes);
-    }
-    if (modoFiltro === "rango" && fechaDesde && fechaHasta) {
-      return { desde: fechaDesde, hasta: fechaHasta };
-    }
-    return getRangoMes(mes); // fallback
+    if (modoFiltro === "dia" && fechaDia) return { desde: fechaDia, hasta: fechaDia };
+    if (modoFiltro === "mes" && mes) return getRangoMes(mes);
+    if (modoFiltro === "rango" && fechaDesde && fechaHasta) return { desde: fechaDesde, hasta: fechaHasta };
+    return getRangoMes(mes);
   };
 
   useEffect(() => {
@@ -73,15 +55,21 @@ export default function Dashboard() {
       const { desde, hasta } = getRango();
 
       try {
-        const [oRes, gRes, pRes] = await Promise.all([
+        const [oRes, gRes, pRes, prodRes] = await Promise.all([
           getDashboardOrdenes(desde, hasta),
           getGastosPorMes(desde, hasta),
           getPagosPorMes(desde, hasta),
+          getProductos(), // Traemos todos los productos para filtrar stock
         ]);
 
         setOrdenes(oRes.data || []);
         setGastos(gRes.data || []);
         setPagos(pRes.data || []);
+        
+        // Filtrar productos con stock menor a 5 (ajusta este número según necesites)
+        const bajoStock = (prodRes.data || []).filter(p => p.stock <= 5);
+        setProductosBajoStock(bajoStock);
+
       } catch (e) {
         console.error(e);
       } finally {
@@ -92,142 +80,98 @@ export default function Dashboard() {
     cargar();
   }, [modoFiltro, fechaDia, mes, fechaDesde, fechaHasta]);
 
-  if (loading) return <MainLayout>Cargando…</MainLayout>;
+  if (loading) return <MainLayout><div className="p-10 text-white">Cargando métricas...</div></MainLayout>;
 
-  /* =====================
-     CÁLCULOS
-  ===================== */
-
+  /* CÁLCULOS */
   const totalOrdenes = ordenes.length;
   const totalFacturado = ordenes.reduce((a, o) => a + Number(o.total || 0), 0);
-  const pagosValidos = pagos.filter(
-  (p) => (p.tipo === "pago" && !p.anulado) || p.tipo === "anulacion"
-);
-
-const totalCobrado = pagosValidos.reduce(
-  (a, p) => a + Number(p.monto || 0),
-  0
-);
-
-  const saldoPendiente = totalFacturado - totalCobrado;
-
-  const ordenesConDeuda = ordenes.filter((o) => Number(o.saldo) > 0).length;
-  const ordenesPagadas = ordenes.filter(
-    (o) => Number(o.saldo) === 0 && Number(o.total) > 0
-  ).length;
-
+  const pagosValidos = pagos.filter((p) => (p.tipo === "pago" && !p.anulado) || p.tipo === "anulacion");
+  const totalCobrado = pagosValidos.reduce((a, p) => a + Number(p.monto || 0), 0);
   const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
-  const resultadoMes = totalCobrado - totalGastos;
+  const saldoPendiente = totalFacturado - totalCobrado;
+  const resultadoReal = totalCobrado - totalGastos; // Dinero real en mano
 
   const pagosPorMetodo = pagosValidos.reduce((acc, p) => {
-  const metodo = normalizarMetodo(p.metodo_pago);
-  acc[metodo] = (acc[metodo] || 0) + Number(p.monto);
-  return acc;
-}, {});
-
-
-  const gastosPorMetodo = gastos.reduce((acc, g) => {
-    const metodo = normalizarMetodo(g.metodo_pago);
-    acc[metodo] = (acc[metodo] || 0) + Number(g.monto || 0);
+    const metodo = normalizarMetodo(p.metodo_pago);
+    acc[metodo] = (acc[metodo] || 0) + Number(p.monto);
     return acc;
   }, {});
 
-  /* =====================
-     RENDER
-  ===================== */
-
   return (
     <MainLayout>
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-
-      {/* 🔎 Filtros */}
-      <div className="mb-6 flex gap-4 items-center">
-        <select
-          value={modoFiltro}
-          onChange={(e) => setModoFiltro(e.target.value)}
-          className="border px-3 py-1"
-        >
-          <option value="dia">Por día</option>
-          <option value="mes">Por mes</option>
-          <option value="rango">Por rango</option>
-        </select>
-
-        {modoFiltro === "dia" && (
-          <input
-            type="date"
-            value={fechaDia}
-            onChange={(e) => setFechaDia(e.target.value)}
-            className="border px-3 py-1"
-          />
-        )}
-
-        {modoFiltro === "mes" && (
-          <input
-            type="month"
-            value={mes}
-            onChange={(e) => setMes(e.target.value)}
-            className="border px-3 py-1"
-          />
-        )}
-
-        {modoFiltro === "rango" && (
-          <>
-            <input
-              type="date"
-              value={fechaDesde}
-              onChange={(e) => setFechaDesde(e.target.value)}
-              className="border px-3 py-1"
-            />
-            <input
-              type="date"
-              value={fechaHasta}
-              onChange={(e) => setFechaHasta(e.target.value)}
-              className="border px-3 py-1"
-            />
-          </>
-        )}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-white">Resumen de Negocio</h1>
+        
+        {/* 🔎 Filtros con mejor estilo */}
+        <div className="flex gap-2 bg-gray-800 p-2 rounded-lg border border-gray-700">
+          <select
+            value={modoFiltro}
+            onChange={(e) => setModoFiltro(e.target.value)}
+            className="bg-gray-900 text-white border-none rounded px-2 py-1 text-sm outline-none"
+          >
+            <option value="dia">Hoy</option>
+            <option value="mes">Mes</option>
+            <option value="rango">Rango</option>
+          </select>
+          {/* Inputs de fecha simplificados... */}
+          {modoFiltro === "mes" && <input type="month" value={mes} onChange={(e) => setMes(e.target.value)} className="bg-gray-900 text-white text-sm border-none rounded outline-none px-2" />}
+        </div>
       </div>
 
-      {/* MÉTRICAS PRINCIPALES */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card title="Total de órdenes" value={totalOrdenes} />
-        <Card title="Órdenes con deuda" value={ordenesConDeuda} />
-        <Card title="Órdenes pagadas" value={ordenesPagadas} />
-        <Card title="Total facturado" value={formatMoney(totalFacturado)} />
-        <Card title="Ingresos cobrados" value={formatMoney(totalCobrado)} />
-        <Card
-          title="Saldo pendiente por cobrar"
-          value={formatMoney(saldoPendiente)}
-        />
+      {/* ⚠️ SECCIÓN DE ALERTAS DE STOCK */}
+      {productosBajoStock.length > 0 && (
+        <div className="mb-8 animate-pulse">
+          <div className="bg-red-900/20 border border-red-600 rounded-lg p-4">
+            <h2 className="text-red-500 font-bold flex items-center gap-2 mb-3">
+              <span>⚠️ ALERTA DE STOCK BAJO</span>
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {productosBajoStock.map(p => (
+                <div key={p.id} className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                  {p.nombre}: {p.stock} unidades
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📊 MÉTRICAS DE DINERO (LO MÁS IMPORTANTE) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+        <Card title="Ingresos Reales (Caja)" value={formatMoney(totalCobrado)} color="text-green-400" />
+        <Card title="Gastos Totales" value={formatMoney(totalGastos)} color="text-red-400" />
+        <Card title="Resultado (Caja - Gastos)" value={formatMoney(resultadoReal)} color={resultadoReal >= 0 ? "text-blue-400" : "text-orange-500"} />
+        <Card title="Pendiente de Cobro" value={formatMoney(saldoPendiente)} color="text-yellow-500" />
       </div>
 
-      {/* INGRESOS POR MÉTODO */}
-      <h2 className="text-xl font-bold mt-10 mb-4">Ingresos por método de pago</h2>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
-          <Card
-            key={metodo}
-            title={`Ingresos ${formatMetodoPago(metodo)}`}
-            value={formatMoney(total)}
-          />
-        ))}
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* DETALLE INGRESOS */}
+        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+          <h2 className="text-lg font-bold text-white mb-4 border-l-4 border-green-500 pl-3">Ingresos por Método</h2>
+          <div className="space-y-3">
+            {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
+              <div key={metodo} className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
+                <span className="text-gray-300">{formatMetodoPago(metodo)}</span>
+                <span className="text-white font-mono font-bold">{formatMoney(total)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      {/* GASTOS / RESULTADO */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-        <Card title="Gastos del período" value={formatMoney(totalGastos)} />
-        <Card title="Resultado del período" value={formatMoney(resultadoMes)} />
-      </div>
-
-      <h2 className="text-xl font-bold mt-10 mb-4">Gastos por método de pago</h2>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {Object.entries(gastosPorMetodo).map(([metodo, total]) => (
-          <Card
-            key={metodo}
-            title={`Gastos ${formatMetodoPago(metodo)}`}
-            value={formatMoney(total)}
-          />
-        ))}
+        {/* RESUMEN OPERATIVO */}
+        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+          <h2 className="text-lg font-bold text-white mb-4 border-l-4 border-blue-500 pl-3">Resumen Operativo</h2>
+          <div className="grid grid-cols-2 gap-4">
+             <div className="p-4 bg-gray-800 rounded-lg text-center">
+                <p className="text-gray-400 text-xs">Órdenes Totales</p>
+                <p className="text-2xl font-bold text-white">{totalOrdenes}</p>
+             </div>
+             <div className="p-4 bg-gray-800 rounded-lg text-center">
+                <p className="text-gray-400 text-xs">Total Facturado</p>
+                <p className="text-xl font-bold text-white">{formatMoney(totalFacturado)}</p>
+             </div>
+          </div>
+        </div>
       </div>
     </MainLayout>
   );
