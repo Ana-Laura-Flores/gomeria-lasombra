@@ -453,55 +453,62 @@ export const getPreciosProductos = async () => {
 // LÓGICA DE ANULACIÓN Y STOCK
 // --------------------
 
+// --------------------
+// LÓGICA DE ANULACIÓN Y STOCK (CORREGIDA PARA EVITAR ERROR 500)
+// --------------------
+
 export const anularOrdenCompleta = async (orden) => {
   if (!orden) throw new Error("No se proporcionó la orden");
 
   // 1. Cambiar estado de la orden
   await actualizarOrden(orden.id, { estado: "anulado" });
 
-  // 2. Procesar ítems para devolver stock
-  // Usamos items_orden que es el nombre del campo en tu GET
+  // 2. Procesar ítems para devolver stock (Suma manual compatible)
   const productosADevolver = orden.items_orden?.filter(
     (item) => item.tipo_item === "producto" && item.producto
   ) || [];
 
   if (productosADevolver.length > 0) {
-    // ... dentro de anularOrdenCompleta en api.js
-await Promise.all(
-  productosADevolver.map(async (item) => {
-    // 🛡️ VALIDACIÓN DE SEGURIDAD:
-    // Si item.producto es un objeto, tomamos el .id
-    // Si item.producto ya es el ID (string/number), lo usamos directo
-    const productoId = (item.producto && typeof item.producto === 'object') 
-      ? item.producto.id 
-      : item.producto;
+    for (const item of productosADevolver) {
+      const productoId = (item.producto && typeof item.producto === 'object') 
+        ? item.producto.id 
+        : item.producto;
 
-    if (!productoId) {
-      console.warn("Item de producto sin ID válido:", item);
-      return; // Salteamos si no hay ID
+      if (!productoId) {
+        console.warn("Item de producto sin ID válido:", item);
+        continue;
+      }
+
+      try {
+        // A. Obtener stock actual (Lectura previa para evitar _sum)
+        const prodData = await apiFetch(`productos/${productoId}`);
+        const stockActual = Number(prodData.data.stock || 0);
+        const cantidadADevolver = Number(item.cantidad);
+
+        // B. Actualizar stock con el valor final calculado
+        await apiFetch(`productos/${productoId}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            stock: stockActual + cantidadADevolver,
+          }),
+        });
+
+        // C. Registrar movimiento
+        await apiFetch("movimientos_stock", {
+          method: "POST",
+          body: JSON.stringify({
+            producto: productoId,
+            tipo: "ingreso",
+            cantidad: cantidadADevolver,
+            motivo: `Anulación - Orden #${orden.id}`,
+            orden: orden.id,
+          }),
+        });
+        console.log(`✅ Stock devuelto para producto ${productoId}`);
+      } catch (error) {
+        console.error(`❌ Error devolviendo stock para prod ${productoId}:`, error);
+      }
     }
-
-    // A. Sumar stock
-    await apiFetch(`productos/${productoId}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        stock: { _sum: Number(item.cantidad) },
-      }),
-    });
-
-    // B. Registrar movimiento
-    await apiFetch("movimientos_stock", {
-      method: "POST",
-      body: JSON.stringify({
-        producto: productoId,
-        tipo: "ingreso",
-        cantidad: Number(item.cantidad),
-        motivo: `Anulación - Orden #${orden.id}`,
-        orden: orden.id,
-      }),
-    });
-  })
-);
   }
 
   // 3. Revertir impacto en Cuenta Corriente (si no fue contado)
@@ -511,7 +518,6 @@ await Promise.all(
     const cc = ccRes.data[0];
 
     if (cc) {
-      // Al anular, restamos el total de la orden del saldo deudor
       await actualizarCuentaCorriente(cc.id, {
         total_ordenes: Number(cc.total_ordenes || 0) - Number(orden.total),
         saldo: Number(cc.saldo || 0) - Number(orden.total),
