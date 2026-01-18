@@ -7,7 +7,6 @@ import {
     getStockDashboard,
 } from "../services/api";
 import Card from "../components/Card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 /* --- HELPERS --- */
 const formatMoney = (v) =>
@@ -42,27 +41,24 @@ export default function Dashboard() {
     const [productosBajoStock, setProductosBajoStock] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Estados de filtros originales
+    // Filtros originales
     const [modoFiltro, setModoFiltro] = useState("mes");
     const [fechaDia, setFechaDia] = useState(new Date().toISOString().split('T')[0]);
     const [mes, setMes] = useState("2026-01"); 
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
 
-    const COLORS = ['#10b981', '#3b82f6'];
-
     const getRango = () => {
         if (modoFiltro === "dia" && fechaDia) return { desde: fechaDia, hasta: fechaDia };
         if (modoFiltro === "mes" && mes) return getRangoMes(mes);
         if (modoFiltro === "rango" && fechaDesde && fechaHasta) return { desde: fechaDesde, hasta: fechaHasta };
-        // Fallback por defecto
         return getRangoMes(mes);
     };
 
     useEffect(() => {
         const cargar = async () => {
             const { desde, hasta } = getRango();
-            if (!desde || !hasta) return; // Evita llamadas sin fechas válidas
+            if (modoFiltro === "rango" && (!fechaDesde || !fechaHasta)) return;
 
             setLoading(true);
             try {
@@ -80,7 +76,7 @@ export default function Dashboard() {
                 const listaProd = prodRes.data?.data || prodRes.data || [];
                 setProductosBajoStock(listaProd.filter(p => Number(p.stock) <= 5));
             } catch (e) {
-                console.error("Error en Dashboard:", e);
+                console.error("Error:", e);
             } finally {
                 setLoading(false);
             }
@@ -88,9 +84,9 @@ export default function Dashboard() {
         cargar();
     }, [modoFiltro, fechaDia, mes, fechaDesde, fechaHasta]);
 
-    if (loading) return <MainLayout><div className="p-10 text-white">Cargando métricas...</div></MainLayout>;
+    if (loading) return <MainLayout><div className="p-10 text-white">Cargando...</div></MainLayout>;
 
-    /* --- PROCESAMIENTO DE DATOS --- */
+    /* --- LÓGICA DE FILTRADO (SIN ANULADAS) --- */
     const ordenesActivas = ordenes.filter(o => o.estado !== 'anulado');
     const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
 
@@ -102,16 +98,6 @@ export default function Dashboard() {
 
     const totalCobrado = pagosValidos.reduce((a, p) => a + Number(p.monto || 0), 0);
     const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
-
-    const dataGrafico = ordenesActivas.reduce((acc, orden) => {
-        (orden.items || []).forEach(item => {
-            const tipo = item.tipo === 'producto' ? 'Productos' : 'Servicios';
-            const monto = Number(item.precio_total || 0);
-            const target = acc.find(d => d.name === tipo);
-            if (target) target.value += monto;
-        });
-        return acc;
-    }, [{ name: 'Productos', value: 0 }, { name: 'Servicios', value: 0 }]);
 
     const pagosPorMetodo = pagosValidos.reduce((acc, p) => {
         const metodo = normalizarMetodo(p.metodo_pago);
@@ -129,7 +115,7 @@ export default function Dashboard() {
                     <select
                         value={modoFiltro}
                         onChange={(e) => setModoFiltro(e.target.value)}
-                        className="bg-gray-900 text-white border-none rounded px-3 py-1 text-sm outline-none"
+                        className="bg-gray-900 text-white border-none rounded px-3 py-1 text-sm outline-none cursor-pointer"
                     >
                         <option value="dia">Hoy</option>
                         <option value="mes">Mes</option>
@@ -138,41 +124,26 @@ export default function Dashboard() {
 
                     {modoFiltro === "dia" && (
                         <input type="date" value={fechaDia} onChange={(e) => setFechaDia(e.target.value)}
-                            className="bg-gray-900 text-white text-sm rounded px-2 outline-none border border-gray-700" />
+                            className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />
                     )}
 
                     {modoFiltro === "mes" && (
                         <input type="month" value={mes} onChange={(e) => setMes(e.target.value)}
-                            className="bg-gray-900 text-white text-sm rounded px-2 outline-none border border-gray-700" />
+                            className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />
                     )}
 
                     {modoFiltro === "rango" && (
                         <div className="flex gap-2">
                             <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)}
-                                className="bg-gray-900 text-white text-sm rounded px-2 outline-none border border-gray-700" />
+                                className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />
                             <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)}
-                                className="bg-gray-900 text-white text-sm rounded px-2 outline-none border border-gray-700" />
+                                className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Alertas de Stock */}
-            {productosBajoStock.length > 0 && (
-                <div className="mb-8 bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-xl">
-                    <h2 className="text-red-400 font-bold text-sm mb-3 uppercase">⚠️ Reposición Necesaria</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {productosBajoStock.map(p => (
-                            <div key={p.id} className="bg-gray-900/50 p-2 rounded border border-red-500/20 flex justify-between">
-                                <span className="text-gray-300 text-xs truncate">{p.nombre}</span>
-                                <span className="text-red-500 font-bold text-xs">{p.stock} UN</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Cards Métricas */}
+            {/* Cards Métricas Principales */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <Card title="Ingresos (Caja)" value={formatMoney(totalCobrado)} color="text-green-400" />
                 <Card title="Gastos Totales" value={formatMoney(totalGastos)} color="text-red-400" />
@@ -180,41 +151,8 @@ export default function Dashboard() {
                 <Card title="Pendiente Cobro" value={formatMoney(totalFacturado - totalCobrado)} color="text-yellow-500" />
             </div>
 
-            {/* Gráfico y Detalle Métodos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-    <h2 className="text-white font-bold mb-6 border-l-4 border-purple-500 pl-3">
-        Ventas: Productos vs Servicios
-    </h2>
-    
-    {/* Contenedor con altura explícita para evitar el error de width/height -1 */}
-    <div className="w-full h-[300px] min-h-[300px] relative"> 
-        <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-                <Pie 
-                    data={dataGrafico} 
-                    cx="50%" 
-                    cy="50%" 
-                    innerRadius={60} 
-                    outerRadius={85} 
-                    paddingAngle={5} 
-                    dataKey="value"
-                    isAnimationActive={false} // Desactivar si el error persiste
-                >
-                    {dataGrafico.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
-                    ))}
-                </Pie>
-                <Tooltip 
-                    contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '8px', color: '#fff' }} 
-                    formatter={(v) => formatMoney(v)} 
-                />
-                <Legend iconType="circle" />
-            </PieChart>
-        </ResponsiveContainer>
-    </div>
-</div>
-
+                {/* Detalle Cobros */}
                 <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
                     <h2 className="text-white font-bold mb-6 border-l-4 border-green-500 pl-3">Cobros por Método</h2>
                     <div className="space-y-3">
@@ -224,7 +162,21 @@ export default function Dashboard() {
                                 <span className="text-white font-bold font-mono">{formatMoney(total)}</span>
                             </div>
                         ))}
-                        {Object.keys(pagosPorMetodo).length === 0 && <p className="text-gray-500 text-center py-4">No hay cobros en este periodo</p>}
+                    </div>
+                </div>
+
+                {/* Resumen Operativo */}
+                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                    <h2 className="text-white font-bold mb-6 border-l-4 border-blue-500 pl-3">Estadísticas del Periodo</h2>
+                    <div className="grid grid-cols-1 gap-4">
+                        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex justify-between items-center">
+                            <span className="text-gray-400">Órdenes Realizadas (No anuladas)</span>
+                            <span className="text-2xl font-bold text-white">{totalOrdenes}</span>
+                        </div>
+                        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex justify-between items-center">
+                            <span className="text-gray-400">Monto Total Facturado</span>
+                            <span className="text-xl font-bold text-white">{formatMoney(totalFacturado)}</span>
+                        </div>
                     </div>
                 </div>
             </div>
