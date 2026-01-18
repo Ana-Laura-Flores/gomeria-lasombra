@@ -7,6 +7,7 @@ import {
     getStockDashboard,
 } from "../services/api";
 import Card from "../components/Card";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 /* HELPERS */
 const formatMoney = (v) =>
@@ -34,6 +35,26 @@ const formatMetodoPago = (m) => {
     return m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
+/* --- CÁLCULOS PARA EL GRÁFICO --- */
+const dataGrafico = ordenesActivas.reduce((acc, orden) => {
+    // Recorremos los items de cada orden
+    (orden.items || []).forEach(item => {
+        const tipo = item.tipo === 'producto' ? 'Productos' : 'Servicios';
+        const monto = Number(item.precio_total || 0);
+        
+        const index = acc.findIndex(d => d.name === tipo);
+        if (index > -1) {
+            acc[index].value += monto;
+        } else {
+            acc.push({ name: tipo, value: monto });
+        }
+    });
+    return acc;
+}, [
+    { name: 'Productos', value: 0 },
+    { name: 'Servicios', value: 0 }
+]);
+
 export default function Dashboard() {
     const [ordenes, setOrdenes] = useState([]);
     const [gastos, setGastos] = useState([]);
@@ -46,6 +67,7 @@ export default function Dashboard() {
     const [mes, setMes] = useState("2026-01"); // Ajusta al mes actual
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
+    const COLORS = ['#10b981', '#3b82f6']; // Verde para productos, Azul para servicios
 
     const getRango = () => {
         if (modoFiltro === "dia" && fechaDia) return { desde: fechaDia, hasta: fechaDia };
@@ -181,6 +203,35 @@ export default function Dashboard() {
                         ))}
                     </div>
                 </div>
+                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 mb-8">
+    <h2 className="text-lg font-bold text-white mb-6 border-l-4 border-purple-500 pl-3">
+        Distribución de Ventas: Productos vs Servicios
+    </h2>
+    <div className="h-64 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+                <Pie
+                    data={dataGrafico}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                >
+                    {dataGrafico.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                </Pie>
+                <Tooltip 
+                    contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#fff' }}
+                    formatter={(value) => formatMoney(value)}
+                />
+                <Legend verticalAlign="bottom" height={36}/>
+            </PieChart>
+        </ResponsiveContainer>
+    </div>
+</div>
 
                 {/* RESUMEN OPERATIVO */}
                 <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
