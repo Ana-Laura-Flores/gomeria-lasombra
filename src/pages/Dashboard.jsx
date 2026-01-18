@@ -4,7 +4,7 @@ import {
     getDashboardOrdenes,
     getGastosPorMes,
     getPagosPorMes,
-    getProductos, // Necesitamos esto para el stock
+    getStockDashboard,
 } from "../services/api";
 import Card from "../components/Card";
 
@@ -66,7 +66,7 @@ export default function Dashboard() {
                 getDashboardOrdenes(desde, hasta),
                 getGastosPorMes(desde, hasta),
                 getPagosPorMes(desde, hasta),
-                getProductos(),
+                getStockDashboard(),
             ]);
 
             setOrdenes(oRes.data || []);

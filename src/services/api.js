@@ -246,6 +246,10 @@ export const getProductos = async (tipoVehiculo) => {
   );
 };
 
+// Opción alternativa: Crear una función nueva
+export const getStockDashboard = async () => {
+  return apiFetch(`productos?filter[estado][_eq]=activo&limit=-1`);
+};
 
 export const getClienteById = async (id) => {
   return apiFetch(`clientes/${id}?fields=id,nombre,saldo_cc`);
