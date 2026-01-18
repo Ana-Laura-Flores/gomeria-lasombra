@@ -114,7 +114,39 @@ return (
                 </div>
 
                 {/* ===== TABLA DE ITEMS (Sin cambios significativos, funciona perfecto) ===== */}
-                {/* ... tu tabla de items ... */}
+               {/* ===== TABLA DE ITEMS (Agrega esto donde dice "... tu tabla de items ...") ===== */}
+<div className="mb-8 overflow-hidden border border-gray-800 rounded-xl">
+    <table className="w-full text-left border-collapse">
+        <thead className="bg-gray-800/50 text-gray-400 text-[10px] uppercase font-black tracking-widest">
+            <tr>
+                <th className="p-4">Descripción</th>
+                <th className="p-4 text-center">Cant.</th>
+                <th className="p-4 text-right">Precio Unit.</th>
+                <th className="p-4 text-right">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-800 text-gray-200">
+            {orden.items && orden.items.length > 0 ? (
+                orden.items.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-gray-800/30 transition-colors">
+                        <td className="p-4 font-medium">{item.descripcion || item.nombre}</td>
+                        <td className="p-4 text-center font-mono">{item.cantidad}</td>
+                        <td className="p-4 text-right font-mono">{formatMoney(item.precio_unitario || item.precio)}</td>
+                        <td className="p-4 text-right font-mono text-white">
+                            {formatMoney((item.cantidad || 0) * (item.precio_unitario || item.precio || 0))}
+                        </td>
+                    </tr>
+                ))
+            ) : (
+                <tr>
+                    <td colSpan="4" className="p-10 text-center text-gray-500 italic">
+                        No hay items cargados en esta orden.
+                    </td>
+                </tr>
+            )}
+        </tbody>
+    </table>
+</div>
 
                 {/* ===== TOTALES ===== */}
                 <div className="flex flex-col items-end gap-1 border-t border-gray-800 pt-6">
