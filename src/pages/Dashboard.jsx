@@ -89,26 +89,16 @@ export default function Dashboard() {
    /* --- LÓGICA DE FILTRADO (SIN ANULADAS) --- */
 
 // 1. Primero filtramos las órdenes para que SOLO queden las que NO están anuladas
+/* --- LÓGICA DE FILTRADO --- */
 const ordenesActivas = ordenes.filter(o => {
-    // 1. Si es nulo o vacío, asumimos que está activa
-    if (!o.estado) return true;
-
-    // 2. Si es un string (palabra)
-    const estadoStr = String(o.estado).toLowerCase().trim();
-    if (estadoStr === 'anulado' || estadoStr === 'anulada' || estadoStr === 'cancelado') return false;
-
-    // 3. Si es un número (ej: 0 es anulado)
-    if (o.estado === 0) return false;
-
-    // 4. Si es un booleano (ej: anulado: true)
-    if (o.anulado === true || o.anulado === 1) return false;
-
-    return true;
+    // Convertimos a string y minúsculas para evitar errores de tipeo
+    const valorEstado = String(o.estado || "").toLowerCase().trim();
+    
+    // Filtramos: NO queremos las anuladas ni las archivadas
+    return valorEstado !== 'anulado' && valorEstado !== 'anulada' && valorEstado !== 'archived';
 });
-// 2. Ahora sí, contamos sobre el resultado filtrado
-const totalOrdenes = ordenesActivas.length; 
 
-// 3. Sumamos el total facturado solo de las activas
+const totalOrdenes = ordenesActivas.length; 
 const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
 
 // 4. Filtrado de pagos (también quitamos los que pertenecen a órdenes anuladas)
@@ -124,13 +114,7 @@ const pagosValidos = pagos.filter((p) => {
 const totalCobrado = pagosValidos.reduce((a, p) => a + Number(p.monto || 0), 0);
 const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
 
-// Debug para que veas en la consola qué está pasando:
-console.log("Total Órdenes RAW:", ordenes.length);
-console.log("Órdenes Activas detectadas:", totalOrdenes);
-if (ordenes.length > 0) {
-    console.log("EJEMPLO DE ORDEN:", ordenes[0]);
-    console.log("ESTADO DE LA PRIMERA:", ordenes[0].estado);
-}
+
 
     const pagosPorMetodo = pagosValidos.reduce((acc, p) => {
         const metodo = normalizarMetodo(p.metodo_pago);

@@ -137,7 +137,7 @@ export const getUltimoComprobante = async () => {
 
 export const getDashboardOrdenes = async (desde, hasta) => {
   return apiFetch(
-    `ordenes_trabajo?fields=id,total,total_pagado,saldo,fecha&filter[fecha][_between]=${desde},${hasta}`
+    `ordenes_trabajo?fields=id,total,total_pagado,saldo,fecha,estado&filter[fecha][_between]=${desde},${hasta}`
   );
 };
 
