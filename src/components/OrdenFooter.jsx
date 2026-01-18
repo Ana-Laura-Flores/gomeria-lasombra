@@ -125,9 +125,11 @@ export default function OrdenFooter({
           }),
         });
 
-        if (!resItem.ok) {
-           console.error("Error guardando item:", await resItem.json());
-        }
+        // Buscá la parte donde guardás los items y poné esto:
+if (!resItem.ok) {
+  const errorDetalle = await resItem.json();
+  console.log("❌ ERROR REAL EN ITEMS:", JSON.stringify(errorDetalle, null, 2));
+}
       }
 
       // -------------------------------------------------------
