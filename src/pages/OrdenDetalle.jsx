@@ -106,11 +106,22 @@ return (
                         <p className="text-white text-lg font-medium uppercase tracking-[0.2em]">{orden.patente || "No registra"}</p>
                     </div>
                     <div>
-                        <p className="text-gray-500 text-[10px] uppercase font-black mb-1 tracking-widest">Condición</p>
-                        <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black uppercase ${orden.condicion_cobro === 'contado' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>
-                            {orden.condicion_cobro === 'contado' ? 'Efectivo / Contado' : 'Cuenta Corriente'}
-                        </span>
-                    </div>
+  <p className="text-gray-500 text-[10px] uppercase font-black mb-1 tracking-widest">Condición</p>
+  <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black uppercase ${
+    orden.condicion_cobro === 'contado' 
+      ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
+      : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
+  }`}>
+    {orden.condicion_cobro === 'cuenta_corriente' 
+      ? 'Cuenta Corriente' 
+      : (
+          orden.pagos?.length > 0 
+            ? orden.pagos.map(p => p.metodo_pago).join(" / ") 
+            : 'Contado'
+        )
+    }
+  </span>
+</div>
                 </div>
 
                 {/* ===== TABLA DE ITEMS (Sin cambios significativos, funciona perfecto) ===== */}

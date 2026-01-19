@@ -65,12 +65,15 @@ export default function OrdenPrint({ orden }) {
     </div>
 
     {/* 👇 NUEVO */}
-    <div>
-        <strong>Condición de cobro:</strong>{" "}
-        {orden.condicion_cobro === "contado"
-            ? "Contado"
-            : "Cuenta corriente"}
-    </div>
+   {/* Reemplazá el bloque de Condición de cobro por este */}
+<div>
+    <strong>Condición de cobro:</strong>{" "}
+    {orden.condicion_cobro === "contado"
+        ? `Contado ${orden.pagos?.length > 0 
+            ? `(${orden.pagos.map(p => p.metodo_pago).join(" / ")})` 
+            : ""}`
+        : "Cuenta corriente"}
+</div>
 
     {orden.estado && (
         <div>
