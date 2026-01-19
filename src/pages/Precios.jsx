@@ -49,7 +49,7 @@ export default function Precios() {
         <div className="relative mb-8 shadow-2xl">
           <input
             type="text"
-            placeholder="¿Qué servicio buscas? (ej: Parche, Cubierta...)"
+            placeholder="¿Qué servicio o producto buscas? (ej: Parche, Cubierta...)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full p-4 pl-12 rounded-2xl bg-gray-800 border-2 border-gray-700 text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all text-lg font-medium"
