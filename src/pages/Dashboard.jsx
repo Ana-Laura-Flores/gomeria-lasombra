@@ -8,11 +8,11 @@ import {
 } from "../services/api";
 import Card from "../components/Card";
 
+/* --- HELPERS --- */
 const formatMoney = (v) =>
     new Intl.NumberFormat("es-AR", {
         style: "currency",
         currency: "ARS",
-        maximumFractionDigits: 0
     }).format(Number(v) || 0);
 
 const getRangoMes = (mes) => {
@@ -25,14 +25,13 @@ const getRangoMes = (mes) => {
 };
 
 const normalizarMetodo = (m) => {
-    if (!m) return "sin_metodo";
-    if (Array.isArray(m)) m = m[0];
-    return String(m).toLowerCase().trim().replace(/\s+/g, "_");
+    if (Array.isArray(m)) return m[0]?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
+    return m?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
 };
 
 const formatMetodoPago = (m) => {
-    if (!m || m === "sin_metodo") return "Otros / No especificado";
-    return String(m).replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    if (!m) return "Sin método";
+    return m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 export default function Dashboard() {
@@ -42,9 +41,10 @@ export default function Dashboard() {
     const [productosBajoStock, setProductosBajoStock] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // Filtros originales
     const [modoFiltro, setModoFiltro] = useState("mes");
     const [fechaDia, setFechaDia] = useState(new Date().toISOString().split('T')[0]);
-    const [mes, setMes] = useState("2026-01"); 
+    const [mes, setMes] = useState("2026-01");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
 
@@ -58,6 +58,8 @@ export default function Dashboard() {
     useEffect(() => {
         const cargar = async () => {
             const { desde, hasta } = getRango();
+            if (modoFiltro === "rango" && (!fechaDesde || !fechaHasta)) return;
+
             setLoading(true);
             try {
                 const [oRes, gRes, pRes, prodRes] = await Promise.all([
@@ -66,13 +68,15 @@ export default function Dashboard() {
                     getPagosPorMes(desde, hasta),
                     getStockDashboard(),
                 ]);
+
                 setOrdenes(oRes.data || []);
                 setGastos(gRes.data || []);
                 setPagos(pRes.data || []);
+
                 const listaProd = prodRes.data?.data || prodRes.data || [];
                 setProductosBajoStock(listaProd.filter(p => Number(p.stock) <= 5));
             } catch (e) {
-                console.error("Error Dashboard:", e);
+                console.error("Error cargando Dashboard:", e);
             } finally {
                 setLoading(false);
             }
@@ -80,15 +84,24 @@ export default function Dashboard() {
         cargar();
     }, [modoFiltro, fechaDia, mes, fechaDesde, fechaHasta]);
 
-    if (loading) return <MainLayout><div className="p-10 text-white font-black animate-pulse text-center uppercase">Cargando métricas...</div></MainLayout>;
+    if (loading) return <MainLayout><div className="p-10 text-white">Cargando métricas...</div></MainLayout>;
 
+    /* --- LÓGICA DE FILTRADO --- */
     const ordenesActivas = ordenes.filter(o => {
-        const est = String(o.estado || "").toLowerCase().trim();
-        return est !== 'anulado' && est !== 'anulada' && est !== 'archived';
+        const valorEstado = String(o.estado || "").toLowerCase().trim();
+        return valorEstado !== 'anulado' && valorEstado !== 'anulada' && valorEstado !== 'archived';
     });
 
+    const totalOrdenes = ordenesActivas.length;
     const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
-    const pagosValidos = pagos.filter(p => !p.anulado);
+
+    const pagosValidos = pagos.filter((p) => {
+        const pagoAnulado = p.anulado === true || p.anulado === 1;
+        const estadoOrdenRelacionada = String(p.orden_trabajo?.estado || "").toLowerCase().trim();
+        const ordenAnulada = estadoOrdenRelacionada === 'anulado' || estadoOrdenRelacionada === 'anulada';
+        return !pagoAnulado && !ordenAnulada;
+    });
+
     const totalCobrado = pagosValidos.reduce((a, p) => a + Number(p.monto || 0), 0);
     const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
 
@@ -105,31 +118,64 @@ export default function Dashboard() {
                     nav, aside, button, select, input, .no-print, .stock-alert { display: none !important; }
                     body { background: white !important; color: black !important; padding: 0; margin: 0; }
                     .print-only { display: block !important; padding: 20px !important; }
-                    h1, h2, h3 { color: black !important; text-transform: uppercase; }
+                    h1, h2, h3 { color: black !important; text-transform: uppercase; margin-bottom: 10px; }
                     table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid black !important; }
-                    th, td { border: 1px solid black !important; padding: 6px; text-align: left; font-size: 10px; color: black !important; }
-                    th { background-color: #f0f0f0 !important; }
+                    th, td { border: 1px solid black !important; padding: 8px; text-align: left; font-size: 11px; color: black !important; }
+                    th { background-color: #eee !important; font-weight: bold; }
                     .text-right { text-align: right; }
                 }
                 .print-only { display: none; }
             `}} />
 
-            {/* VISTA PANTALLA */}
             <div className="no-print">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-white uppercase">Dashboard</h1>
-                    <button onClick={() => window.print()} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold text-sm">
-                        IMPRIMIR REPORTE
-                    </button>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <h1 className="text-3xl font-bold text-white uppercase tracking-tight">Dashboard de Gestión</h1>
+                    
+                    <div className="flex flex-wrap gap-2 bg-gray-800 p-2 rounded-lg border border-gray-700">
+                        <select
+                            value={modoFiltro}
+                            onChange={(e) => setModoFiltro(e.target.value)}
+                            className="bg-gray-900 text-white border-none rounded px-3 py-1 text-sm outline-none cursor-pointer"
+                        >
+                            <option value="dia">Hoy</option>
+                            <option value="mes">Mes</option>
+                            <option value="rango">Rango</option>
+                        </select>
+
+                        {modoFiltro === "dia" && (
+                            <input type="date" value={fechaDia} onChange={(e) => setFechaDia(e.target.value)}
+                                className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />
+                        )}
+
+                        {modoFiltro === "mes" && (
+                            <input type="month" value={mes} onChange={(e) => setMes(e.target.value)}
+                                className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />
+                        )}
+
+                        {modoFiltro === "rango" && (
+                            <div className="flex gap-2">
+                                <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)}
+                                    className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />
+                                <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)}
+                                    className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />
+                            </div>
+                        )}
+                        <button 
+                            onClick={() => window.print()}
+                            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1 rounded font-bold text-sm uppercase"
+                        >
+                            Imprimir
+                        </button>
+                    </div>
                 </div>
 
-                {/* ALERTA STOCK */}
+                {/* Alerta de Stock */}
                 {productosBajoStock.length > 0 && (
-                    <div className="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-xl">
-                        <h2 className="text-red-500 font-bold text-xs uppercase mb-2">⚠️ Stock Crítico</h2>
+                    <div className="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-xl stock-alert">
+                        <h2 className="text-red-500 font-bold text-xs uppercase mb-2 tracking-widest">⚠️ Alerta de Reposición</h2>
                         <div className="flex flex-wrap gap-2">
                             {productosBajoStock.map(p => (
-                                <span key={p.id} className="bg-gray-900 text-[10px] px-2 py-1 rounded border border-red-900">
+                                <span key={p.id} className="bg-gray-900 text-white text-[10px] px-2 py-1 rounded border border-red-900">
                                     {p.nombre}: <b className="text-red-500">{p.stock}</b>
                                 </span>
                             ))}
@@ -137,75 +183,113 @@ export default function Dashboard() {
                     </div>
                 )}
 
+                {/* Cards Métricas Principales */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <Card title="Cobrado (Ingreso)" value={formatMoney(totalCobrado)} color="text-green-400" />
-                    <Card title="Gastos (Egreso)" value={formatMoney(totalGastos)} color="text-red-400" />
-                    <Card title="Neto" value={formatMoney(totalCobrado - totalGastos)} color="text-blue-400" />
-                    <Card title="Cta. Cte." value={formatMoney(totalFacturado - totalCobrado)} color="text-yellow-500" />
+                    <Card title="Ingresos (Caja)" value={formatMoney(totalCobrado)} color="text-green-400" />
+                    <Card title="Gastos Totales" value={formatMoney(totalGastos)} color="text-red-400" />
+                    <Card title="Resultado Neto" value={formatMoney(totalCobrado - totalGastos)} color="text-blue-400" />
+                    <Card title="Pendiente Cobro" value={formatMoney(totalFacturado - totalCobrado)} color="text-yellow-500" />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Detalle Cobros */}
+                    <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                        <h2 className="text-white font-bold mb-6 border-l-4 border-green-500 pl-3">Cobros por Método</h2>
+                        <div className="space-y-3">
+                            {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
+                                <div key={metodo} className="flex justify-between items-center bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                                    <span className="text-gray-300">{formatMetodoPago(metodo)}</span>
+                                    <span className="text-white font-bold font-mono">{formatMoney(total)}</span>
+                                </div>
+                            ))}
+                            {Object.keys(pagosPorMetodo).length === 0 && (
+                                 <p className="text-gray-500 text-sm italic text-center py-4">Sin movimientos registrados</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Resumen Operativo */}
+                    <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                        <h2 className="text-white font-bold mb-6 border-l-4 border-blue-500 pl-3">Estadísticas del Periodo</h2>
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex justify-between items-center">
+                                <span className="text-gray-400">Órdenes Realizadas (No anuladas)</span>
+                                <span className="text-2xl font-bold text-white">{totalOrdenes}</span>
+                            </div>
+                            <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex justify-between items-center">
+                                <span className="text-gray-400">Monto Total Facturado</span>
+                                <span className="text-xl font-bold text-white font-mono">{formatMoney(totalFacturado)}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* VISTA IMPRESIÓN REFORZADA */}
+            {/* SECCIÓN IMPRESIÓN (DETALLADA) */}
             <div className="print-only">
                 <div style={{ textAlign: 'center' }}>
                     <h1 style={{ margin: 0 }}>Gomería La Sombra</h1>
-                    <p style={{ fontSize: '12px' }}>Cierre de Caja: {getRango().desde} al {getRango().hasta}</p>
+                    <p>Reporte de Caja: {getRango().desde} al {getRango().hasta}</p>
                 </div>
 
-                <h3 style={{ borderBottom: '2px solid black', marginTop: '20px' }}>Resumen de Fondos</h3>
+                <h3 style={{ borderBottom: '1px solid black', marginTop: '20px' }}>Resumen General</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>CONCEPTO</th>
-                            <th className="text-right">IMPORTE</th>
+                            <th>Concepto</th>
+                            <th className="text-right">Monto</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>TOTAL INGRESOS (Cobros registrados)</td><td className="text-right">{formatMoney(totalCobrado)}</td></tr>
-                        <tr><td>TOTAL EGRESOS (Gastos registrados)</td><td className="text-right">{formatMoney(totalGastos)}</td></tr>
-                        <tr style={{ fontSize: '12px', fontWeight: 'bold' }}>
-                            <td>SALDO NETO</td>
-                            <td className="text-right">{formatMoney(totalCobrado - totalGastos)}</td>
-                        </tr>
+                        <tr><td>(+) Total Ingresos (Cobrado)</td><td className="text-right">{formatMoney(totalCobrado)}</td></tr>
+                        <tr><td>(-) Total Egresos (Gastos)</td><td className="text-right">{formatMoney(totalGastos)}</td></tr>
+                        <tr><td><b>(=) Saldo Neto en Caja</b></td><td className="text-right"><b>{formatMoney(totalCobrado - totalGastos)}</b></td></tr>
+                        <tr><td>Pendiente de Cobro (Cta. Cte.)</td><td className="text-right">{formatMoney(totalFacturado - totalCobrado)}</td></tr>
                     </tbody>
                 </table>
 
-                {/* DETALLE DE GASTOS: Aquí usamos "concepto" */}
-                <h3 style={{ borderBottom: '2px solid black', marginTop: '20px' }}>Detalle de Gastos (Egresos)</h3>
+                <h3>Detalle de Gastos</h3>
                 {gastos.length > 0 ? (
                     <table>
                         <thead>
                             <tr>
-                                <th>FECHA</th>
-                                <th>CONCEPTO</th>
-                                <th>MÉTODO</th>
-                                <th className="text-right">MONTO</th>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th className="text-right">Monto</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {gastos.map((g) => (
+                            {gastos.map(g => (
                                 <tr key={g.id}>
                                     <td>{g.fecha}</td>
-                                    <td style={{ textTransform: 'uppercase' }}>{g.concepto || "Sin concepto"}</td>
-                                    <td>{formatMetodoPago(g.metodo_pago)}</td>
+                                    <td style={{ textTransform: 'uppercase' }}>{g.concepto || "Sin descripción"}</td>
                                     <td className="text-right">{formatMoney(g.monto)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                ) : <p>No se registraron gastos en este período.</p>}
+                ) : <p>No hay gastos registrados en este periodo.</p>}
 
-                <h3 style={{ borderBottom: '2px solid black', marginTop: '20px' }}>Ingresos por Medio de Pago</h3>
+                <h3>Ingresos por Método</h3>
                 <table>
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th className="text-right">Total</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {Object.entries(pagosPorMetodo).map(([met, mon]) => (
                             <tr key={met}>
                                 <td>{formatMetodoPago(met)}</td>
-                                <td className="text-right"><b>{formatMoney(mon)}</b></td>
+                                <td className="text-right">{formatMoney(mon)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+                <div style={{ marginTop: '30px', fontSize: '10px', textAlign: 'right' }}>
+                    Impreso el: {new Date().toLocaleString()}
+                </div>
             </div>
         </MainLayout>
     );
