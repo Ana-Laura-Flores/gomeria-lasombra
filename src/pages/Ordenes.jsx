@@ -8,8 +8,6 @@ export default function Ordenes() {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const [search, setSearch] = useState("");
-
-  // --- NUEVOS FILTROS DE FECHA ---
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
 
@@ -17,11 +15,7 @@ export default function Ordenes() {
     setLoading(true);
     try {
       const res = await getOrdenesTrabajo();
-      const data = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data?.data)
-        ? res.data.data
-        : [];
+      const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
       setOrdenes(data);
     } catch (err) {
       console.error("Error cargando órdenes:", err);
@@ -35,7 +29,9 @@ export default function Ordenes() {
   }, [location.state, fetchOrdenes]);
 
   const getEstadoVisual = (orden) => {
-    if (orden.estado === "anulado" || orden.estado === "anulada") {
+    // Normalizamos para que no importe si es "Anulado", "anulada" o "ANULADO"
+    const est = String(orden.estado || "").toLowerCase().trim();
+    if (est === "anulado" || est === "anulada") {
       return { label: "Anulado", className: "bg-red-500 font-bold" };
     }
     const total = Number(orden.total) || 0;
@@ -49,10 +45,10 @@ export default function Ordenes() {
     new Intl.NumberFormat("es-AR", {
       style: "currency",
       currency: "ARS",
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 0,
     }).format(Number(value) || 0);
 
-  // --- LÓGICA DE FILTRADO COMBINADA ---
+  // --- FILTRADO PARA LA TABLA (Mostramos todo lo que coincida con la búsqueda) ---
   const ordenesFiltradas = ordenes.filter((orden) => {
     const texto = search.toLowerCase();
     const estado = getEstadoVisual(orden);
@@ -73,27 +69,15 @@ export default function Ordenes() {
     return cumpleTexto && cumpleFecha;
   });
 
-  // --- CÁLCULOS DE CAJA (PARA RESUMEN E IMPRESIÓN) ---
-  const oActivas = ordenesFiltradas.filter(o => o.estado !== "anulado" && o.estado !== "anulada");
+  // --- CÁLCULOS DE DINERO (Solo sumamos las que NO están anuladas) ---
+  const oNoAnuladas = ordenesFiltradas.filter(o => {
+    const est = String(o.estado || "").toLowerCase().trim();
+    return est !== "anulado" && est !== "anulada";
+  });
   
-  const totalFacturado = oActivas.reduce((acc, o) => acc + Number(o.total || 0), 0);
-  const totalSaldoPendiente = oActivas.reduce((acc, o) => acc + Number(o.saldo || 0), 0);
+  const totalFacturado = oNoAnuladas.reduce((acc, o) => acc + Number(o.total || 0), 0);
+  const totalSaldoPendiente = oNoAnuladas.reduce((acc, o) => acc + Number(o.saldo || 0), 0);
   const totalCobradoEfectivo = totalFacturado - totalSaldoPendiente;
-
-  // Desglose por modalidad de pago (buscando dentro de orden.pagos)
-  const desglosePagos = oActivas.reduce((acc, o) => {
-    o.pagos?.forEach(p => {
-      const metodo = p.metodo_pago || "No Especificado";
-      acc[metodo] = (acc[metodo] || 0) + Number(p.monto || 0);
-    });
-    return acc;
-  }, {});
-
-  if (loading) {
-    return (
-      <MainLayout><p className="p-4 text-gray-400">Cargando órdenes...</p></MainLayout>
-    );
-  }
 
   return (
     <MainLayout>
@@ -111,54 +95,26 @@ export default function Ordenes() {
       <div className="no-print">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Órdenes y Caja</h1>
-          <button 
-            onClick={() => window.print()}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold transition text-sm"
-          >
+          <button onClick={() => window.print()} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-bold text-sm">
             IMPRIMIR REPORTE
           </button>
         </div>
 
-        {/* FILTROS FECHAS */}
+        {/* FILTROS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 bg-gray-800 p-4 rounded-lg border border-gray-700">
-          <div>
-            <label className="text-xs text-gray-400 block mb-1">Buscar texto</label>
-            <input
-              type="text"
-              placeholder="Cliente, patente..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full p-2 rounded bg-gray-900 border border-gray-700 text-white text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-gray-400 block mb-1">Fecha Desde</label>
-            <input
-              type="date"
-              value={fechaDesde}
-              onChange={(e) => setFechaDesde(e.target.value)}
-              className="w-full p-2 rounded bg-gray-900 border border-gray-700 text-white text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-gray-400 block mb-1">Fecha Hasta</label>
-            <input
-              type="date"
-              value={fechaHasta}
-              onChange={(e) => setFechaHasta(e.target.value)}
-              className="w-full p-2 rounded bg-gray-900 border border-gray-700 text-white text-sm"
-            />
-          </div>
+          <input type="text" placeholder="Buscar cliente, patente..." value={search} onChange={(e) => setSearch(e.target.value)} className="p-2 rounded bg-gray-900 border border-gray-700 text-white text-sm" />
+          <input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} className="p-2 rounded bg-gray-900 border border-gray-700 text-white text-sm" />
+          <input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} className="p-2 rounded bg-gray-900 border border-gray-700 text-white text-sm" />
         </div>
 
-        {/* RESUMEN RÁPIDO */}
+        {/* RESUMEN (No incluye anuladas) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-blue-900/20 p-4 rounded border border-blue-500/30">
-            <span className="text-xs text-blue-400 uppercase">Facturación Total</span>
+            <span className="text-xs text-blue-400">VENTAS TOTALES</span>
             <p className="text-xl font-bold">{formatMoney(totalFacturado)}</p>
           </div>
           <div className="bg-green-900/20 p-4 rounded border border-green-500/30">
-            <span className="text-xs text-green-400 uppercase">Total Cobrado</span>
+            <span className="text-xs text-green-400">TOTAL COBRADO</span>
             <p className="text-xl font-bold">{formatMoney(totalCobradoEfectivo)}</p>
           </div>
           <div className="bg-red-900/20 p-4 rounded border border-red-500/30">
@@ -168,65 +124,57 @@ export default function Ordenes() {
         </div>
       </div>
 
-      {/* VISTA IMPRESIÓN (SOLO TOTALES Y TABLA) */}
       <div className="print-only">
         <h1 style={{ textAlign: 'center', margin: 0 }}>GOMERÍA LA SOMBRA</h1>
-        <p style={{ textAlign: 'center', fontSize: '12px' }}>Cierre de Caja Detallado</p>
-        <p style={{ fontSize: '10px' }}>Filtro: {fechaDesde || 'Inicio'} al {fechaHasta || 'Hoy'}</p>
-        
-        <div style={{ margin: '15px 0', border: '1px solid black', padding: '10px' }}>
-          <p><b>RESUMEN:</b></p>
+        <p style={{ textAlign: 'center', fontSize: '10px' }}>Resumen de Caja</p>
+        <div style={{ margin: '10px 0', border: '1px solid black', padding: '10px' }}>
           <p>Total Facturado: {formatMoney(totalFacturado)}</p>
           <p>Total Cobrado: {formatMoney(totalCobradoEfectivo)}</p>
-          <p>Total Pendiente (Cta Cte): {formatMoney(totalSaldoPendiente)}</p>
-          <hr />
-          <p><b>COBROS POR MEDIO:</b></p>
-          {Object.entries(desglosePagos).map(([met, mon]) => (
-            <p key={met}>{met.replace(/_/g, ' ').toUpperCase()}: {formatMoney(mon)}</p>
-          ))}
+          <p>Total Pendiente: {formatMoney(totalSaldoPendiente)}</p>
         </div>
       </div>
 
-      {/* TABLA PRINCIPAL (VISIBLE EN AMBOS) */}
+      {/* TABLA: AQUÍ SE VEN TODAS, INCLUIDAS ANULADAS */}
       <div className="overflow-x-auto bg-gray-800 rounded-lg shadow">
         <table className="min-w-[900px] w-full border-collapse">
           <thead>
-            <tr className="border-b border-gray-700 text-left bg-gray-900/50">
-              <th className="p-3 text-gray-400 font-medium">Fecha</th>
-              <th className="p-3 text-gray-400 font-medium">Comprobante</th>
-              <th className="p-3 text-gray-400 font-medium">Cliente</th>
-              <th className="p-3 text-gray-400 font-medium">Patente</th>
-              <th className="p-3 text-gray-400 font-medium">Método pago</th>
-              <th className="p-3 text-gray-400 font-medium">Total</th>
-              <th className="p-3 text-gray-400 font-medium">Estado</th>
-              <th className="p-3 text-gray-400 font-medium text-center no-print">Acciones</th>
+            <tr className="border-b border-gray-700 text-left bg-gray-900/50 text-gray-400 text-sm">
+              <th className="p-3">Fecha</th>
+              <th className="p-3">Comprobante</th>
+              <th className="p-3">Cliente</th>
+              <th className="p-3">Método pago</th>
+              <th className="p-3">Total</th>
+              <th className="p-3">Estado</th>
+              <th className="p-3 text-center no-print">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {ordenesFiltradas.map((orden) => {
               const estado = getEstadoVisual(orden);
-              const esAnulada = orden.estado === "anulado";
+              const esAnulada = estado.label === "Anulado";
+              
+              const metodoMostrar = esAnulada 
+                ? "ANULADA" 
+                : (orden.pagos && orden.pagos.length > 0)
+                  ? orden.pagos.map(p => p.metodo_pago?.replace(/_/g, ' ').toUpperCase()).join(", ")
+                  : "CUENTA CORRIENTE";
+
               return (
-                <tr key={orden.id} className={`border-b border-gray-700/50 hover:bg-gray-750 transition-colors ${esAnulada ? "bg-red-900/10 opacity-70" : ""}`}>
-                  <td className="p-3">{orden.fecha ? orden.fecha.split("T")[0] : "-"}</td>
+                <tr key={orden.id} className={`border-b border-gray-700/50 transition-colors ${esAnulada ? "bg-red-900/20 opacity-60" : "hover:bg-gray-700"}`}>
+                  <td className="p-3 text-sm">{orden.fecha ? orden.fecha.split("T")[0] : "-"}</td>
                   <td className="p-3 font-mono text-sm">{orden.comprobante || "-"}</td>
-                  <td className="p-3 font-bold">
-                    {orden.cliente ? `${orden.cliente.nombre} ${orden.cliente.apellido || ""}` : "-"}
+                  <td className="p-3 font-bold uppercase text-sm">{orden.cliente?.nombre} {orden.cliente?.apellido}</td>
+                  <td className={`p-3 text-[10px] font-black ${metodoMostrar === "CUENTA CORRIENTE" ? "text-yellow-500" : (esAnulada ? "text-red-400" : "text-gray-300")}`}>
+                    {metodoMostrar}
                   </td>
-                  <td className="p-3 uppercase">{orden.patente}</td>
-                  <td className="p-3 text-sm">
-                    {esAnulada ? <span className="text-red-400 italic">ANULADA</span> : (
-                      orden.pagos?.length ? orden.pagos.map(p => p.metodo_pago).join(", ") : "—"
-                    )}
-                  </td>
-                  <td className="p-3 font-semibold">{formatMoney(orden.total)}</td>
+                  <td className="p-3 text-sm">{formatMoney(orden.total)}</td>
                   <td className="p-3">
-                    <span className={`px-2 py-1 rounded text-[10px] text-white uppercase ${estado.className}`}>
+                    <span className={`px-2 py-1 rounded text-[9px] text-white uppercase font-black ${estado.className}`}>
                       {estado.label}
                     </span>
                   </td>
                   <td className="p-3 text-center no-print">
-                    <Link to={`/ordenes/${orden.id}`} className="text-blue-400 hover:text-blue-300 font-medium">Ver</Link>
+                    <Link to={`/ordenes/${orden.id}`} className="text-blue-400 text-sm font-bold">VER</Link>
                   </td>
                 </tr>
               );
