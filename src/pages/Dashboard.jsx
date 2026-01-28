@@ -5,7 +5,7 @@ import {
     getGastosPorMes,
     getPagosPorMes,
     getStockDashboard,
-    getClientes, // Asegurate de tener esta función en tu api.js
+    getClientes, 
 } from "../services/api";
 import Card from "../components/Card";
 
@@ -35,7 +35,7 @@ export default function Dashboard() {
     const [ordenes, setOrdenes] = useState([]);
     const [gastos, setGastos] = useState([]);
     const [pagos, setPagos] = useState([]);
-    const [clientes, setClientes] = useState([]); // Nuevo estado para clientes
+    const [clientes, setClientes] = useState([]);
     const [productosBajoStock, setProductosBajoStock] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -57,24 +57,31 @@ export default function Dashboard() {
             const { desde, hasta } = getRango();
             setLoading(true);
             try {
-                // Agregamos getClientes() a la carga inicial
-                const [oRes, gRes, pRes, prodRes, cRes] = await Promise.all([
+                // Primero cargamos lo vital
+                const [oRes, gRes, pRes, prodRes] = await Promise.all([
                     getDashboardOrdenes(desde, hasta),
                     getGastosPorMes(desde, hasta),
                     getPagosPorMes(desde, hasta),
                     getStockDashboard(),
-                    getClientes() 
                 ]);
 
                 setOrdenes(oRes.data || []);
                 setGastos(gRes.data || []);
                 setPagos(pRes.data || []);
-                setClientes(cRes.data?.data || cRes.data || []); // Guardamos clientes
                 
+                // Cargamos clientes por separado. Si falla, no bloquea el dashboard.
+                try {
+                    const cRes = await getClientes();
+                    const listaClientes = cRes.data?.data || cRes.data || [];
+                    setClientes(listaClientes);
+                } catch (err) {
+                    console.error("Error al traer clientes (posible config API):", err);
+                }
+
                 const listaProd = prodRes.data?.data || prodRes.data || [];
                 setProductosBajoStock(listaProd.filter(p => Number(p.stock) <= 5));
             } catch (e) {
-                console.error("Error cargando Dashboard:", e);
+                console.error("Error crítico:", e);
             } finally {
                 setLoading(false);
             }
@@ -82,22 +89,22 @@ export default function Dashboard() {
         cargar();
     }, [modoFiltro, fechaDia, mes, fechaDesde, fechaHasta]);
 
-    // Función para buscar el nombre del cliente por ID
     const obtenerNombreCliente = (id) => {
-        const cliente = clientes.find(c => c.id === id);
-        return cliente ? cliente.nombre : "Consumidor Final";
+        if (!id) return "CONSUMIDOR FINAL";
+        // Si el id ya es un objeto (porque la API lo expandió), devolvemos el nombre
+        if (typeof id === 'object') return id.nombre || "S/N";
+        // Si es un string (ID), buscamos en nuestra lista de clientes
+        const encontrado = clientes.find(c => c.id === id);
+        return encontrado ? encontrado.nombre : `ID: ${id.substring(0,5)}...`;
     };
 
     const ordenesActivas = ordenes.filter(o => {
-        const valorEstado = String(o.estado || "").toLowerCase().trim();
-        return valorEstado !== 'anulado' && valorEstado !== 'anulada' && valorEstado !== 'archived';
+        const s = String(o.estado || "").toLowerCase().trim();
+        return s !== 'anulado' && s !== 'anulada' && s !== 'archived';
     });
 
     const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
-    const totalCobrado = pagos.reduce((a, p) => {
-        const pagoAnulado = p.anulado === true || p.anulado === 1;
-        return !pagoAnulado ? a + Number(p.monto || 0) : a;
-    }, 0);
+    const totalCobrado = pagos.reduce((a, p) => (p.anulado ? a : a + Number(p.monto || 0)), 0);
     const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
 
     return (
@@ -109,16 +116,16 @@ export default function Dashboard() {
                     .print-only { display: block !important; padding: 20px; }
                     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                     th, td { border: 1px solid black !important; padding: 5px; text-align: left; font-size: 9px; }
-                    th { background-color: #eee !important; text-transform: uppercase; }
+                    th { background-color: #eee !important; }
                 }
                 .print-only { display: none; }
             `}} />
 
-            {/* --- VISTA PANTALLA (DISEÑO OSCURO ORIGINAL) --- */}
+            {/* PANTALLA */}
             <div className="no-print">
-                <div className="flex justify-between items-center mb-8 gap-4">
-                    <h1 className="text-3xl font-bold text-white uppercase tracking-tight">Dashboard de Gestión</h1>
-                    <button onClick={() => window.print()} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-black uppercase text-xs">
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold text-white uppercase">Dashboard de Gestión</h1>
+                    <button onClick={() => window.print()} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-black text-xs uppercase">
                         Imprimir Reporte
                     </button>
                 </div>
@@ -131,38 +138,38 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* --- VISTA IMPRESIÓN (EL REPORTE) --- */}
+            {/* IMPRESIÓN */}
             <div className="print-only">
-                <div style={{ textAlign: 'center', borderBottom: '2px solid black', paddingBottom: '10px', marginBottom: '20px' }}>
+                <div style={{ textAlign: 'center', borderBottom: '2px solid black', marginBottom: '20px', paddingBottom: '10px' }}>
                     <h1 style={{ fontSize: '24px', margin: 0 }}>GOMERÍA LA SOMBRA</h1>
-                    <p style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>Cierre de Caja: {formatSoloFecha(getRango().desde)} al {formatSoloFecha(getRango().hasta)}</p>
+                    <p style={{ fontWeight: 'bold' }}>CIERRE DE CAJA: {formatSoloFecha(getRango().desde)} al {formatSoloFecha(getRango().hasta)}</p>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                     <div style={{ border: '1px solid black', padding: '10px' }}>
-                        <p style={{ fontWeight: 'bold', fontSize: '10px', borderBottom: '1px solid black', marginBottom: '5px' }}>RESUMEN FINANCIERO</p>
+                        <p style={{ fontSize: '10px', fontWeight: 'bold', borderBottom: '1px solid black' }}>RESUMEN DE FONDOS</p>
                         <p>Total Cobrado: <b>{formatMoney(totalCobrado)}</b></p>
                         <p>Total Gastos: <b>{formatMoney(totalGastos)}</b></p>
                         <p style={{ fontSize: '14px', borderTop: '1px solid black', marginTop: '5px' }}>SALDO: <b>{formatMoney(totalCobrado - totalGastos)}</b></p>
                     </div>
                     <div style={{ border: '1px solid black', padding: '10px' }}>
-                        <p style={{ fontWeight: 'bold', fontSize: '10px', borderBottom: '1px solid black', marginBottom: '5px' }}>ESTADO COMERCIAL</p>
-                        <p>Cant. Órdenes: <b>{ordenesActivas.length}</b></p>
+                        <p style={{ fontSize: '10px', fontWeight: 'bold', borderBottom: '1px solid black' }}>OPERATIVO</p>
+                        <p>Órdenes: <b>{ordenesActivas.length}</b></p>
                         <p>Total Facturado: <b>{formatMoney(totalFacturado)}</b></p>
-                        <p>Pend. Cobro: <b>{formatMoney(totalFacturado - totalCobrado)}</b></p>
+                        <p>A Cobrar: <b>{formatMoney(totalFacturado - totalCobrado)}</b></p>
                     </div>
                 </div>
 
-                <p style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '5px' }}>DETALLE DE OPERACIONES</p>
+                <p style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '5px' }}>DETALLE DE ÓRDENES</p>
                 <table>
                     <thead>
                         <tr>
-                            <th>Nro Comp.</th>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Patente</th>
-                            <th>Pago</th>
-                            <th style={{ textAlign: 'right' }}>Total</th>
+                            <th>COMP.</th>
+                            <th>FECHA</th>
+                            <th>CLIENTE</th>
+                            <th>PATENTE</th>
+                            <th>PAGO</th>
+                            <th style={{ textAlign: 'right' }}>TOTAL</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -170,36 +177,14 @@ export default function Dashboard() {
                             <tr key={o.id}>
                                 <td>{o.comprobante || o.id}</td>
                                 <td>{formatSoloFecha(o.fecha)}</td>
-                                <td style={{ fontWeight: 'bold' }}>{obtenerNombreCliente(o.cliente).trim()}</td>
-                                <td style={{ textTransform: 'uppercase' }}>{o.patente || 'S/P'}</td>
-                                <td style={{ fontSize: '8px' }}>{(o.condicion_cobro || 'CONTADO').replace('_', ' ').toUpperCase()}</td>
+                                <td style={{ fontWeight: 'bold' }}>{obtenerNombreCliente(o.cliente)}</td>
+                                <td>{(o.patente || "S/P").toUpperCase()}</td>
+                                <td style={{ fontSize: '8px' }}>{(o.condicion_cobro || "CONTADO").replace('_', ' ').toUpperCase()}</td>
                                 <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatMoney(o.total)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-
-                {gastos.length > 0 && (
-                    <div style={{ marginTop: '20px' }}>
-                        <p style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '5px' }}>DETALLE DE GASTOS</p>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Descripción / Concepto</th>
-                                    <th style={{ textAlign: 'right' }}>Monto</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {gastos.map(g => (
-                                    <tr key={g.id}>
-                                        <td style={{ textTransform: 'uppercase' }}>{g.descripcion || g.nombre || "Gasto Gral"}</td>
-                                        <td style={{ textAlign: 'right' }}>{formatMoney(g.monto)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
             </div>
         </MainLayout>
     );
