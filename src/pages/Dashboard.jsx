@@ -171,63 +171,143 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* VISTA DE IMPRESIÓN (Solo visible al imprimir) */}
-            <div className="print-only text-black p-4">
-                <div className="text-center border-b-2 border-black mb-6 pb-4">
-                    <h1 className="text-2xl font-bold uppercase">Gomería La Sombra</h1>
-                    <p className="text-sm font-bold">REPORTE DE CAJA: {getRango().desde} al {getRango().hasta}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="border border-black p-3">
-                        <p className="text-xs font-bold uppercase">Ingresos Reales</p>
-                        <p className="text-xl font-black">{formatMoney(totalCobrado)}</p>
-                    </div>
-                    <div className="border border-black p-3">
-                        <p className="text-xs font-bold uppercase">Gastos</p>
-                        <p className="text-xl font-black">{formatMoney(totalGastos)}</p>
-                    </div>
-                </div>
-            </div>
+           {/* VISTA DE IMPRESIÓN (Solo visible al imprimir) */}
+<div className="print-only text-black p-4">
+    <div className="text-center border-b-2 border-black mb-6 pb-4">
+        <h1 className="text-2xl font-bold uppercase">Gomería La Sombra</h1>
+        <p className="text-sm font-bold uppercase">Reporte Detallado de Caja</p>
+        <p className="text-xs italic">Periodo: {getRango().desde} al {getRango().hasta}</p>
+    </div>
 
-            {/* Cards Métricas Principales */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 no-print">
-                <Card title="Ingresos (Caja)" value={formatMoney(totalCobrado)} color="text-green-400" />
-                <Card title="Gastos Totales" value={formatMoney(totalGastos)} color="text-red-400" />
-                <Card title="Resultado Neto" value={formatMoney(totalCobrado - totalGastos)} color="text-blue-400" />
-                <Card title="Cta. Cte. Generada" value={formatMoney(totalFacturado - totalCobrado)} color="text-yellow-500" />
-            </div>
+    {/* Resumen de Valores */}
+    <div className="grid grid-cols-3 gap-2 mb-8">
+        <div className="border border-black p-2 text-center">
+            <p className="text-[10px] font-bold uppercase">Total Facturado</p>
+            <p className="text-lg font-black">{formatMoney(totalFacturado)}</p>
+        </div>
+        <div className="border border-black p-2 text-center bg-gray-100">
+            <p className="text-[10px] font-bold uppercase">Caja Real (Cobrado)</p>
+            <p className="text-lg font-black">{formatMoney(totalCobrado)}</p>
+        </div>
+        <div className="border border-black p-2 text-center">
+            <p className="text-[10px] font-bold uppercase">Pendiente (Cta. Cte.)</p>
+            <p className="text-lg font-black">{formatMoney(totalFacturado - totalCobrado)}</p>
+        </div>
+    </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Cobros por Método */}
-                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 card-print">
-                    <h2 className="text-white font-bold mb-6 border-l-4 border-green-500 pl-3 no-print">Cobros por Método</h2>
-                    <h2 className="print-only font-bold text-sm mb-4 border-b">Detalle de Cobros</h2>
-                    <div className="space-y-3">
-                        {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
-                            <div key={metodo} className="flex justify-between items-center bg-gray-800/50 p-4 rounded-lg border border-gray-700 card-print">
-                                <span className="text-gray-300 print:text-black">{formatMetodoPago(metodo)}</span>
-                                <span className="text-white print:text-black font-bold font-mono">{formatMoney(total)}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+    {/* TABLA 1: DETALLE DE ÓRDENES REALIZADAS */}
+    <div className="mb-8">
+        <h3 className="font-bold border-b border-black text-xs uppercase mb-2">📋 Detalle de Trabajo (Órdenes)</h3>
+        <table className="w-full text-[10px] border-collapse">
+            <thead>
+                <tr className="bg-gray-100">
+                    <th className="border border-black p-1 text-left">Fecha</th>
+                    <th className="border border-black p-1 text-left">Cliente / Vehículo</th>
+                    <th className="border border-black p-1 text-left">Condición</th>
+                    <th className="border border-black p-1 text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {ordenesActivas.map(o => (
+                    <tr key={o.id}>
+                        <td className="border border-black p-1">{o.fecha}</td>
+                        <td className="border border-black p-1 uppercase">{o.cliente?.nombre || 'Mostrador'} - {o.patente || 'S/P'}</td>
+                        <td className="border border-black p-1">{o.condicion_cobro === 'cuenta_corriente' ? 'Cta. Corriente' : 'Contado'}</td>
+                        <td className="border border-black p-1 text-right">{formatMoney(o.total)}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
 
-                {/* Resumen Operativo */}
-                <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 card-print">
-                    <h2 className="text-white font-bold mb-6 border-l-4 border-blue-500 pl-3 no-print">Estadísticas</h2>
-                    <h2 className="print-only font-bold text-sm mb-4 border-b">Resumen Operativo</h2>
-                    <div className="grid grid-cols-1 gap-4">
-                        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex justify-between items-center card-print">
-                            <span className="text-gray-400 print:text-black uppercase text-xs font-bold">Órdenes Realizadas</span>
-                            <span className="text-2xl font-bold text-white print:text-black">{ordenesActivas.length}</span>
-                        </div>
-                        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 flex justify-between items-center card-print">
-                            <span className="text-gray-400 print:text-black uppercase text-xs font-bold">Total Facturado</span>
-                            <span className="text-xl font-bold text-white print:text-black font-mono">{formatMoney(totalFacturado)}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    {/* TABLA 2: CUENTAS CORRIENTES GENERADAS (Quienes no pagaron hoy) */}
+    {(totalFacturado - totalCobrado) > 0 && (
+        <div className="mb-8">
+            <h3 className="font-bold border-b border-black text-xs uppercase mb-2 text-red-700">⚠️ Deuda Generada en el Periodo</h3>
+            <table className="w-full text-[10px] border-collapse">
+                <thead>
+                    <tr className="bg-gray-100">
+                        <th className="border border-black p-1 text-left">Cliente</th>
+                        <th className="border border-black p-1 text-left">Concepto</th>
+                        <th className="border border-black p-1 text-right">Monto a Cobrar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {ordenesActivas.filter(o => o.condicion_cobro === 'cuenta_corriente').map(o => (
+                        <tr key={o.id}>
+                            <td className="border border-black p-1 font-bold uppercase">{o.cliente?.nombre}</td>
+                            <td className="border border-black p-1">Orden #{o.id} - {o.patente}</td>
+                            <td className="border border-black p-1 text-right font-bold">{formatMoney(o.total)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colSpan="2" className="border border-black p-1 text-right font-bold uppercase">Total a Cobrar:</td>
+                        <td className="border border-black p-1 text-right font-black bg-gray-50">{formatMoney(totalFacturado - totalCobrado)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    )}
+{/* TABLA 3: DETALLE DE GASTOS (Lo que salió de la caja) */}
+{gastos.length > 0 && (
+    <div className="mb-8">
+        <h3 className="font-bold border-b border-black text-xs uppercase mb-2 text-red-600">💸 Detalle de Gastos</h3>
+        <table className="w-full text-[10px] border-collapse">
+            <thead>
+                <tr className="bg-gray-100">
+                    <th className="border border-black p-1 text-left">Fecha</th>
+                    <th className="border border-black p-1 text-left">Concepto / Descripción</th>
+                    <th className="border border-black p-1 text-right">Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {gastos.map(g => (
+                    <tr key={g.id}>
+                        <td className="border border-black p-1">{g.fecha || getRango().desde}</td>
+                        <td className="border border-black p-1 uppercase">{g.descripcion || 'Gasto General'}</td>
+                        <td className="border border-black p-1 text-right">{formatMoney(g.monto)}</td>
+                    </tr>
+                ))}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colSpan="2" className="border border-black p-1 text-right font-bold uppercase">Total Gastos:</td>
+                    <td className="border border-black p-1 text-right font-black">{formatMoney(totalGastos)}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+)}
+
+{/* RESUMEN FINAL PARA EL CIERRE */}
+<div className="mt-4 p-4 border-2 border-black bg-gray-50">
+    <h3 className="text-center font-black uppercase text-sm mb-3">Balance Final de Caja</h3>
+    <div className="space-y-2">
+        <div className="flex justify-between text-xs">
+            <span>(+) TOTAL COBRADO (Efectivo/Transferencias):</span>
+            <span className="font-bold">{formatMoney(totalCobrado)}</span>
+        </div>
+        <div className="flex justify-between text-xs">
+            <span>(-) TOTAL GASTOS PAGADOS:</span>
+            <span className="font-bold text-red-600">{formatMoney(totalGastos)}</span>
+        </div>
+        <div className="flex justify-between border-t border-black pt-2 text-lg font-black">
+            <span>SOBRANTE EN CAJA:</span>
+            <span className="text-blue-700">{formatMoney(totalCobrado - totalGastos)}</span>
+        </div>
+    </div>
+    <p className="text-[8px] mt-4 italic text-center text-gray-600">
+        * Este reporte no incluye deudas pendientes de cobro en el saldo final de caja.
+    </p>
+</div>
+    {/* Espacio para firmas al final del papel */}
+    <div className="mt-10 flex justify-between px-10">
+        <div className="text-center border-t border-black w-32 pt-1 text-[8px] uppercase">Firma Responsable</div>
+        <div className="text-center border-t border-black w-32 pt-1 text-[8px] uppercase">Control General</div>
+    </div>
+</div>
         </MainLayout>
     );
 }
