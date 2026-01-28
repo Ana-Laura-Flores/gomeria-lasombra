@@ -5,6 +5,7 @@ import {
     getGastosPorMes,
     getPagosPorMes,
     getStockDashboard,
+    getClientes, // Asegurate de tener esta función en tu api.js
 } from "../services/api";
 import Card from "../components/Card";
 
@@ -16,10 +17,9 @@ const formatMoney = (v) =>
         maximumFractionDigits: 0
     }).format(Number(v) || 0);
 
-// Limpia la fecha para que no muestre la hora (ej: 2026-01-04)
 const formatSoloFecha = (str) => {
     if (!str) return "---";
-    return str.includes("T") ? str.split("T")[0] : str;
+    return str.split(/T| /)[0];
 };
 
 const getRangoMes = (mes) => {
@@ -31,20 +31,11 @@ const getRangoMes = (mes) => {
     return { desde, hasta };
 };
 
-const normalizarMetodo = (m) => {
-    if (Array.isArray(m)) return m[0]?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
-    return m?.toLowerCase().replace(/\s+/g, "_") || "sin_metodo";
-};
-
-const formatMetodoPago = (m) => {
-    if (!m) return "Sin método";
-    return m.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-};
-
 export default function Dashboard() {
     const [ordenes, setOrdenes] = useState([]);
     const [gastos, setGastos] = useState([]);
     const [pagos, setPagos] = useState([]);
+    const [clientes, setClientes] = useState([]); // Nuevo estado para clientes
     const [productosBajoStock, setProductosBajoStock] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -64,20 +55,22 @@ export default function Dashboard() {
     useEffect(() => {
         const cargar = async () => {
             const { desde, hasta } = getRango();
-            if (modoFiltro === "rango" && (!fechaDesde || !fechaHasta)) return;
-
             setLoading(true);
             try {
-                const [oRes, gRes, pRes, prodRes] = await Promise.all([
+                // Agregamos getClientes() a la carga inicial
+                const [oRes, gRes, pRes, prodRes, cRes] = await Promise.all([
                     getDashboardOrdenes(desde, hasta),
                     getGastosPorMes(desde, hasta),
                     getPagosPorMes(desde, hasta),
                     getStockDashboard(),
+                    getClientes() 
                 ]);
 
                 setOrdenes(oRes.data || []);
                 setGastos(gRes.data || []);
                 setPagos(pRes.data || []);
+                setClientes(cRes.data?.data || cRes.data || []); // Guardamos clientes
+                
                 const listaProd = prodRes.data?.data || prodRes.data || [];
                 setProductosBajoStock(listaProd.filter(p => Number(p.stock) <= 5));
             } catch (e) {
@@ -89,54 +82,45 @@ export default function Dashboard() {
         cargar();
     }, [modoFiltro, fechaDia, mes, fechaDesde, fechaHasta]);
 
+    // Función para buscar el nombre del cliente por ID
+    const obtenerNombreCliente = (id) => {
+        const cliente = clientes.find(c => c.id === id);
+        return cliente ? cliente.nombre : "Consumidor Final";
+    };
+
     const ordenesActivas = ordenes.filter(o => {
         const valorEstado = String(o.estado || "").toLowerCase().trim();
         return valorEstado !== 'anulado' && valorEstado !== 'anulada' && valorEstado !== 'archived';
     });
 
     const totalFacturado = ordenesActivas.reduce((a, o) => a + Number(o.total || 0), 0);
-    const pagosValidos = pagos.filter((p) => {
+    const totalCobrado = pagos.reduce((a, p) => {
         const pagoAnulado = p.anulado === true || p.anulado === 1;
-        const estadoOrdenRelacionada = String(p.orden_trabajo?.estado || "").toLowerCase().trim();
-        return !pagoAnulado && estadoOrdenRelacionada !== 'anulado' && estadoOrdenRelacionada !== 'anulada';
-    });
-
-    const totalCobrado = pagosValidos.reduce((a, p) => a + Number(p.monto || 0), 0);
+        return !pagoAnulado ? a + Number(p.monto || 0) : a;
+    }, 0);
     const totalGastos = gastos.reduce((a, g) => a + Number(g.monto || 0), 0);
-
-    const pagosPorMetodo = pagosValidos.reduce((acc, p) => {
-        const metodo = normalizarMetodo(p.metodo_pago);
-        acc[metodo] = (acc[metodo] || 0) + Number(p.monto);
-        return acc;
-    }, {});
 
     return (
         <MainLayout>
             <style dangerouslySetInnerHTML={{ __html: `
                 @media print {
                     nav, aside, button, select, input, .no-print { display: none !important; }
-                    body { background: white !important; color: black !important; }
-                    .print-only { display: block !important; }
+                    body { background: white !important; color: black !important; margin: 0; padding: 0; }
+                    .print-only { display: block !important; padding: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                    th, td { border: 1px solid black !important; padding: 5px; text-align: left; font-size: 9px; }
+                    th { background-color: #eee !important; text-transform: uppercase; }
                 }
                 .print-only { display: none; }
             `}} />
 
-            {/* VISTA PANTALLA */}
+            {/* --- VISTA PANTALLA (DISEÑO OSCURO ORIGINAL) --- */}
             <div className="no-print">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div className="flex justify-between items-center mb-8 gap-4">
                     <h1 className="text-3xl font-bold text-white uppercase tracking-tight">Dashboard de Gestión</h1>
-                    <div className="flex flex-wrap gap-2 items-center bg-gray-800 p-2 rounded-lg border border-gray-700">
-                        <select value={modoFiltro} onChange={(e) => setModoFiltro(e.target.value)} className="bg-gray-900 text-white rounded px-3 py-1 text-sm outline-none">
-                            <option value="dia">Hoy</option>
-                            <option value="mes">Mes</option>
-                            <option value="rango">Rango</option>
-                        </select>
-                        {modoFiltro === "dia" && <input type="date" value={fechaDia} onChange={(e) => setFechaDia(e.target.value)} className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />}
-                        {modoFiltro === "mes" && <input type="month" value={mes} onChange={(e) => setMes(e.target.value)} className="bg-gray-900 text-white text-sm rounded px-2 outline-none" />}
-                        <button onClick={() => window.print()} className="ml-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg font-black uppercase text-xs">
-                            Imprimir Caja
-                        </button>
-                    </div>
+                    <button onClick={() => window.print()} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-black uppercase text-xs">
+                        Imprimir Reporte
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -145,93 +129,76 @@ export default function Dashboard() {
                     <Card title="Resultado Neto" value={formatMoney(totalCobrado - totalGastos)} color="text-blue-400" />
                     <Card title="Pendiente Cobro" value={formatMoney(totalFacturado - totalCobrado)} color="text-yellow-500" />
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h2 className="text-white font-bold mb-6 border-l-4 border-green-500 pl-3 uppercase text-sm">Cobros por Método</h2>
-                        <div className="space-y-3">
-                            {Object.entries(pagosPorMetodo).map(([metodo, total]) => (
-                                <div key={metodo} className="flex justify-between items-center bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-                                    <span className="text-gray-300">{formatMetodoPago(metodo)}</span>
-                                    <span className="text-white font-bold font-mono">{formatMoney(total)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 flex flex-col justify-center items-center">
-                        <span className="text-gray-400 uppercase text-xs font-bold">Órdenes Realizadas</span>
-                        <span className="text-6xl font-black text-white">{ordenesActivas.length}</span>
-                    </div>
-                </div>
             </div>
 
-            {/* VISTA IMPRESIÓN */}
-            <div className="print-only text-black bg-white p-4">
-                <div className="text-center border-b-2 border-black mb-6 pb-4">
-                    <h1 className="text-2xl font-bold uppercase">Gomería La Sombra</h1>
-                    <p className="font-bold uppercase">Reporte de Caja</p>
-                    <p className="text-xs italic">Período: {getRango().desde} al {getRango().hasta}</p>
+            {/* --- VISTA IMPRESIÓN (EL REPORTE) --- */}
+            <div className="print-only">
+                <div style={{ textAlign: 'center', borderBottom: '2px solid black', paddingBottom: '10px', marginBottom: '20px' }}>
+                    <h1 style={{ fontSize: '24px', margin: 0 }}>GOMERÍA LA SOMBRA</h1>
+                    <p style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>Cierre de Caja: {formatSoloFecha(getRango().desde)} al {formatSoloFecha(getRango().hasta)}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="border border-black p-3">
-                        <p className="text-[10px] font-bold uppercase border-b mb-2">Resumen de Caja</p>
-                        <div className="flex justify-between text-xs"><span>(+) Cobrado:</span> <b>{formatMoney(totalCobrado)}</b></div>
-                        <div className="flex justify-between text-xs"><span>(-) Gastos:</span> <b>{formatMoney(totalGastos)}</b></div>
-                        <div className="flex justify-between text-sm border-t mt-1 font-bold"><span>TOTAL CAJA:</span> <b>{formatMoney(totalCobrado - totalGastos)}</b></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                    <div style={{ border: '1px solid black', padding: '10px' }}>
+                        <p style={{ fontWeight: 'bold', fontSize: '10px', borderBottom: '1px solid black', marginBottom: '5px' }}>RESUMEN FINANCIERO</p>
+                        <p>Total Cobrado: <b>{formatMoney(totalCobrado)}</b></p>
+                        <p>Total Gastos: <b>{formatMoney(totalGastos)}</b></p>
+                        <p style={{ fontSize: '14px', borderTop: '1px solid black', marginTop: '5px' }}>SALDO: <b>{formatMoney(totalCobrado - totalGastos)}</b></p>
                     </div>
-                    <div className="border border-black p-3">
-                        <p className="text-[10px] font-bold uppercase border-b mb-2">Estado de Ventas</p>
-                        <div className="flex justify-between text-xs"><span>Órdenes:</span> <b>{ordenesActivas.length}</b></div>
-                        <div className="flex justify-between text-xs"><span>Facturado:</span> <b>{formatMoney(totalFacturado)}</b></div>
-                        <div className="flex justify-between text-xs text-red-600"><span>Pendiente:</span> <b>{formatMoney(totalFacturado - totalCobrado)}</b></div>
+                    <div style={{ border: '1px solid black', padding: '10px' }}>
+                        <p style={{ fontWeight: 'bold', fontSize: '10px', borderBottom: '1px solid black', marginBottom: '5px' }}>ESTADO COMERCIAL</p>
+                        <p>Cant. Órdenes: <b>{ordenesActivas.length}</b></p>
+                        <p>Total Facturado: <b>{formatMoney(totalFacturado)}</b></p>
+                        <p>Pend. Cobro: <b>{formatMoney(totalFacturado - totalCobrado)}</b></p>
                     </div>
                 </div>
 
-                <h3 className="font-bold text-[10px] uppercase border-b border-black mb-2">Detalle de Órdenes</h3>
-                <table className="w-full text-[9px] mb-6 border-collapse">
+                <p style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '5px' }}>DETALLE DE OPERACIONES</p>
+                <table>
                     <thead>
-                        <tr className="bg-gray-100 border border-black">
-                            <th className="p-1 border border-black text-left">NRO</th>
-                            <th className="p-1 border border-black text-left">FECHA</th>
-                            <th className="p-1 border border-black text-left">CLIENTE</th>
-                            <th className="p-1 border border-black text-left">PATENTE</th>
-                            <th className="p-1 border border-black text-right">TOTAL</th>
+                        <tr>
+                            <th>Nro Comp.</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Patente</th>
+                            <th>Pago</th>
+                            <th style={{ textAlign: 'right' }}>Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {ordenesActivas.map(o => (
                             <tr key={o.id}>
-                                <td className="p-1 border border-black">#{o.id}</td>
-                                <td className="p-1 border border-black">{formatSoloFecha(o.fecha)}</td>
-                                <td className="p-1 border border-black uppercase">{o.cliente?.nombre || o.cliente_nombre || 'Mostrador'}</td>
-                                <td className="p-1 border border-black uppercase">{o.patente || o.vehiculo?.patente || 'S/P'}</td>
-                                <td className="p-1 border border-black text-right">{formatMoney(o.total)}</td>
+                                <td>{o.comprobante || o.id}</td>
+                                <td>{formatSoloFecha(o.fecha)}</td>
+                                <td style={{ fontWeight: 'bold' }}>{obtenerNombreCliente(o.cliente).trim()}</td>
+                                <td style={{ textTransform: 'uppercase' }}>{o.patente || 'S/P'}</td>
+                                <td style={{ fontSize: '8px' }}>{(o.condicion_cobro || 'CONTADO').replace('_', ' ').toUpperCase()}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatMoney(o.total)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
                 {gastos.length > 0 && (
-                    <>
-                        <h3 className="font-bold text-[10px] uppercase border-b border-black mb-2">Detalle de Gastos</h3>
-                        <table className="w-full text-[9px] border-collapse">
+                    <div style={{ marginTop: '20px' }}>
+                        <p style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '5px' }}>DETALLE DE GASTOS</p>
+                        <table>
                             <thead>
-                                <tr className="bg-gray-100 border border-black text-left">
-                                    <th className="p-1 border border-black">DESCRIPCIÓN</th>
-                                    <th className="p-1 border border-black text-right">MONTO</th>
+                                <tr>
+                                    <th>Descripción / Concepto</th>
+                                    <th style={{ textAlign: 'right' }}>Monto</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {gastos.map(g => (
                                     <tr key={g.id}>
-                                        <td className="p-1 border border-black uppercase">{g.descripcion || g.nombre || g.categoria || 'Gasto'}</td>
-                                        <td className="p-1 border border-black text-right">{formatMoney(g.monto)}</td>
+                                        <td style={{ textTransform: 'uppercase' }}>{g.descripcion || g.nombre || "Gasto Gral"}</td>
+                                        <td style={{ textAlign: 'right' }}>{formatMoney(g.monto)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                    </>
+                    </div>
                 )}
             </div>
         </MainLayout>
