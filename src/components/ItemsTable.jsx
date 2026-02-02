@@ -96,7 +96,7 @@ export default function ItemsTable({
             <tbody>
                 {itemsOrden.map((item) => {
                     // Verificamos si este item es el "Saldo anterior"
-                    const esSaldoAnterior = item.tarifa === ID_SALDO_ANTERIOR;
+                  const esSaldoAnterior = item.tarifa == ID_SALDO_ANTERIOR || item.tarifa_id == ID_SALDO_ANTERIOR;
 
                     return (
                         <tr key={item.id} className="border-b border-gray-800">
