@@ -478,8 +478,9 @@ export const getGastosPorMes = async (desde, hasta) => {
   const desdeISO = desde.includes("T") ? desde : `${desde}T00:00:00`;
   const hastaISO = hasta.includes("T") ? hasta : `${hasta}T23:59:59`;
 
+  // AGREGAMOS "concepto" a la lista de fields
   return apiFetch(
-    `gastos?fields=id,monto,fecha,metodo_pago&filter[fecha][_between]=${desdeISO},${hastaISO}`
+    `gastos?fields=id,monto,fecha,metodo_pago,concepto&filter[fecha][_between]=${desdeISO},${hastaISO}`
   );
 };
 
