@@ -95,80 +95,86 @@ export default function ItemsTable({
             </thead>
             <tbody>
                 {itemsOrden.map((item) => {
-                    // Verificamos si este item es el "Saldo anterior"
-                  const esSaldoAnterior = item.tarifa == ID_SALDO_ANTERIOR || item.tarifa_id == ID_SALDO_ANTERIOR;
+    // PRUEBA DE FUERZA BRUTA: Comparamos ID de tarifa y también por nombre por si el ID falla
+    const esSaldoAnterior = 
+        String(item.tarifa) === ID_SALDO_ANTERIOR || 
+        item.nombre === "Saldo anterior";
 
-                    return (
-                        <tr key={item.id} className="border-b border-gray-800">
-                            <td className="p-2 space-y-2 w-1/2">
-                                <select
-                                    className="w-full p-1 bg-gray-900 border border-gray-700 rounded text-sm text-white"
-                                    value={item.tipo_item}
-                                    onChange={(e) => cambiarTipoItem(item.id, e.target.value)}
-                                >
-                                    <option value="servicio">Servicio</option>
-                                    <option value="producto">Producto</option>
-                                </select>
+    return (
+        <tr key={item.id} className="border-b border-gray-800">
+            <td className="p-2 space-y-2 w-1/2">
+                <select
+                    className="w-full p-1 bg-gray-900 border border-gray-700 rounded text-sm text-white"
+                    value={item.tipo_item}
+                    onChange={(e) => cambiarTipoItem(item.id, e.target.value)}
+                >
+                    <option value="servicio">Servicio</option>
+                    <option value="producto">Producto</option>
+                </select>
 
-                                {item.tipo_item === "servicio" ? (
-                                    <select
-                                        className="w-full p-1 bg-gray-800 border border-gray-700 rounded text-sm text-white"
-                                        value={item.tarifa || ""}
-                                        onChange={(e) => seleccionarServicio(item.id, e.target.value)}
-                                    >
-                                        <option value="">Seleccionar servicio</option>
-                                        {itemsDisponibles.map((s) => (
-                                            <option key={s.id} value={s.id}>
-                                                {s.servicio} {s.precio > 0 ? `- $${s.precio}` : ""}
-                                            </option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <select
-                                        className="w-full p-1 bg-gray-800 border border-gray-700 rounded text-sm text-white"
-                                        value={item.producto || ""}
-                                        onChange={(e) => seleccionarProducto(item.id, e.target.value)}
-                                    >
-                                        <option value="">Seleccionar producto</option>
-                                        {productosDisponibles.map((p) => (
-                                            <option key={p.id} value={p.id}>{p.nombre}</option>
-                                        ))}
-                                    </select>
-                                )}
-                            </td>
+                {item.tipo_item === "servicio" ? (
+                    <select
+                        className="w-full p-1 bg-gray-800 border border-gray-700 rounded text-sm text-white"
+                        value={item.tarifa || ""}
+                        onChange={(e) => seleccionarServicio(item.id, e.target.value)}
+                    >
+                        <option value="">Seleccionar servicio</option>
+                        {itemsDisponibles.map((s) => (
+                            <option key={s.id} value={s.id}>
+                                {s.servicio} {s.precio > 0 ? `- $${s.precio}` : ""}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <select
+                        className="w-full p-1 bg-gray-800 border border-gray-700 rounded text-sm text-white"
+                        value={item.producto || ""}
+                        onChange={(e) => seleccionarProducto(item.id, e.target.value)}
+                    >
+                        <option value="">Seleccionar producto</option>
+                        {productosDisponibles.map((p) => (
+                            <option key={p.id} value={p.id}>{p.nombre}</option>
+                        ))}
+                    </select>
+                )}
+            </td>
 
-                            <td className="p-2">
-                                <input
-                                    type="number"
-                                    className="w-16 p-1 bg-gray-800 border border-gray-700 rounded text-white"
-                                    value={item.cantidad}
-                                    onChange={(e) => actualizarItem(item.id, "cantidad", Number(e.target.value))}
-                                />
-                            </td>
+            <td className="p-2">
+                <input
+                    type="number"
+                    className="w-16 p-1 bg-gray-800 border border-gray-700 rounded text-white"
+                    value={item.cantidad}
+                    onChange={(e) => actualizarItem(item.id, "cantidad", Number(e.target.value))}
+                />
+            </td>
 
-                            <td className="p-2">
-                                {esSaldoAnterior ? (
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-yellow-500">$</span>
-                                        <input
-                                            type="number"
-                                            className="w-24 p-1 bg-yellow-900/20 border border-yellow-600 rounded text-white font-bold"
-                                            value={item.precio_unitario}
-                                            onChange={(e) => actualizarItem(item.id, "precio_unitario", Number(e.target.value))}
-                                            placeholder="0.00"
-                                        />
-                                    </div>
-                                ) : (
-                                    <span className="text-gray-300 font-mono">$ {item.precio_unitario}</span>
-                                )}
-                            </td>
+            <td className="p-2">
+                {/* Si es Saldo Anterior, mostramos el INPUT editable */}
+                {esSaldoAnterior ? (
+                    <div className="flex items-center gap-1">
+                        <span className="text-yellow-400 font-bold">$</span>
+                        <input
+                            type="number"
+                            autoFocus
+                            className="w-32 p-1 bg-gray-700 border-2 border-yellow-500 rounded text-white font-bold outline-none"
+                            value={item.precio_unitario}
+                            onChange={(e) => actualizarItem(item.id, "precio_unitario", Number(e.target.value))}
+                            onFocus={(e) => e.target.select()}
+                        />
+                    </div>
+                ) : (
+                    <span className="text-gray-300 font-mono">
+                        $ {item.precio_unitario || 0}
+                    </span>
+                )}
+            </td>
 
-                            <td className="p-2 text-right font-bold text-white">
-                                $ {item.subtotal.toLocaleString()}
-                            </td>
-                        </tr>
-                    );
-                })}
+            <td className="p-2 text-right font-bold text-white font-mono">
+                $ {(item.subtotal || 0).toLocaleString()}
+            </td>
+        </tr>
+    );
+})}
             </tbody>
         </table>
     );
