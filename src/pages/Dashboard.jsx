@@ -69,9 +69,10 @@ export default function Dashboard() {
                     getStockDashboard(),
                 ]);
 
-                setOrdenes(oRes.data || []);
-                setGastos(gRes.data || []);
-                setPagos(pRes.data || []);
+                setOrdenes(oRes.data?.data || oRes.data || []);
+                // Ajuste para capturar gastos correctamente si vienen en data.data
+                setGastos(gRes.data?.data || gRes.data || []);
+                setPagos(pRes.data?.data || pRes.data || []);
 
                 const listaProd = prodRes.data?.data || prodRes.data || [];
                 setProductosBajoStock(listaProd.filter(p => Number(p.stock) <= 5));
@@ -262,7 +263,10 @@ export default function Dashboard() {
                             {gastos.map(g => (
                                 <tr key={g.id}>
                                     <td>{g.fecha}</td>
-                                    <td style={{ textTransform: 'uppercase' }}>{g.concepto || "Sin descripción"}</td>
+                                    {/* CORRECCIÓN AQUÍ: Se asegura de leer g.concepto */}
+                                    <td style={{ textTransform: 'uppercase' }}>
+                                        {g.concepto || g.descripcion || "Sin descripción"}
+                                    </td>
                                     <td className="text-right">{formatMoney(g.monto)}</td>
                                 </tr>
                             ))}

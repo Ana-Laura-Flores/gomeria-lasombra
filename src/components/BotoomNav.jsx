@@ -17,7 +17,7 @@ export default function BottomNav() {
                     <Link
                         to="/dashboard"
                         className={`flex flex-col items-center text-sm ${isActive(
-                            "/dashboard"
+                            "/dashboard",
                         )}`}
                     >
                         📊
@@ -31,7 +31,7 @@ export default function BottomNav() {
                     <Link
                         to="/ordenes"
                         className={`flex flex-col items-center text-sm ${isActive(
-                            "/ordenes"
+                            "/ordenes",
                         )}`}
                     >
                         📋
@@ -41,7 +41,7 @@ export default function BottomNav() {
                     <Link
                         to="/ordenes/nueva"
                         className={`flex flex-col items-center text-sm ${isActive(
-                            "/ordenes/nueva"
+                            "/ordenes/nueva",
                         )}`}
                     >
                         ➕<span>Nueva</span>
@@ -49,44 +49,45 @@ export default function BottomNav() {
                     <Link
                         to="/cuenta-corriente"
                         className={`flex flex-col items-center text-sm ${isActive(
-                            "/cuenta-corriente"
+                            "/cuenta-corriente",
                         )}`}
                     >
                         📒
                         <span>Cuenta</span>
                     </Link>
-                     {/* 🆕 CLIENTES */}
-          <Link
-            to="/clientes"
-            className={`flex flex-col items-center text-sm ${isActive("/clientes")}`}
-          >
-            👥
-            <span>Clientes</span>
-          </Link>
+                    {/* 🆕 CLIENTES */}
+                    <Link
+                        to="/clientes"
+                        className={`flex flex-col items-center text-sm ${isActive("/clientes")}`}
+                    >
+                        👥
+                        <span>Clientes</span>
+                    </Link>
+
+                    <Link
+                        to="/precios"
+                        className={`flex flex-col items-center text-sm ${isActive("/precios")}`}
+                    >
+                        🏷️
+                        <span>Precios</span>
+                    </Link>
+                </>
+            )}
+
+            {/* SOLO EMPLEADO */}
+            {user?.role === ROLES.EMPLEADO && (
+                <>
                     <Link
                         to="/gastos/nuevo"
                         className={`flex flex-col items-center text-sm ${isActive(
-                            "/gastos/nuevo"
+                            "/gastos/nuevo",
                         )}`}
                     >
                         💸
                         <span>Nuevo gasto</span>
                     </Link>
-                    <Link
-  to="/precios"
-  className={`flex flex-col items-center text-sm ${isActive("/precios")}`}
->
-  🏷️
-  <span>Precios</span>
-</Link>
-
                 </>
             )}
-
-            {/* SOLO EMPLEADO
-      {user?.role === ROLES.EMPLEADO && (
-       
-      )} */}
 
             {/* SOLO ADMIN */}
             {user?.role === ROLES.ADMIN && (
@@ -94,7 +95,7 @@ export default function BottomNav() {
                     <Link
                         to="/gastos"
                         className={`flex flex-col items-center text-sm ${isActive(
-                            "/gastos"
+                            "/gastos",
                         )}`}
                     >
                         💸

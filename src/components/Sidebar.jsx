@@ -29,6 +29,8 @@ export default function Sidebar() {
                     </>
                 )}
 
+             
+
                 {(user?.role === ROLES.ADMIN ||
                     user?.role === ROLES.EMPLEADO) && (
                     <>
@@ -45,12 +47,7 @@ export default function Sidebar() {
                         >
                             Nueva Orden
                         </Link>
-                        <Link
-                            to="/gastos/nuevo"
-                            className="block px-4 py-2 rounded hover:bg-gray-700"
-                        >
-                            Nuevo gasto
-                        </Link>
+                      
                         <Link
                             to="/cuenta-corriente"
                             className="block px-4 py-2 rounded hover:bg-gray-700"
@@ -71,6 +68,16 @@ export default function Sidebar() {
                         </Link>
                     </>
                 )}
+                {(user?.role === ROLES.EMPLEADO) && (
+                    <>
+                      <Link
+                            to="/gastos/nuevo"
+                            className="block px-4 py-2 rounded hover:bg-gray-700"
+                        >
+                            Nuevo gasto
+                        </Link>
+                        </>
+                    )}   
               
             </nav>
         </aside>
